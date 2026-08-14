@@ -205,3 +205,75 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# ---------------------------------------------------------------------------
+# R
+# ---------------------------------------------------------------------------
+
+# History and session data
+.Rhistory
+.Rapp.history
+.RData
+.RDataTmp
+.Ruserdata
+
+# Session-specific / example code from packages
+.Rproj.user/
+*.Rproj.user
+.Renviron
+.Rprofile.user
+
+# RStudio Connect / shiny deployment metadata
+rsconnect/
+
+# R package build artifacts
+*.Rcheck/
+.Rcheck/
+*.tar.gz
+src/*.o
+src/*.so
+src/*.dll
+src/*.dylib
+
+# knitr / R Markdown / Quarto intermediates
+*_cache/
+/cache/
+*_files/
+*.utf8.md
+*.knit.md
+*.markdown
+.quarto/
+/_site/
+/_book/
+/_freeze/
+
+# Sweave / LaTeX byproducts
+*-concordance.tex
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+*.toc
+
+# Vignette and doc output
+vignettes/*.html
+vignettes/*.pdf
+/doc/
+/Meta/
+
+# renv library (keep renv.lock and settings under version control)
+renv/library/
+renv/local/
+renv/cellar/
+renv/lock/
+renv/python/
+renv/sandbox/
+renv/staging/
+
+# Package manager caches
+.Rproj.user
+packrat/lib*/
+packrat/src/
