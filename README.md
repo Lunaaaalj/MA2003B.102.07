@@ -2,7 +2,7 @@
 
 Este es un repositorio dedicado a la realización del proyecto del curso de Aplicación de Métodos Multivariados en ciencia de datos por parte del equipo 7 del grupo 102 del Tecnológico de Monterrey.
 
-> Toma en cuenta que este `README.md` deberá ser reescrito para escribir resumen del proyecto y del repositorio, esta guia de collaboration sera agregada a un `CONTRIBUTING.md`.
+> Toma en cuenta que este `README.md` deberá ser reescrito para escribir resumen del proyecto y del repositorio, esta guía de colaboración será movida a un `CONTRIBUTING.md`.
 
 ## Importante para los miembros del equipo
 
@@ -45,9 +45,7 @@ gh pr create --draft --base main --title "feat: analisis de componentes principa
 
 Desde la web: después del `push`, entra al repo en GitHub y te va a aparecer un banner con el botón **Compare & pull request**. Si no aparece, ve a la pestaña **Pull requests** → **New pull request**, elige `main` como base y tu branch como compare. Escribe el título, pon `Closes #10` en el body, y en el botón verde abre el menú y selecciona **Create draft pull request**.
 
-En este caso `Closes #10` "10" seria el numero asignado a la issue.
-
-En este caso `Closes #10` "10" seria el numero asignado a la issue.
+En `Closes #10`, el "10" sería el número asignado a la issue del paso 1. Ponerlo en el body hace que la issue se cierre sola cuando la PR se mergee. El modo draft nos hace saber al equipo que el trabajo está en progreso, mientras nos permite ver y discutir los avances.
 
 **5. Sigue haciendo commits y push.** Cada vez que juntes un conjunto significativo de commits, haz push a tu branch. Copilot va a ir revisando la PR y dejando comentarios.
 
@@ -64,7 +62,7 @@ git merge main
 
 Resuelve los conflictos ahí en tu branch, haz commit y push.
 
-**8. Merge.** Una vez aprobada y con todas las conversaciones resueltas, la PR se mergea con el botón **Merge pull request**. Nadie mergea a `main` desde su maquina, siempre es por PR.
+**8. Merge.** Una vez aprobada y con todas las conversaciones resueltas, la PR se mergea con el botón **Merge pull request**. Nadie mergea a `main` desde su máquina, siempre es por PR.
 
 ### Convenciones de commits
 
@@ -90,14 +88,13 @@ La misma convención aplica para los nombres de branches: `feat/analisis-pca`, `
 
 ### Las reglas
 
-- NO hagas rebase, ni rebase merging. Si tu branch se atrasó respecto a `main`, usa `git merge main` como está explicado arriba. Si algo se enreda, pregunta antes de tocar el historial.
-- NO puedes hacer pushes directos a `main`. Siempre antes de hacer commit de tus cambios asegúrate de haber hecho `switch` a otra branch, y de esa branch abres la Pull Request al `main`. Si haces commits en tu `main` local e intentas hacer un push al `origin main`, el remoto te va a detener y vas a estar atorado con commits en tu `main` local.
-- Antes de crear una nueva branch para trabajar en algo, asegúrate de crear o asignarte a una issue que explique el objetivo de tu branch.
-- Al hacer el/los primeros commits de tu nueva branch, inmediatamente abre una Pull Request en modo draft, y pon en el body de la PR cuál issue se resuelve, usa `Closes #10`, por ejemplo para la issue número 10. El modo draft nos hace saber al equipo que el trabajo está en progreso mientras nos permite ver y discutir los avances.
-- Usa commits atómicos, es decir, un commit por cada cambio lógico o bloque de código. No hagas todo de una y luego un solo commit, ni tampoco un commit por cada pedacito de código que escribas: que sea una pieza de trabajo lógica significativa, que aborde exactamente lo que el mensaje del commit indica.
-- Haz push a tu branch cada vez que juntes un conjunto significativo de commits, porque Copilot va a revisar la Pull Request y les va a hacer comentarios y recomendaciones. Tomen esos comentarios en cuenta para evitar bugs, errores en los modelos y mejorar la calidad del proyecto en general.
-- Mergear una PR a `main` requiere que se resuelvan todas las conversaciones y comentarios, y que se apruebe la Pull Request.
-- Si haces un nuevo push después de una aprobación, esta aprobación se eliminará y la PR tendrá que revisarse de nuevo.
+El workflow de arriba ya cubre el día a día. Esto es lo que no se negocia:
+
+- NO hagas rebase, ni rebase merging. Si tu branch se atrasó respecto a `main`, actualízala con merge como está explicado en el paso 7. Si algo se enreda, pregunta antes de tocar el historial.
+- NO puedes hacer pushes directos a `main`. Si haces commits en tu `main` local e intentas hacer un push al `origin main`, el remoto te va a detener y vas a estar atorado con commits en tu `main` local (para salir de eso, ve la sección de abajo).
+- Usa commits atómicos. No hagas todo de una y luego un solo commit, ni tampoco un commit por cada pedacito de código que escribas: que sea una pieza de trabajo lógica significativa, que aborde exactamente lo que el mensaje del commit indica.
+- Tomen en cuenta los comentarios de Copilot en las PRs, para evitar bugs, errores en los modelos y mejorar la calidad del proyecto en general.
+- Mergear una PR a `main` requiere que se resuelvan todas las conversaciones y comentarios, y que se apruebe la Pull Request. Si haces un nuevo push después de una aprobación, esta aprobación se eliminará y la PR tendrá que revisarse de nuevo.
 - Puedes hacer force pushes en tus branches personales, pero no es recomendable. Si lo llegas a necesitar, usa `git push --force-with-lease` y nunca sobre una branch en la que esté trabajando alguien más.
 
 ### Me atoré, ¿qué hago?
