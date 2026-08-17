@@ -117,6 +117,8 @@ git switch -c feat/mi-trabajo
 
 Este repositorio también será el lugar principal para trabajar en los reportes en LaTeX. Es un poco más complicado que otras plataformas (como Overleaf), donde todos escriben sobre el mismo archivo al mismo tiempo. Aquí cada quien trabaja en su branch, así que hay que tener cuidado para no pisarnos.
 
+El reporte ya está armado en [`reports/`](reports/), y se compila con `latexmk -pdf main.tex` desde esa carpeta.
+
 **1. Toma una issue.** Cada sección del reporte que haya que trabajar va a estar especificada en una issue. Crea la issue o asígnate a una antes que nada.
 
 **2. Sigue el workflow normal.** Branch nueva desde `main` actualizado, commits atómicos, PR en draft, etc. Todo lo de la sección de arriba aplica igual.
