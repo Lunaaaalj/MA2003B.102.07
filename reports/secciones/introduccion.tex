@@ -1,0 +1,34 @@
+% =============================================================================
+%  Seccion: Introduccion
+%
+%  OJO: este archivo NO lleva \documentclass, \begin{document} ni preambulo.
+%  main.tex lo mete con \input, asi que aqui solo va texto y comandos de
+%  contenido. Si necesitas un paquete nuevo, pidelo en la issue de main.tex:
+%  no lo agregues aqui.
+%
+%  El contenido de abajo es de EJEMPLO, para mostrar como se escribe cada cosa.
+%  Borralo cuando escribas la seccion de verdad.
+% =============================================================================
+
+\section{Introduccion}\label{sec:introduccion}
+
+Aqui se plantea el problema y por que importa. Un parrafo para el contexto, uno
+para la pregunta de investigacion y uno para decir como esta organizado el
+reporte.
+
+Asi se cita a un autor como parte de la frase: \textcite{jolliffe2002} describe
+el analisis de componentes principales como una rotacion de los ejes hacia las
+direcciones de maxima varianza. Y asi se cita entre parentesis, cuando la cita
+respalda la afirmacion pero no es el sujeto \parencite{hastie2009}. Tambien se
+pueden encadenar varias \parencite{jolliffe2002,hastie2009}.
+
+Las comillas se ponen con \verb|\enquote{}| para que salgan como manda el
+idioma: \enquote{reduccion de dimensionalidad}. Nunca escribas
+\verb|"asi"| directamente.
+
+El reporte sigue esta estructura: los datos se describen en
+\cref{sec:datos}, el metodo en \cref{sec:metodologia}, los hallazgos en
+\cref{sec:resultados} y el cierre en \cref{sec:conclusiones}. Fijate que
+\verb|\cref| pone solo la palabra \enquote{seccion}; no hay que teclearla.
+Al inicio de una oracion se usa \verb|\Cref| con mayuscula, como aqui:
+\Cref{sec:datos} explica de donde salieron los datos.

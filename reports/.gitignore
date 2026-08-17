@@ -1,0 +1,28 @@
+# Archivos auxiliares de LaTeX
+# Se regeneran en cada compilacion, no tiene caso versionarlos y son una
+# fuente garantizada de conflictos de merge si se suben.
+
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.run.xml
+*.spl
+*.synctex.gz
+*.toc
+*.nav
+*.snm
+*.vrb
+*.xdv
+
+# El PDF compilado tampoco se versiona: cada quien lo genera con
+#   latexmk -pdf main.tex
+# Si al final quieren subir la entrega final, se hace con
+#   git add -f reports/main.pdf
+main.pdf
