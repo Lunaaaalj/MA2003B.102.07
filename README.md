@@ -113,4 +113,35 @@ git reset --hard origin/main    # tu main queda igual al del remoto
 git switch -c feat/mi-trabajo
 ```
 
+## Workflow para los reportes
+
+Este repositorio también será el lugar principal para trabajar en los reportes en LaTeX. Es un poco más complicado que otras plataformas (como Overleaf), donde todos escriben sobre el mismo archivo al mismo tiempo. Aquí cada quien trabaja en su branch, así que hay que tener cuidado para no pisarnos.
+
+El reporte ya está armado en [`reports/`](reports/), y se compila con `latexmk -pdf main.tex` desde esa carpeta.
+
+**1. Toma una issue.** Cada sección del reporte que haya que trabajar va a estar especificada en una issue. Crea la issue o asígnate a una antes que nada.
+
+**2. Sigue el workflow normal.** Branch nueva desde `main` actualizado, commits atómicos, PR en draft, etc. Todo lo de la sección de arriba aplica igual.
+
+**3. NO hagas más ni menos de lo que dice la issue.** Si escribes de más, es muy probable que te cruces con lo que otra persona está trabajando en su propia issue, y eso se traduce en conflictos de merge sobre el mismo archivo.
+
+**4. Escribe el reporte modularmente.** Esta es la regla más importante para evitar conflictos. **No escribas tu texto directamente en `main.tex`.** Crea un archivo aparte para tu sección y desde `main.tex` solo insértalo:
+
+```latex
+% main.tex
+\begin{document}
+\input{secciones/introduccion}
+\input{secciones/metodologia}
+\input{secciones/resultados}
+\end{document}
+```
+
+Así `main.tex` casi nunca cambia (solo cuando se agrega una sección nueva), y cada quien es dueño de su propio archivo. Dos personas trabajando en secciones distintas ya no tocan las mismas líneas.
+
+> `\input{archivo}` le dice al compilador "copia y pega aquí el contenido de ese archivo". Nota que **no lleva la extensión `.tex`**: se escribe `\input{secciones/metodologia}`, no `\input{secciones/metodologia.tex}`.
+>
+> Vas a ver también `\include{}`, que es parecido pero mete un salto de página forzado antes y después, y no se puede anidar (un archivo incluido no puede incluir a otro). Sirve para capítulos completos, no para secciones. Para nuestro caso, usa `\input`.
+
+**5. Agrega tus referencias en `references.bib`.** En formato BibLaTeX, y solo las tuyas. Ojo: este archivo sí es compartido, así que **agrega tus entradas al final** en lugar de reacomodar las que ya están; si insertas en medio o reordenas, git lo va a ver como conflicto.
+
 Cualquier otra cosa, pregunta en el chat del equipo antes de correr comandos que no conozcas.

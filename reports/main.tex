@@ -1,0 +1,124 @@
+% =============================================================================
+%  main.tex - preambulo, portada y \input de las secciones.
+%
+%  ESTE ARCHIVO ES DE TODO EL EQUIPO. Casi nunca debe cambiar: solo se toca
+%  para agregar una seccion nueva al final (un \input mas).
+%  Tu texto va en secciones/<tu-seccion>.tex.
+%
+%  Compilar desde esta carpeta:   latexmk        (el .latexmkrc ya hace el resto)
+% =============================================================================
+
+% nonatbib: elsarticle carga natbib por default y natbib es INCOMPATIBLE con
+% biblatex. Esta opcion le dice a la clase que no lo cargue.
+% 5p = formato Elsevier a dos columnas. Si lo quieren a una columna, cambien
+% 5p por 3p y no hay que tocar nada mas.
+\documentclass[5p,nonatbib]{elsarticle}
+
+% --- Quitar el pie de pagina "Preprint submitted to Elsevier" -----------------
+% No estamos mandando esto a una revista, es un reporte de clase.
+\makeatletter
+\def\ps@pprintTitle{%
+  \let\@oddhead\@empty
+  \let\@evenhead\@empty
+  \let\@oddfoot\@empty
+  \let\@evenfoot\@empty}
+\makeatother
+
+% --- Codificacion y tipografia -----------------------------------------------
+\usepackage[T1]{fontenc}      % acentos y "ñ" como un solo glifo (permite copiar
+                              % texto del PDF y que la division silabica sirva)
+\usepackage[utf8]{inputenc}   % el .tex se escribe en UTF-8
+\usepackage{lmodern}          % Computer Modern en version vectorial (Latin Modern).
+                              % Es la MISMA tipografia de LaTeX de siempre, pero
+                              % sin los bitmaps borrosos que salen con T1 + cm.
+                              % Ojo: NO usar la opcion [times] de la clase.
+
+\usepackage{microtype}        % micro-ajustes de espaciado; menos renglones feos
+
+% A dos columnas las columnas son angostas y una palabra larga sin guiones
+% (una ruta como references.bib, o un \verb) se sale del margen. Esto deja que
+% LaTeX estire un poco los espacios antes de rendirse y desbordar.
+\emergencystretch=2em
+
+% --- Idioma ------------------------------------------------------------------
+% Los ajustes de babel-spanish NO se pueden poner como opciones de \usepackage:
+% babel leeria "es-tabla" como si fuera un idioma y truena. Van aqui, en
+% \spanishoptions, ANTES de cargar babel.
+%   es-tabla        -> "Tabla 1" en vez de "Cuadro 1"
+%   es-nodecimaldot -> deja el punto decimal en matematicas (12.46 y no 12,46),
+%                      porque asi salen los numeros de pandas/R
+%   es-noquoting    -> evita que babel se pelee con otros paquetes por comillas
+\def\spanishoptions{es-tabla,es-nodecimaldot,es-noquoting}
+\usepackage[spanish]{babel}
+\usepackage{csquotes}         % \enquote{...} -> «...» segun el idioma activo
+
+% --- Matematicas -------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+% --- Tablas y figuras --------------------------------------------------------
+\usepackage{booktabs}         % \toprule \midrule \bottomrule (tablas sin lineas
+                              % verticales, que es el estilo correcto)
+\usepackage{multirow}
+\usepackage{graphicx}
+\graphicspath{{figuras/}}     % con esto basta \includegraphics{archivo.pdf}
+
+% --- Bibliografia (biblatex + biber) -----------------------------------------
+% style=authoryear -> (Jolliffe, 2002) en el texto.
+% Para citas numericas [1], cambien authoryear por numeric-comp.
+\usepackage[backend=biber,style=authoryear,sorting=nyt,maxbibnames=99]{biblatex}
+\addbibresource{references.bib}
+
+% --- Referencias cruzadas (SIEMPRE hasta el final) ---------------------------
+\usepackage{hyperref}
+\usepackage[spanish]{cleveref} % \cref{fig:x} escribe solo "Figura 1"
+
+% cleveref en español dice "apartado 2"; en un reporte queremos "Sección 2".
+% \cref -> minuscula (a media oracion), \Cref -> mayuscula (al inicio).
+\crefname{section}{sección}{secciones}
+\Crefname{section}{Sección}{Secciones}
+\crefname{equation}{ecuación}{ecuaciones}
+\Crefname{equation}{Ecuación}{Ecuaciones}
+
+% --- Textos de la portada en español ----------------------------------------
+% elsarticle trae "Abstract" y "Keywords" escritos a fuerza en ingles;
+% la clase deja estos dos ganchos para cambiarlos.
+\abstracttitle{Resumen}
+\keywordtitle{Palabras clave}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Titulo del reporte\\ \large Subtitulo o nombre del bloque}
+
+\author[tec]{Nombre Apellido}
+\author[tec]{Nombre Apellido}
+\address[tec]{Tecnologico de Monterrey, MA2003B --- Grupo 102.07}
+
+\begin{abstract}
+Resumen del reporte en un solo parrafo: que problema se aborda, con que datos,
+que metodo se aplico y cual fue el resultado principal. Sin citas, sin formulas
+y sin referencias a secciones; debe entenderse por si solo.
+\end{abstract}
+
+\begin{keyword}
+palabra clave \sep otra palabra clave \sep analisis multivariado
+\end{keyword}
+
+\end{frontmatter}
+
+% --- Secciones ---------------------------------------------------------------
+% Una seccion = un archivo = una issue = una branch.
+% Para agregar una seccion nueva: crea el archivo en secciones/ y pon su \input
+% aqui, en el orden en que debe aparecer. Sin la extension .tex.
+\input{secciones/introduccion}
+\input{secciones/datos}
+\input{secciones/metodologia}
+\input{secciones/resultados}
+\input{secciones/conclusiones}
+
+\printbibliography
+
+\end{document}

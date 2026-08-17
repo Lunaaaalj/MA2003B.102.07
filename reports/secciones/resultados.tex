@@ -1,0 +1,38 @@
+% =============================================================================
+%  Seccion: Resultados
+%  Contenido de EJEMPLO. Muestra como insertar figuras.
+% =============================================================================
+
+\section{Resultados}\label{sec:resultados}
+
+Lo que salio, sin interpretarlo todavia: numeros, tablas y graficas. La
+interpretacion va en \cref{sec:conclusiones}.
+
+Las graficas se guardan en \texttt{figuras/} y se insertan con
+\verb|\includegraphics|. Como \texttt{main.tex} ya define el
+\verb|\graphicspath|, basta con el nombre del archivo: no pongas la ruta
+completa ni \texttt{../}. Usa PDF (o PNG a alta resolucion) para que no se
+pixelee al imprimir.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{ejemplo_dispersion.pdf}
+  \caption{Relacion entre $X_1$ y $X_2$ con la recta de minimos cuadrados
+    ajustada. La leyenda de una figura va \emph{abajo}, al reves que en las
+    tablas.}
+  \label{fig:dispersion}
+\end{figure}
+
+\Cref{fig:dispersion} muestra una asociacion positiva entre ambas variables. El
+ancho se controla con \verb|width=\linewidth| (el ancho de la columna) en vez de
+medidas fijas en pulgadas, para que la figura siga quedando bien si algun dia
+cambiamos el documento de dos columnas a una.
+
+Las dos primeras componentes de \cref{eq:pc1,eq:pc2} acumulan el $78.4\%$ de la
+varianza total, calculado con \cref{eq:varianza}. Nota que un solo \verb|\cref|
+con dos etiquetas separadas por coma ya escribe \enquote{ecuaciones 3 y 4} en
+plural y bien puntuado.
+
+Si una figura o tabla es muy ancha para una columna, usa las versiones con
+asterisco \verb|figure*| y \verb|table*|: ocupan el ancho de las dos columnas y
+solo pueden caer hasta arriba de una pagina.

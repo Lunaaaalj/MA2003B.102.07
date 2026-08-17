@@ -1,0 +1,45 @@
+% =============================================================================
+%  Seccion: Metodologia
+%  Contenido de EJEMPLO. Muestra ecuaciones numeradas y referenciadas.
+% =============================================================================
+
+\section{Metodologia}\label{sec:metodologia}
+
+Que se hizo y por que ese metodo y no otro. Con suficiente detalle para que
+alguien mas lo pueda reproducir.
+
+Una formula corta va dentro del parrafo, entre signos de pesos: la matriz de
+covarianzas muestral es $S = \frac{1}{n-1} X^{\top} X$ cuando $X$ ya esta
+centrada.
+
+Cuando la formula es el punto del parrafo, va aparte y numerada. La
+descomposicion espectral de $S$ se escribe como
+
+\begin{equation}\label{eq:espectral}
+  S = P \Lambda P^{\top},
+  \qquad
+  \Lambda = \operatorname{diag}(\lambda_1, \dots, \lambda_p),
+\end{equation}
+
+donde $\lambda_1 \geq \dots \geq \lambda_p \geq 0$ son los valores propios y las
+columnas de $P$ los vectores propios. La proporcion de varianza que explica la
+$k$-esima componente se sigue de \cref{eq:espectral}:
+
+\begin{equation}\label{eq:varianza}
+  \pi_k = \frac{\lambda_k}{\sum_{j=1}^{p} \lambda_j}.
+\end{equation}
+
+Para varias ecuaciones alineadas se usa \verb|align|, y el \verb|&| marca por
+donde se alinean (aqui, por el signo igual):
+
+\begin{align}
+  Z_1 &= p_{11} X_1 + p_{21} X_2 + \dots + p_{p1} X_p, \label{eq:pc1} \\
+  Z_2 &= p_{12} X_1 + p_{22} X_2 + \dots + p_{p2} X_p. \label{eq:pc2}
+\end{align}
+
+Si una ecuacion no necesita numero, usa la version con asterisco
+(\verb|equation*|, \verb|align*|) en lugar de dejar el numero colgado sin que
+nadie lo cite.
+
+El procedimiento completo sigue a \textcite{hastie2009} y se implemento en
+\texttt{src/}.
