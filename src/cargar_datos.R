@@ -44,7 +44,7 @@ RUTA_PROCESSED <- file.path(.raiz_proyecto(), "data", "processed")
 #' Datos horarios del SIMA, 2020-2025, ya consolidados.
 #'
 #' @param anios vector de años a conservar; NULL (default) devuelve todos.
-#' @return tibble con fecha, estacion, anio y los 15 parámetros medidos.
+#' @return data.frame con fecha, estacion, anio y los 15 parámetros medidos.
 cargar_sima <- function(anios = NULL) {
   datos <- as.data.frame(read_parquet(.exigir("sima_horario.parquet")))
   datos$estacion <- as.factor(datos$estacion)
