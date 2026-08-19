@@ -3,8 +3,8 @@
 Correr desde la raíz del repo:
 
     source venv/bin/activate
-    pytest tests/ -v
-    pytest tests/ -v -m "not lento"      # salta las que abren Excel
+    pytest -v
+    pytest -v -m "not lento"      # salta las que abren Excel
     pytest tests/test_importar_datos.py::test_normaliza_encabezados_de_2024
 """
 

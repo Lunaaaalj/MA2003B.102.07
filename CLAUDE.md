@@ -71,12 +71,12 @@ Las gráficas que vayan al reporte se guardan en `reports/figuras/`, preferentem
 
 ```bash
 source venv/bin/activate
-pytest tests/ -c tests/pytest.ini -v
-pytest tests/ -c tests/pytest.ini -m "not lento"          # salta las que abren Excel
+pytest -v
+pytest -v -m "not lento"          # salta las que abren Excel
 pytest tests/test_importar_datos.py::test_normaliza_encabezados_de_2024
 ```
 
-El marcador `lento` está declarado en `tests/pytest.ini`; hay que pasar `-c tests/pytest.ini` porque no existe configuración de pytest en la raíz.
+La configuración (incluido el marcador `lento`) está en `pytest.ini` en la raíz, así que `pytest` a secas funciona desde cualquier lado.
 
 ## Workflow de git (no negociable)
 

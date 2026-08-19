@@ -50,8 +50,8 @@ devuelve se pasan a dplyr sin problema.
 ## Pruebas
 
 ```bash
-pytest tests/ -v
-pytest tests/ -v -m "not lento"   # salta las que abren los Excel
+pytest -v
+pytest -v -m "not lento"   # salta las que abren los Excel
 ```
 
 ## Por qué los datos se consolidan una sola vez, en Python
