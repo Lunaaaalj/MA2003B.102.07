@@ -294,7 +294,15 @@ def construir_processed(solo: str = "todo", forzar: bool = False) -> None:
             df = cargar_bd()
             df.to_parquet(destino, index=False)
             print(f"  ✓ {destino.name}: {len(df):,} filas × {df.shape[1]} columnas")
-            catalogo_unidades().to_csv(RUTA_PROCESSED / "unidades.csv", index=False)
+
+        # unidades.csv se decide aparte y no cuelga del bloque de arriba: sale
+        # de la constante UNIDADES, no de leer los Excel. Si dependiera del
+        # parquet, borrarlo con sima_horario.parquet ya generado lo dejaria sin
+        # reconstruir y cargar_unidades() tronaria en R.
+        destino_unidades = _pendiente("unidades.csv")
+        if destino_unidades:
+            catalogo_unidades().to_csv(destino_unidades, index=False)
+            print(f"  ✓ {destino_unidades.name}: {len(UNIDADES)} parámetros")
 
     if solo in {"todo", "etiquetas"}:
         for nombre, tabla in cargar_etiquetas().items():
