@@ -8,6 +8,16 @@ Este es un repositorio dedicado a la realización del proyecto del curso de Apli
 
 Para facilitar la colaboración, se aplicarán varias reglas que deberán seguir, esto es muy importante para evitar confusiones, problemas, y conflictos.
 
+### Desarrollo en Codespaces (sin instalación local)
+
+Este repositorio incluye una configuración de Dev Container en `.devcontainer/` para abrirlo en GitHub Codespaces con todo listo:
+
+- LaTeX (`latexmk`, `biber`, clase `elsarticle` y paquetes necesarios para compilar `reports/main.tex`).
+- Python con entorno virtual `.venv` e instalación de `requirements.txt`.
+- R `4.6.1` con `renv::restore(prompt = FALSE)` al crear el contenedor.
+
+Al crear el Codespace, el `postCreateCommand` instala automáticamente dependencias de Python y restaura paquetes de R desde `renv.lock` (sin ejecutar `renv::snapshot()`).
+
 ### El workflow
 
 Este es el camino que vas a seguir cada vez que trabajes en algo. Si lo sigues tal cual, no te vas a atorar.

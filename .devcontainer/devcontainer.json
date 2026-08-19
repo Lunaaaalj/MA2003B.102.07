@@ -1,0 +1,14 @@
+{
+  "name": "MA2003B.102.07",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "James-Yu.latex-workshop"
+      ]
+    }
+  },
+  "postCreateCommand": "python3 -m venv .venv && . .venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt && Rscript -e \"renv::restore(prompt = FALSE)\""
+}
