@@ -2229,6 +2229,47 @@
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
       "Repository": "CRAN"
     },
+    "nanoparquet": {
+      "Package": "nanoparquet",
+      "Version": "0.5.1",
+      "Source": "Repository",
+      "Priority": null,
+      "Depends": [
+        "R (>= 4.0.0)"
+      ],
+      "Imports": [
+        null
+      ],
+      "LinkingTo": [
+        null
+      ],
+      "Suggests": [
+        "arrow",
+        "bit64",
+        "blob",
+        "DBI",
+        "duckdb (>= 1.4.0)",
+        "hms",
+        "mockery",
+        "pillar",
+        "processx",
+        "rprojroot",
+        "spelling",
+        "testthat",
+        "tzdb",
+        "withr"
+      ],
+      "Enhances": [
+        null
+      ],
+      "License": "MIT + file LICENSE",
+      "License_is_FOSS": null,
+      "License_restricts_use": null,
+      "OS_type": null,
+      "NeedsCompilation": "yes",
+      "Repository": "CRAN",
+      "Type": "source"
+    },
     "openssl": {
       "Package": "openssl",
       "Version": "2.4.2",
