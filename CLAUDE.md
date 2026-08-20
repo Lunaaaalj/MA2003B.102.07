@@ -8,9 +8,23 @@ Proyecto del curso **MA2003B (Aplicación de Métodos Multivariados en Ciencia d
 
 El idioma del proyecto es **español**: commits, issues, PRs, comentarios de código, nombres de branch y el reporte. Los READMEs de las carpetas scaffolding (`src/`, `tests/`, `notebooks/`, `models/`, `docs/`, `references/`) son plantillas genéricas en inglés que vinieron del template; no son documentación real del proyecto.
 
-El código vive en `src/`: [`importar_datos.py`](src/importar_datos.py) (consolidación, Python) y [`cargar_datos.R`](src/cargar_datos.R) (lectura desde R). En `notebooks/` está [`01_verificacion_calidad.ipynb`](notebooks/01_verificacion_calidad.ipynb), la auditoría de calidad del consolidado (issue #11).
+El código vive en `src/`: [`importar_datos.py`](src/importar_datos.py) (consolidación, Python) y [`cargar_datos.R`](src/cargar_datos.R) (lectura desde R). En `notebooks/` está [`01_verificacion_calidad.qmd`](notebooks/01_verificacion_calidad.qmd), la auditoría de calidad del consolidado (issue #11).
 
-**Notebooks: los outputs se commitean.** Es deliberado, no descuido: `data/processed/` no se versiona, así que quien abra el notebook sin regenerar los datos (~5 min) no puede re-ejecutarlo. Con los outputs guardados el análisis se lee desde GitHub. **No configures nbstripout** ni borres los outputs antes de commitear. El repo todavía no tiene `.gitattributes` ni nbdime, así que los diffs de notebook son JSON crudo y los conflictos de merge sobre un mismo `.ipynb` son muy difíciles de resolver: si dos personas van a tocar el mismo notebook, que sea en secciones distintas y coordinándose.
+## Análisis exploratorio: Quarto, no notebooks
+
+**Los análisis se escriben en `.qmd`, no en `.ipynb`.** El equipo migró en agosto 2026 porque los notebooks se llevan mal con git: el JSON con outputs en base64 no se diffea ni se mergea, y el `kernelspec` guardaba el nombre del entorno local de quien lo ejecutara. Un `.qmd` es markdown con chunks, se revisa como cualquier `.py`.
+
+La regla que sale de eso: **la fuente no lleva resultados, el PDF sí.** El `.qmd` solo tiene código y texto; los resultados viven en el PDF renderizado, que **sí se versiona** porque `data/processed/` no está en el repo y sin él nadie puede re-ejecutar nada (~8 min entre regenerar los datos y releer los Excel). Ese PDF es lo que hace revisable una PR de análisis.
+
+```bash
+quarto render notebooks/01_verificacion_calidad.qmd   # -> docs/01_verificacion_calidad.pdf
+```
+
+- `notebooks/_quarto.yml` define el proyecto: `output-dir: ../docs` y una lista explícita de `render` para que Quarto no toque el `README.md` de la carpeta.
+- El motor es `jupyter: python3`. Necesita **`ipykernel`, `nbclient`, `nbformat` y `pyyaml`** en el entorno; sin `pyyaml` el error es `ModuleNotFoundError: No module named 'yaml'`, que parece un bug de Quarto y en realidad es una dependencia de Python faltante.
+- Quarto compila el PDF con su propio LuaTeX, independiente del `latexmk` que usa `reports/`. La primera vez se instala solo los paquetes que le faltan.
+- Si algún día se escriben chunks de R, Quarto cambia al motor knitr y hace falta el paquete `rmarkdown` en renv — agregándolo con `renv::install()` + `renv::record()`, nunca con `snapshot()`.
+- **No configures nbstripout.** Fue una propuesta que se descartó: borra justo los resultados que hacen revisable el trabajo. Con Quarto el problema ya no existe, porque la fuente nunca los tuvo.
 
 ## Entornos: son dos, coexisten
 
@@ -65,7 +79,7 @@ La documentación real de los datos (inconsistencias entre años, qué contiene 
 
 `data/raw/` contiene los Excel del SIMA (`BD 2020.xlsx` … `BD 2025.xlsx`, `Etiquetas.xlsx`, inventario y padrón). **Son inmutables**: no se editan ni se sobrescriben. Los datasets limpios van a `data/processed/`, los de terceros a `data/external/` (ninguna de esas carpetas existe todavía; créalas al necesitarlas).
 
-Contexto de dominio en `docs/`: `Rangos de los parámetros del SIMA.pdf` y `Ubicación de las estaciones de monitoreo.docx` — consúltalos antes de interpretar columnas o filtrar valores fuera de rango.
+Contexto de dominio en `docs/`: `Rangos de los parámetros del SIMA.pdf` y `Ubicación de las estaciones de monitoreo.docx` — consúltalos antes de interpretar columnas o filtrar valores fuera de rango. Ojo: en esa misma carpeta caen los PDF que genera Quarto, así que ahí conviven material de referencia (inmutable, no se toca) y artefactos regenerables.
 
 Las gráficas que vayan al reporte se guardan en `reports/figuras/`, preferentemente en PDF.
 
