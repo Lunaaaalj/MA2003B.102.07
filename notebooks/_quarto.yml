@@ -1,0 +1,14 @@
+# Proyecto Quarto de notebooks/.
+#
+# La fuente son los .qmd de esta carpeta; el PDF renderizado es un artefacto y va
+# a docs/. Por eso `output-dir` apunta fuera: asi la carpeta de trabajo queda
+# limpia y el PDF no se mezcla con la fuente.
+#
+# `render` lista explicitamente los .qmd para que Quarto no intente renderizar
+# tambien el README.md ni los .ipynb que queden en la carpeta.
+
+project:
+  type: default
+  output-dir: ../docs
+  render:
+    - "*.qmd"
