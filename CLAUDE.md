@@ -8,7 +8,9 @@ Proyecto del curso **MA2003B (Aplicación de Métodos Multivariados en Ciencia d
 
 El idioma del proyecto es **español**: commits, issues, PRs, comentarios de código, nombres de branch y el reporte. Los READMEs de las carpetas scaffolding (`src/`, `tests/`, `notebooks/`, `models/`, `docs/`, `references/`) son plantillas genéricas en inglés que vinieron del template; no son documentación real del proyecto.
 
-El código vive en `src/`: [`importar_datos.py`](src/importar_datos.py) (consolidación, Python) y [`cargar_datos.R`](src/cargar_datos.R) (lectura desde R). `notebooks/` sigue vacío.
+El código vive en `src/`: [`importar_datos.py`](src/importar_datos.py) (consolidación, Python) y [`cargar_datos.R`](src/cargar_datos.R) (lectura desde R). En `notebooks/` está [`01_verificacion_calidad.ipynb`](notebooks/01_verificacion_calidad.ipynb), la auditoría de calidad del consolidado (issue #11).
+
+**Notebooks: los outputs se commitean.** Es deliberado, no descuido: `data/processed/` no se versiona, así que quien abra el notebook sin regenerar los datos (~5 min) no puede re-ejecutarlo. Con los outputs guardados el análisis se lee desde GitHub. **No configures nbstripout** ni borres los outputs antes de commitear. El repo todavía no tiene `.gitattributes` ni nbdime, así que los diffs de notebook son JSON crudo y los conflictos de merge sobre un mismo `.ipynb` son muy difíciles de resolver: si dos personas van a tocar el mismo notebook, que sea en secciones distintas y coordinándose.
 
 ## Entornos: son dos, coexisten
 
