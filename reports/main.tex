@@ -28,10 +28,9 @@
 \usepackage[T1]{fontenc}      % acentos y "ñ" como un solo glifo (permite copiar
                               % texto del PDF y que la division silabica sirva)
 \usepackage[utf8]{inputenc}   % el .tex se escribe en UTF-8
-\usepackage{lmodern}          % Computer Modern en version vectorial (Latin Modern).
-                              % Es la MISMA tipografia de LaTeX de siempre, pero
-                              % sin los bitmaps borrosos que salen con T1 + cm.
-                              % Ojo: NO usar la opcion [times] de la clase.
+                              % Sin paquete de tipografia: se usa la default de
+                              % LaTeX (Computer Modern). Ojo: NO usar la opcion
+                              % [times] de la clase, que la cambiaria.
 
 \usepackage{microtype}        % micro-ajustes de espaciado; menos renglones feos
 
@@ -74,6 +73,8 @@
 \usepackage{hyperref}
 \usepackage[spanish]{cleveref} % \cref{fig:x} escribe solo "Figura 1"
 
+\usepackage{mhchem} % formulas de quimica
+
 % cleveref en español dice "apartado 2"; en un reporte queremos "Sección 2".
 % \cref -> minuscula (a media oracion), \Cref -> mayuscula (al inicio).
 \crefname{section}{sección}{secciones}
@@ -113,11 +114,7 @@ palabra clave \sep otra palabra clave \sep analisis multivariado
 % Una seccion = un archivo = una issue = una branch.
 % Para agregar una seccion nueva: crea el archivo en secciones/ y pon su \input
 % aqui, en el orden en que debe aparecer. Sin la extension .tex.
-\input{secciones/introduccion}
-\input{secciones/datos}
-\input{secciones/metodologia}
-\input{secciones/resultados}
-\input{secciones/conclusiones}
+
 
 \printbibliography
 
