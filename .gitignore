@@ -282,5 +282,5 @@ packrat/src/
 # son reproducibles con `python src/importar_datos.py` y pesan ~22 MB.
 data/processed/
 
-
-/.vscode
+.vscode/
+.idea/
