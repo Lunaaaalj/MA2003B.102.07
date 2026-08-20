@@ -1,8 +1,8 @@
 \subsection{Selección de datos}
 
-Para continuar a las operaciones de los datos, es importante generar una selección de las variables que se consideren más relevantes. A partir del diccionario, y el conocimiento que tenemos sobre la limpieza y la calidad de los datos, se comienza la línea de razonamiento que resultara en un nuevo \textit{dataset} que será usada en los procesos pro siguientes.
+Para continuar a las operaciones de los datos, es importante generar una selección de las variables que se consideren más relevantes. A partir del diccionario, y el conocimiento que tenemos sobre la limpieza y la calidad de los datos, se comienza la línea de razonamiento que resultará en un nuevo \textit{dataset} que será usado en los procesos subsiguientes.
 
-Se considera que, dado que queremos analizar el comportamiento del ozono troposférico, se requiere hacer una evaluación de las variables y determinar, con base a la literatura, si existe un mecanismo documentado por el cual influya la concentración en la formación de \ce{O3}, ya sea químico, físico, o por factor meteorológico.
+Se considera que, dado que queremos analizar el comportamiento del ozono troposférico, se requiere hacer una evaluación de las variables y determinar, con base en la literatura, si existe un mecanismo documentado por el cual influya en la formación de \ce{O3}, ya sea químico, físico, o por factor meteorológico.
 
 
 Fijamos la variable objeto \ce{O3} proveniente de la base de datos:
@@ -21,7 +21,7 @@ Fijamos la variable objeto \ce{O3} proveniente de la base de datos:
 \end{table*}
 
 \begin{quote}
-    Consideramos que las estaciones reportan los resultados cada hora, implicando que cada día, hay 24 mediciones diferentes. Esto puede ser cambiado usando la métrica normativa MDA8, colapsando las 24 mediciones en un solo número por estación y por día. Esto se debe a que la NOM-020-SSA1 fija el límite de ozono sobre el promedio de 8 horas, no sobre el valor horario
+    Consideramos que las estaciones reportan los resultados cada hora, implicando que cada día, hay 24 mediciones diferentes. Esto puede ser cambiado usando la métrica normativa MDA8, colapsando las 24 mediciones en un solo número por estación y por día. Esto se debe a que la NOM-020-SSA1 fija el límite de ozono sobre el promedio de 8 horas, no sobre el valor horario.
 \end{quote}
 
 El \cref{tab:nom-limites} reúne los valores límite vigentes en México para el
@@ -67,16 +67,16 @@ La tabla de valores faltantes de \ce{O3} por estación y año muestra que 2020 e
 
 En 2021, lo faltantes siguen siendo elevados en un conjunto de estaciones, sin embargo, es un rango que permite el análisis; de 2022 en adelante ninguna estación supera el $19\%$. Se conservan, por lo tanto, los años 2021 a 2025, con la salvedad de que 2025 cubre únicamente hasta el 30 de junio. Algo importante a tomar en cuenta al momento de querer analizar el periodo invernal.
 
-Dentro de esta ventana, ninguna estación presenta faltantes que justifiquen exluirla, por lo que se conservan los quince niveles de la variable \texttt{estacion}. Esta no se somete al mismo criterio que los parámetros medidos: no es una magnitud fisicoquímica sino un identificador
+Dentro de esta ventana, ninguna estación presenta faltantes que justifiquen excluirla, por lo que se conservan los quince niveles de la variable \texttt{estacion}. Esta no se somete al mismo criterio que los parámetros medidos: no es una magnitud fisicoquímica sino un identificador
 que define la estructura espacial del conjunto de datos. 
 
-Conversamos ahora en identificar las variables que afectan los niveles de ozono troposférico. A partir de fuentes de investigación, se recolecta información sobre los procesos químicos, físicos, y meteorológicos que facilitan u obstaculiza la síntesis de \ce{O3}
+Continuamos ahora en identificar las variables que afectan los niveles de ozono troposférico. A partir de fuentes de investigación, se recolecta información sobre los procesos químicos, físicos, y meteorológicos que facilitan u obstaculizan la síntesis de \ce{O3}.
 
 \begin{itemize}
     \item \textbf{Radiación solar}: en verano, la luz solar es más intensa y las temperaturas incrementan, las reacciones fotoquímicas son aceleradas, produciendo niveles de ozono más altos.
-    \item \textbf{Variación estacional cuantificada}: Concentraciones promedio de $45.6\mu g/m^3$ en verano,$47.3\mu g/m^3$ en primavera, $38.0\mu g/m^3$ en otoño y $33.6\mu g/m^3$ en invierno.
+    \item \textbf{Variación estacional cuantificada}: Concentraciones promedio de $45.6\mu g/m^3$ en verano, $47.3\mu g/m^3$ en primavera, $38.0\mu g/m^3$ en otoño y $33.6\mu g/m^3$ en invierno.
     \item \textbf{Variación diurna}: los niveles de ozono tienden a ser más altos al final de la tarde y disminuyen de noche por falta de luz solar y por la reacción de titulación con \ce{NO} que consume ozono.
-    \item \textbf{Topografía} Valles rodeados de montañas atrapan contaminantes y favorecen la formación de ozono (efecto de estancamiento), lo cual se toma en cuenta especialmente para el caso de la zona metropolitana de monterrey.
+    \item \textbf{Topografía}: Valles rodeados de montañas atrapan contaminantes y favorecen la formación de ozono (efecto de estancamiento), lo cual se toma en cuenta especialmente para el caso de la zona metropolitana de Monterrey.
     \item \textbf{Eventos agudos}: olas de calor causan incrementos atípicos de corto plazo.
 \end{itemize}
 
@@ -94,7 +94,7 @@ El ciclo completo:
     \item Los COV (compuestos orgánicos volátiles) reaccionan con radicales libres para generar \ce{NO2} adicional, alimentando el ciclo continuamente.
 \end{enumerate}
 
-Con esta informacion determinamos, de las variables meteorologicas, cuales seran utilizadas para el resto del proyecto.
+Con esta información determinamos, de las variables meteorológicas, cuáles serán utilizadas para el resto del proyecto.
 
 \begin{itemize}
     \item \texttt{TOUT} (temperatura ambiente): A mayor la temperatura, la formación de ozono se acelera.
@@ -109,5 +109,5 @@ De los contaminantes atmosféricos:
     \item \ce{CO} monóxido de carbono, actúa como un substituto de los COVs que reaccionan con radicales libres.
     \item \ce{NO2} ingrediente principal en la reacción fotoquímica con la radiación solar.
     \item NOX, son el grupo de $\ce{NO2}+ \ce{NO}$ que son esenciales para la formación de \ce{O3}.
-    \item Podríamos considerar las \texttt{PM10} y \texttt{PM2.5} no dado que son gases en sí, sino fragmentos  sólidos flotando en el aire, una ata concentración de estas actúan como pantalla contra la luz solar, atenuando las reacciones.
+    \item Podríamos considerar las \texttt{PM10} y \texttt{PM2.5}, no dado que sean gases en sí, sino fragmentos sólidos flotando en el aire; una alta concentración de estas actúa como pantalla contra la luz solar, atenuando las reacciones.
 \end{itemize}
