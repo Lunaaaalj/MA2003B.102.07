@@ -70,10 +70,10 @@
 \addbibresource{references.bib}
 
 % --- Referencias cruzadas (SIEMPRE hasta el final) ---------------------------
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 \usepackage[spanish]{cleveref} % \cref{fig:x} escribe solo "Figura 1"
 
-\usepackage{mhchem} % formulas de quimica
+\usepackage[version=4]{mhchem} % formulas de quimica
 
 % cleveref en español dice "apartado 2"; en un reporte queremos "Sección 2".
 % \cref -> minuscula (a media oracion), \Cref -> mayuscula (al inicio).
@@ -92,21 +92,14 @@
 
 \begin{frontmatter}
 
-\title{Titulo del reporte\\ \large Subtitulo o nombre del bloque}
+\title{Etapa 1. Conociendo el negocio}
 
-\author[tec]{Nombre Apellido}
-\author[tec]{Nombre Apellido}
-\address[tec]{Tecnologico de Monterrey, MA2003B --- Grupo 102.07}
-
-\begin{abstract}
-Resumen del reporte en un solo parrafo: que problema se aborda, con que datos,
-que metodo se aplico y cual fue el resultado principal. Sin citas, sin formulas
-y sin referencias a secciones; debe entenderse por si solo.
-\end{abstract}
-
-\begin{keyword}
-palabra clave \sep otra palabra clave \sep analisis multivariado
-\end{keyword}
+\author[tec]{Jenaro Alcaraz Saragosa (A01646850)}
+\author[tec]{Emilia Rico Morales (A01384587)}
+\author[tec]{Mar Andrea Fern\'andez Higuera (A00227571)}
+\author[tec]{Angel Eduardo Luna (A00842657)}
+\author[tec]{Sof\'ia Fern\'andez V\'azquez (A01722980)}
+\address[tec]{Tecnol\'ogico de Monterrey, MA2003B --- Grupo 102.07, Equipo 7}
 
 \end{frontmatter}
 
@@ -115,7 +108,12 @@ palabra clave \sep otra palabra clave \sep analisis multivariado
 % Para agregar una seccion nueva: crea el archivo en secciones/ y pon su \input
 % aqui, en el orden en que debe aparecer. Sin la extension .tex.
 
+\input{secciones/introduccion}
+\input{secciones/objetivo}
+\input{secciones/seleccion_datos}
+\input{secciones/diccionario_datos}
 
+\clearpage
 \printbibliography
 
 \end{document}
