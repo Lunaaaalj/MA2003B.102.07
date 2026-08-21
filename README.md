@@ -136,7 +136,7 @@ El repo tiene integrado el [Claude Code GitHub Action](https://github.com/anthro
 
 Solo funciona para colaboradores con permiso de escritura en el repo, es decir, el equipo.
 
-**Revisión automática.** Cuando marcas tu PR como *Ready for review* (sale del estado draft), Claude la revisa una vez y deja comentarios inline. No corre mientras la PR sigue en draft, ni en cada push, para no gastar la cuota de más. Si quieres otra pasada después de arreglar cosas, pídesela con `@claude`.
+**Revisión automática.** Cuando marcas tu PR como *Ready for review* (sale del estado draft), Claude la revisa una vez y deja comentarios inline. No corre mientras la PR sigue en draft, ni en cada push, para no gastar la cuota de más: es una sola revisión por PR. Si quieres otra pasada después de arreglar cosas, pídesela con `@claude`.
 
 Los comentarios de Claude son un apoyo, no una aprobación: la PR sigue necesitando review de una persona del equipo.
 

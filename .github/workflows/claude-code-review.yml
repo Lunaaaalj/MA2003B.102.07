@@ -2,10 +2,15 @@ name: Revision automatica de PR
 
 # Revision automatica con Claude. Esta ajustada para gastar lo menos posible:
 #
-#  - Solo corre en "ready_for_review" (y "reopened"), NO en "opened" ni en cada
-#    push. Como el equipo abre las PRs en draft desde el primer commit
-#    (ver README), esto significa exactamente UNA revision por PR: la que pasa
-#    cuando el autor la marca como lista.
+#  - NO corre en cada push ("synchronize" no esta en los types). Como el equipo
+#    abre las PRs en draft desde el primer commit (ver README), esto significa
+#    exactamente UNA revision por PR: la que pasa cuando el autor la marca como
+#    lista. Los pushes posteriores no re-disparan nada.
+#  - "opened" esta en la lista solo para cubrir a quien abra la PR directamente
+#    como ready, sin pasar por draft: en ese caso "ready_for_review" nunca se
+#    emite (GitHub solo lo manda en la transicion draft -> listo) y la PR se
+#    quedaria sin revisar. El guard de draft de abajo hace que los dos eventos
+#    sean mutuamente excluyentes, asi que sigue siendo una sola revision.
 #  - paths-ignore salta las PRs que solo tocan PDFs renderizados o auxiliares
 #    de LaTeX, que no son revisables por diff.
 #  - Usa Sonnet en vez de Opus y limita --max-turns.
@@ -15,7 +20,7 @@ name: Revision automatica de PR
 
 on:
   pull_request:
-    types: [ready_for_review, reopened]
+    types: [opened, ready_for_review, reopened]
     paths-ignore:
       - "docs/**/*.pdf"
       - "reports/**/*.pdf"
