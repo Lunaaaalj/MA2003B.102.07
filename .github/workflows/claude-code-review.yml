@@ -1,0 +1,79 @@
+name: Revision automatica de PR
+
+# Revision automatica con Claude. Esta ajustada para gastar lo menos posible:
+#
+#  - Solo corre en "ready_for_review" (y "reopened"), NO en "opened" ni en cada
+#    push. Como el equipo abre las PRs en draft desde el primer commit
+#    (ver README), esto significa exactamente UNA revision por PR: la que pasa
+#    cuando el autor la marca como lista.
+#  - paths-ignore salta las PRs que solo tocan PDFs renderizados o auxiliares
+#    de LaTeX, que no son revisables por diff.
+#  - Usa Sonnet en vez de Opus y limita --max-turns.
+#
+# Si quieres re-revisar una PR despues de cambios, comenta "@claude revisa de
+# nuevo" y responde el workflow interactivo (claude.yml).
+
+on:
+  pull_request:
+    types: [ready_for_review, reopened]
+    paths-ignore:
+      - "docs/**/*.pdf"
+      - "reports/**/*.pdf"
+      - "**/*.png"
+      - "**/*.jpg"
+
+jobs:
+  revision:
+    # Doble seguro: nunca revisar una PR que sigue en draft.
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Revisar la PR
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Revisa esta pull request. La rama ya esta clonada en el directorio
+            de trabajo. Lee el CLAUDE.md del repo antes de opinar: define las
+            convenciones del equipo y manda sobre cualquier costumbre general.
+
+            Escribe la revision **en espanol**.
+
+            Enfocate en:
+
+            - **Correccion del analisis**: manejo de nulos, valores fuera de
+              los rangos fisicos del SIMA, zonas horarias (las marcas de tiempo
+              son hora local sin zona; en R se declara tzone "UTC", no se
+              convierte), y el hecho de que cada hoja de los Excel es una
+              estacion.
+            - **Convenciones del repo**: commits en espanol con Conventional
+              Commits, nada de rebase, los analisis van en .qmd (no .ipynb) y
+              el .qmd no lleva resultados, el texto del reporte va en
+              secciones/ y nunca directo en main.tex, las entradas nuevas de
+              references.bib van al final.
+            - **Alcance**: que la PR haga lo que dice su issue, ni mas ni menos.
+              Escribir de mas en el reporte pisa el trabajo de otra persona.
+            - Bugs reales y casos borde en el codigo Python/R.
+
+            Se breve y concreto. Usa comentarios inline para problemas puntuales
+            y un comentario general para el resumen. Si la PR esta bien, dilo en
+            una linea en vez de inventar observaciones.
+
+          claude_args: |
+            --model claude-sonnet-5
+            --max-turns 20
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
