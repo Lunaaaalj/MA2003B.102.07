@@ -141,14 +141,28 @@ El criterio que se adopta es usar el \textbf{rango de fabricante}
 eliminar imposibles, y tratar el rango de operacion anual como senial de
 sospecha a revisar, no como regla de borrado automatico.
 
-\subsection{Rejilla temporal incompleta}\label{sec:dic:rejilla}
-
-Ninguna estacion tiene la serie horaria completa: faltan entre 3 (CE) y 16
-(SUR) marcas de tiempo respecto a la rejilla horaria continua de su periodo. Se
-trata de huecos de hora, no de filas vacias: la fila simplemente no existe. Por
-eso cualquier interpolacion temporal exige reindexar antes contra una rejilla
-horaria completa; de lo contrario el metodo asumira que dos observaciones
-contiguas estan separadas por una hora cuando no lo estan.
+\begin{table}[t]
+  \centering
+  \caption{Rango de fabricante por parametro, adoptado como filtro duro de
+    valores imposibles.}
+  \label{tab:dic-fabricante}
+  \small
+  \begin{tabular}{lc}
+    \toprule
+    Parametro & Rango de fabricante \\
+    \midrule
+    PM10, PM2.5, O3      & $0$--$1000$     \\
+    NO, NO2, NOx, SO2    & $0$--$500$      \\
+    CO                   & $0$--$50$       \\
+    RH                   & $0$--$100$      \\
+    WS (\texttt{WSR})    & $0$--$180$      \\
+    TEMP (\texttt{TOUT}) & $-50$--$50$     \\
+    SR                   & $0$--$1.4$      \\
+    BP (\texttt{PRS})    & $449.9$--$824.9$\\
+    WD (\texttt{WDR})    & $0$--$360$      \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 % -----------------------------------------------------------------------------
 %  Tablas
@@ -176,6 +190,14 @@ contiguas estan separadas por una hora cuando no lo estan.
     \bottomrule
   \end{tabular}
 \end{table*}
+\subsection{Rejilla temporal incompleta}\label{sec:dic:rejilla}
+
+Ninguna estacion tiene la serie horaria completa: faltan entre 3 (CE) y 16
+(SUR) marcas de tiempo respecto a la rejilla horaria continua de su periodo. Se
+trata de huecos de hora, no de filas vacias: la fila simplemente no existe. Por
+eso cualquier interpolacion temporal exige reindexar antes contra una rejilla
+horaria completa; de lo contrario el metodo asumira que dos observaciones
+contiguas estan separadas por una hora cuando no lo estan.
 
 \begin{table*}[t]
   \centering
@@ -348,29 +370,6 @@ contiguas estan separadas por una hora cuando no lo estan.
     \addlinespace
     $\mathrm{CO} > 18$ ppm & CO & 24
       & Excede el rango de operacion de todos los anios; el maximo es 37 ppm. \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
-
-\begin{table*}[t]
-  \centering
-  \caption{Rango de fabricante por parametro, adoptado como filtro duro de
-    valores imposibles.}
-  \label{tab:dic-fabricante}
-  \small
-  \begin{tabular}{lc}
-    \toprule
-    Parametro & Rango de fabricante \\
-    \midrule
-    PM10, PM2.5, O3      & $0$--$1000$     \\
-    NO, NO2, NOx, SO2    & $0$--$500$      \\
-    CO                   & $0$--$50$       \\
-    RH                   & $0$--$100$      \\
-    WS (\texttt{WSR})    & $0$--$180$      \\
-    TEMP (\texttt{TOUT}) & $-50$--$50$     \\
-    SR                   & $0$--$1.4$      \\
-    BP (\texttt{PRS})    & $449.9$--$824.9$\\
-    WD (\texttt{WDR})    & $0$--$360$      \\
     \bottomrule
   \end{tabular}
 \end{table*}
