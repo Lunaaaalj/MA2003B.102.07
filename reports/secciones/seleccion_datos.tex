@@ -7,18 +7,20 @@ Se considera que, dado que queremos analizar el comportamiento del ozono troposf
 
 Fijamos la variable objeto \ce{O3} proveniente de la base de datos:
 
-\begin{table*}[t]
+\begin{table}[t]
   \centering
   \caption{Variable objetivo: ozono troposférico (\ce{O3}).}
   \label{tab:variable-objetivo}
+  \resizebox{\columnwidth}{!}{%
   \begin{tabular}{lcccc}
     \toprule
     Unidad & Rango de operación & Rango observado & Mediana & Nulos (\%) \\
     \midrule
     ppb & 0--153 a 0--185 & 0.5--265.0 & 23.00 & 14.73 \\
     \bottomrule
-  \end{tabular}
-\end{table*}
+  \end{tabular}%
+  }
+\end{table}
 
 \begin{quote}
     Consideramos que las estaciones reportan los resultados cada hora, implicando que cada día, hay 24 mediciones diferentes. Esto puede ser cambiado usando la métrica normativa MDA8, colapsando las 24 mediciones en un solo número por estación y por día. Esto se debe a que la NOM-020-SSA1 fija el límite de ozono sobre el promedio de 8 horas, no sobre el valor horario.
@@ -80,7 +82,7 @@ Continuamos ahora en identificar las variables que afectan los niveles de ozono 
     \item \textbf{Eventos agudos}: olas de calor causan incrementos atípicos de corto plazo.
 \end{itemize}
 
-En la sección química del artículo Sillman o en Monks et al. 2015 ("Tropospheric ozone and its precursors from urban to global scale", Atmos. Chem. Phys.):
+\textcite{SanfordSillman} describe el ciclo fotoquímico de formación del ozono troposférico:
 
 \begin{quote}
     La formación de ozono en la atmósfera baja es resultado de una serie de reacciones fotoquímicas que involucran precursores emitidos por fuentes naturales y antropogénicas. Estas reacciones comienzan con la fotólisis del dióxido de nitrógeno (\ce{NO2}) bajo luz solar, que produce oxígeno atómico (\ce{O}). Este oxígeno atómico reacciona luego con oxígeno molecular (\ce{O2}) para formar ozono (\ce{O3}).
