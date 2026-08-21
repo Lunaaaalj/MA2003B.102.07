@@ -1,0 +1,172 @@
+\subsection{Transformación de datos}
+
+Con el conjunto ya seleccionado y limpio, la pregunta que sigue no es qué
+transformación aplicar sino si hace falta aplicar alguna. Transformar una
+variable tiene un costo: los coeficientes dejan de leerse en las unidades
+originales y, en el caso de la discretización, se pierde información de manera
+irreversible. Por ello cada decisión de esta sección se sostiene en una medición
+hecha sobre nuestros propios datos, y las transformaciones que se descartaron se
+documentan junto con su razón.
+
+El diagnóstico se organiza en tres preguntas: si las variables están en escalas
+comparables, qué tan lejos se encuentran de la simetría y si sus relaciones son
+lineales. Las tres importan porque las técnicas que siguen ---componentes
+principales, análisis factorial, conglomerados y discriminante--- operan sobre la
+matriz de covarianza o sobre distancias, y solo capturan la componente lineal de
+la asociación.
+
+\subsubsection*{Escalas: la varianza está mal repartida}
+
+Las variables medidas conviven en unidades incomparables: ppb, ppm,
+$\mu$g/m$^{3}$, grados Celsius, mmHg y km/h. La consecuencia no está en las
+medias sino en las varianzas. En escala cruda, \texttt{PM10} y \texttt{NOX}
+concentran el $71\%$ de la varianza total del conjunto, mientras que \ce{CO}
+aporta apenas el $0.02\%$; no porque sea irrelevante para el ozono, sino porque
+se mide en ppm y sus números son pequeños. Un análisis de componentes principales
+sobre la matriz de covarianza de estos datos no descubriría estructura alguna:
+devolvería una primera componente que es esencialmente \texttt{PM10} y una
+segunda que es \texttt{NOX}.
+
+Se estandarizan por tanto todas las variables numéricas mediante puntuación
+$z$, es decir, $z=(x-\bar{x})/s$. Conviene subrayar que estandarizar equivale
+exactamente a correr el análisis sobre la \emph{matriz de correlación} en lugar
+de la de covarianza; es la misma decisión enunciada de dos maneras. Tras la
+estandarización, cada una de las once variables del conjunto de trabajo aporta
+el $9.09\%$ de la varianza total, que es el reparto uniforme buscado.
+
+Se consideraron dos alternativas y ambas se descartaron. El escalamiento
+\textit{min-max} queda determinado por el mínimo y el máximo, los valores más
+frágiles de este conjunto: como la limpieza conservó deliberadamente los
+extremos, un solo registro atípico comprimiría el resto de la variable en una
+franja diminuta del intervalo $[0,1]$. El escalamiento robusto se descarta por
+una razón de fondo: los valores extremos aquí no son ruido, son el fenómeno que
+se quiere modelar, y restarles peso trabajaría en contra del objetivo de
+clasificar episodios de concentración alta.
+
+\subsubsection*{Forma: asimetría y linealidad}
+
+Salvo la temperatura y la presión, todas las variables medidas presentan
+asimetría positiva, y no por accidente: una concentración es una cantidad no
+negativa con cola larga, pues hay muchas horas de aire limpio y pocas de
+episodio, pero esas pocas se alejan mucho. La prueba de Shapiro-Wilk confirma que
+ninguna es normal, con estadísticos que van de $W=0.60$ en \texttt{WSR} a
+$W=0.99$ en \texttt{PRS}.
+
+Para elegir la transformación se ajustó el parámetro $\lambda$ de Box-Cox por
+máxima verosimilitud en cada variable. El resultado, mostrado en el
+\cref{tab:transformacion}, es notablemente consistente: todos los valores caen
+entre $-0.10$ y $0.35$, es decir, alrededor de cero. Los datos están pidiendo un
+logaritmo. Se adopta $\ln(1+x)$ en lugar de la transformación de Box-Cox
+propiamente dicha por tres motivos: deja la asimetría igualmente dentro de la
+banda de simetría aproximada, admite los ceros legítimos que Box-Cox prohíbe
+---\ce{NO2} y \ce{PM2.5} reportan cero en horas limpias, y descartarlos sería
+inventar datos faltantes--- y utiliza un mismo exponente para todas las
+variables, lo que las mantiene comparables entre sí.
+
+\begin{table*}[t]
+  \centering
+  \caption{Diagnóstico y efecto de la transformación logarítmica sobre las
+    variables asimétricas del conjunto horario. La correlación con el \ce{O3} se
+    contrasta con el coeficiente de Spearman, que mide la asociación monótona
+    con independencia de la escala y funciona por tanto como techo de lo
+    recuperable.}
+  \label{tab:transformacion}
+  \footnotesize
+  \begin{tabular}{lccccccc}
+    \toprule
+    & \multicolumn{2}{c}{Asimetría} & & \multicolumn{3}{c}{Correlación con \ce{O3}} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){5-7}
+    Variable & Original & Con $\ln(1+x)$ & $\lambda$ de Box-Cox & Original & En escala logarítmica & Spearman \\
+    \midrule
+    \ce{O3}    & 1.29 & $-0.51$ & 0.35    & --- & --- & --- \\
+    \ce{CO}    & 1.82 & 0.27    & 0.30    & $-0.075$ & $-0.122$ & $-0.107$ \\
+    \ce{NO2}   & 1.93 & $-0.18$ & 0.20    & $-0.272$ & $-0.359$ & $-0.363$ \\
+    NOX        & 3.63 & 0.45    & $-0.10$ & $-0.329$ & $-0.470$ & $-0.434$ \\
+    \ce{PM10}  & 3.66 & $-0.27$ & 0.15    & 0.019 & $-0.040$ & $-0.002$ \\
+    \ce{PM2.5} & 5.81 & $-0.12$ & 0.10    & 0.000 & $-0.078$ & $-0.045$ \\
+    \texttt{WSR} & 6.94 & $-0.33$ & 0.25  & 0.274 & 0.448 & 0.482 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+El argumento decisivo, sin embargo, no es la normalidad sino la linealidad. Las
+relaciones entre contaminantes son de naturaleza multiplicativa, y el logaritmo
+las convierte en aditivas. En el \cref{tab:transformacion} se observa que en
+escala original el coeficiente de Pearson se queda muy por debajo del de
+Spearman, mientras que en escala logarítmica casi lo alcanza: la correlación
+entre \ce{O3} y NOX pasa de $-0.329$ a $-0.470$, y la del \ce{O3} con la
+velocidad del viento, de $0.274$ a $0.448$. Esa diferencia no es cosmética, es
+señal que el análisis de componentes principales y la regresión no habrían
+visto. El signo negativo del NOX frente al ozono es el esperado a escala horaria:
+el \ce{NO} titula al ozono en las horas de tráfico.
+
+No se transforman la temperatura ni la presión, cuyas asimetrías de $-0.42$ y
+$0.10$ las sitúan ya dentro de la banda de simetría aproximada; transformarlas
+solo dificultaría leer los coeficientes, que están en grados Celsius y mmHg.
+Tampoco se transforman las componentes vectoriales del viento obtenidas en la
+limpieza, porque su signo codifica la dirección y cualquier transformación no
+lineal rompería la interpretación vectorial y la simetría alrededor de cero que
+las hace utilizables.
+
+\subsubsection*{Discretización}
+
+La discretización se aplicó de forma selectiva, únicamente donde el intervalo
+significa algo. La precipitación es el caso claro: con un $98.57\%$ de horas en
+cero, no es una variable continua asimétrica sino un proceso de ocurrencia, y el
+logaritmo apenas reduce su asimetría de $238$ a $27.7$. Además, el mecanismo que
+interesa para el ozono no es cuántos milímetros cayeron sino que hubo nubosidad y
+depósito húmedo. Se conserva la variable continua y se agrega una indicadora de
+ocurrencia de lluvia.
+
+La hora y el mes plantean un problema distinto. Como enteros, mienten sobre la
+distancia entre categorías: colocan las 23:00 a veintitrés unidades de las 00:00
+cuando son consecutivas. La solución no es agruparlas en bloques sino
+proyectarlas al círculo mediante $\sin(2\pi h/24)$ y $\cos(2\pi h/24)$, y de
+manera análoga para el mes, con lo que diciembre y enero recuperan su vecindad.
+
+La variable objetivo, en cambio, no admite discretización libre: sus umbrales los
+fija la NOM-020-SSA1-2021. Sobre los $23\,931$ días-estación, el umbral vigente
+de $65$ ppb marca como excedencia el $10.65\%$ de los casos; el de $60$ ppb, el
+$16.04\%$, y el de $51$ ppb, el $30.70\%$. El desbalance del primer umbral tiene
+una implicación práctica para el modelado: un clasificador que respondiera
+siempre \enquote{no excede} acertaría el $89\%$ de las veces sin aportar nada, de
+modo que la exactitud no puede emplearse como métrica de evaluación y conviene
+tomar el umbral de $51$ ppb como escenario principal.
+
+\subsubsection*{Atributos derivados}
+
+El conjunto limpio tiene resolución horaria, pero la variable objetivo, el MDA8,
+es diaria. Ambas tablas no se pueden cruzar sin agregar antes los predictores a
+día-estación, y la forma de agregar cada uno responde a su mecanismo físico y no
+a la conveniencia. De la temperatura se toma el máximo diario, porque la
+formación fotoquímica escala con el pico y no con el promedio de la jornada. De
+los precursores ---NOX, \ce{NO2} y \ce{CO}--- se toma el promedio de la ventana
+de 06:00 a 09:00, correspondiente a la emisión matutina del tráfico, que es la
+que alimenta el ozono de la tarde; promediar las veinticuatro horas mezclaría esa
+emisión con la titulación nocturna y cancelaría justamente la señal de interés.
+Las variables de ventilación se promedian sobre el día, por tratarse de un efecto
+acumulado sobre la masa de aire, y la precipitación se acumula. El resultado es la
+tabla de trabajo, de $23\,931$ observaciones por $45$ variables.
+
+El MDA8 no se transforma: su asimetría es de $0.64$, prácticamente simétrica, ya
+que promediar ocho valores consecutivos hace buena parte del trabajo. Además, sus
+coeficientes deben permanecer en ppb, que es la unidad en que está escrita la
+norma.
+
+\subsubsection*{Dos precauciones}
+
+Se evaluó centrar cada variable dentro de su estación para eliminar el efecto de
+sitio. Un análisis de varianza del MDA8 por estación arroja un efecto
+estadísticamente significativo ($F=89.8$), pero que explica solo el $5.3\%$ de la
+varianza total. Centrar por estación borraría el contraste espacial a cambio de
+muy poco, y ese contraste es precisamente lo que el análisis de conglomerados
+debe descubrir. La estación se reserva, por tanto, para validar el agrupamiento
+obtenido, no como corrección previa.
+
+Finalmente, los parámetros de estandarización ---centro y escala de cada
+variable--- se almacenan por separado del conjunto transformado. Esto responde a
+dos necesidades: poder revertir la transformación para reportar los resultados en
+unidades originales y, sobre todo, poder recalcularlos únicamente sobre el
+subconjunto de entrenamiento cuando se realice la partición para el modelado. De
+calcularse sobre la totalidad de los datos, el subconjunto de prueba filtraría
+información sobre su propia distribución hacia el modelo.
