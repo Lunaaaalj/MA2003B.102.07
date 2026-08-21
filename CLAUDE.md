@@ -105,3 +105,12 @@ El `README.md` de la raíz es la guía completa del equipo. Lo esencial:
 - **No hacer más ni menos de lo que dice la issue** — sobre todo en el reporte, donde escribir de más pisa el trabajo de otra persona.
 
 Al hacer commits en este repo, respeta el estilo del historial (mensajes en español, sin firmas extra a menos que se pidan).
+
+## Claude en GitHub Actions
+
+`.github/workflows/` tiene dos workflows con el action oficial `anthropics/claude-code-action@v1`, autenticados con el secret `CLAUDE_CODE_OAUTH_TOKEN`:
+
+- **`claude.yml`** — modo interactivo. El job solo se levanta si el comentario contiene `@claude`. Ojo: los eventos `issue_comment` siempre usan la versión del workflow que está en `main`, así que editar este archivo en una branch no cambia cómo responde `@claude` hasta que se mergea.
+- **`claude-code-review.yml`** — revisión automática, deliberadamente conservadora porque el token está ligado a la suscripción de una persona: corre **solo en `ready_for_review`** (no en `opened` ni en cada push, ya que el equipo abre las PRs en draft desde el primer commit), con `--model claude-sonnet-5`, `--max-turns 20`, `timeout-minutes` y `paths-ignore` para PDFs e imágenes.
+
+Si hay que subir el gasto o bajarlo, los diales son esos: los `types` del trigger, `--max-turns` y el modelo. No agregues `opened`/`synchronize` al trigger de la revisión sin hablarlo con el equipo: multiplica las corridas por cada push a una draft.

@@ -123,6 +123,23 @@ git reset --hard origin/main    # tu main queda igual al del remoto
 git switch -c feat/mi-trabajo
 ```
 
+## Claude en GitHub
+
+El repo tiene integrado el [Claude Code GitHub Action](https://github.com/anthropics/claude-code-action) oficial, así que puedes pedirle ayuda a Claude sin salir de GitHub.
+
+**Menciona `@claude` en un comentario** de un issue o de una PR (o en el cuerpo de un issue nuevo) y va a responder ahí mismo. Sirve para preguntas, para que explique un error, o para pedirle que implemente un cambio, en cuyo caso abre una PR con el trabajo.
+
+```
+@claude ¿por qué el catálogo de estaciones no tiene NE3 ni NO3?
+@claude revisa de nuevo los chunks que agregué en el último commit
+```
+
+Solo funciona para colaboradores con permiso de escritura en el repo, es decir, el equipo.
+
+**Revisión automática.** Cuando marcas tu PR como *Ready for review* (sale del estado draft), Claude la revisa una vez y deja comentarios inline. No corre mientras la PR sigue en draft, ni en cada push, para no gastar la cuota de más. Si quieres otra pasada después de arreglar cosas, pídesela con `@claude`.
+
+Los comentarios de Claude son un apoyo, no una aprobación: la PR sigue necesitando review de una persona del equipo.
+
 ## Workflow para los reportes
 
 Este repositorio también será el lugar principal para trabajar en los reportes en LaTeX. Es un poco más complicado que otras plataformas (como Overleaf), donde todos escriben sobre el mismo archivo al mismo tiempo. Aquí cada quien trabaja en su branch, así que hay que tener cuidado para no pisarnos.
