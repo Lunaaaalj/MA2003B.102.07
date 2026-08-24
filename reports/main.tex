@@ -63,14 +63,33 @@
 \usepackage{graphicx}
 \graphicspath{{figuras/}}     % con esto basta \includegraphics{archivo.pdf}
 
+% A dos columnas, un table* [t] cerca del final del documento puede empujar
+% el resto del texto a una pagina nueva; si lo que queda despues no llena
+% esa pagina, una columna se queda vacia. flushend balancea las dos columnas
+% de la ULTIMA pagina para que ese sobrante no se vea como espacio en blanco.
+\usepackage{flushend}
+
+% El reporte tiene muchas tablas grandes (sobre todo en el diccionario de
+% datos); el espaciado por defecto de LaTeX alrededor de flotantes y listas
+% deja demasiado blanco. Se aprieta aqui para que el documento se vea mas
+% denso sin tocar el tamano de fuente ni los margenes de la clase.
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+
+\usepackage{enumitem}
+\setlist{noitemsep, topsep=3pt, partopsep=0pt}
+
 % --- Bibliografia (biblatex + biber) -----------------------------------------
 % style=authoryear -> (Jolliffe, 2002) en el texto.
 % Para citas numericas [1], cambien authoryear por numeric-comp.
-\usepackage[backend=biber,style=authoryear,sorting=nyt,maxbibnames=99]{biblatex}
+\usepackage[backend=biber,style=apa,sorting=nyt,maxbibnames=99]{biblatex}
 \addbibresource{references.bib}
 
 % --- Referencias cruzadas (SIEMPRE hasta el final) ---------------------------
-\usepackage{hyperref}
+\usepackage[colorlinks=true, linkcolor=blue,citecolor=blue]{hyperref}
 \usepackage[spanish]{cleveref} % \cref{fig:x} escribe solo "Figura 1"
 
 \usepackage{mhchem} % formulas de quimica
@@ -92,20 +111,41 @@
 
 \begin{frontmatter}
 
-\title{Titulo del reporte\\ \large Subtitulo o nombre del bloque}
+\title{Sensibilidad NOx--COV del ozono troposférico en el Área Metropolitana
+de Monterrey\\
+\large Un enfoque cuasi-experimental basado en el efecto fin de semana y la
+razón Ox}
 
-\author[tec]{Nombre Apellido}
-\author[tec]{Nombre Apellido}
-\address[tec]{Tecnologico de Monterrey, MA2003B --- Grupo 102.07}
+\author[tec]{Eduardo Luna}
+\author[tec]{Jenaro Alcaraz}
+\author[tec]{Emilia Rico}
+\author[tec]{Mar Fernández}
+\author[tec]{Sofía Fernández}
+\address[tec]{Instituto Tecnológico y de Estudios Superiores de Monterrey, MA2003B --- Grupo 102.07}
 
 \begin{abstract}
-Resumen del reporte en un solo parrafo: que problema se aborda, con que datos,
-que metodo se aplico y cual fue el resultado principal. Sin citas, sin formulas
-y sin referencias a secciones; debe entenderse por si solo.
+La zona metropolitana de Monterrey presenta niveles de ozono troposférico que
+en años recientes han superado los límites normativos, con una tendencia
+sostenida al alza documentada desde 1993. Este trabajo consolida las
+mediciones horarias de contaminantes y variables meteorológicas registradas
+por el Sistema Integral de Monitoreo Ambiental en 15 estaciones entre 2020 y
+2025, y evalúa su calidad y cobertura para descartar el año 2020 por datos
+faltantes excesivos. A partir de las variables seleccionadas por su
+relevancia fisicoquímica y meteorológica para la formación de ozono, se
+construye la variable objetivo mediante el máximo diario del promedio móvil
+de 8 horas, conforme al criterio normativo vigente, y se determinan las
+transformaciones necesarias para el análisis multivariado: estandarización
+por puntuación z, transformación logarítmica de las variables con asimetría
+marcada y codificación cíclica de las variables temporales. El resultado es
+un conjunto de datos de 23\,931 observaciones diarias por estación, con 45
+variables, listo para las etapas de análisis de componentes principales,
+factorial, de conglomerados y discriminante que continuarán el proyecto.
 \end{abstract}
 
 \begin{keyword}
-palabra clave \sep otra palabra clave \sep analisis multivariado
+ozono troposférico \sep sensibilidad NOx--COV \sep calidad del aire \sep
+contaminación atmosférica secundaria \sep análisis multivariado \sep
+Área Metropolitana de Monterrey
 \end{keyword}
 
 \end{frontmatter}
@@ -115,6 +155,13 @@ palabra clave \sep otra palabra clave \sep analisis multivariado
 % Para agregar una seccion nueva: crea el archivo en secciones/ y pon su \input
 % aqui, en el orden en que debe aparecer. Sin la extension .tex.
 
+\input{secciones/introduccion.tex}
+\input{secciones/objetivo.tex}
+\input{secciones/res_sima.tex}
+\input{secciones/revi_medio_ambiente.tex}
+\input{secciones/diccionario_datos.tex}
+\input{secciones/seleccion_datos.tex}
+\input{secciones/transformacion_datos.tex}
 
 \printbibliography
 

@@ -65,6 +65,7 @@ Reglas que importan al editar el reporte:
 - Las opciones de babel-spanish van en `\spanishoptions` **antes** de cargar babel, no como opciones de `\usepackage`.
 - `references.bib` es compartido: **agregar entradas al final**, nunca reordenar ni insertar en medio (genera conflictos de merge).
 - Los auxiliares y `main.pdf` están en `.gitignore`. Para la entrega final: `git add -f reports/main.pdf`.
+- El registro, la densidad, el manejo de números y el criterio de qué detalle de ingeniería de datos vale la pena incluir están en [`reports/guia-estilo.md`](reports/guia-estilo.md). Aplícala al escribir o revisar cualquier `.tex` de `secciones/`, además de las reglas de esta sección.
 
 Nota: hay `main.fdb_latexmk` y `main.out` sueltos en la raíz del repo, restos de una compilación hecha fuera de `reports/`. Son basura; no compiles desde la raíz.
 
