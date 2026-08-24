@@ -63,14 +63,33 @@
 \usepackage{graphicx}
 \graphicspath{{figuras/}}     % con esto basta \includegraphics{archivo.pdf}
 
+% A dos columnas, un table* [t] cerca del final del documento puede empujar
+% el resto del texto a una pagina nueva; si lo que queda despues no llena
+% esa pagina, una columna se queda vacia. flushend balancea las dos columnas
+% de la ULTIMA pagina para que ese sobrante no se vea como espacio en blanco.
+\usepackage{flushend}
+
+% El reporte tiene muchas tablas grandes (sobre todo en el diccionario de
+% datos); el espaciado por defecto de LaTeX alrededor de flotantes y listas
+% deja demasiado blanco. Se aprieta aqui para que el documento se vea mas
+% denso sin tocar el tamano de fuente ni los margenes de la clase.
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+
+\usepackage{enumitem}
+\setlist{noitemsep, topsep=3pt, partopsep=0pt}
+
 % --- Bibliografia (biblatex + biber) -----------------------------------------
 % style=authoryear -> (Jolliffe, 2002) en el texto.
 % Para citas numericas [1], cambien authoryear por numeric-comp.
-\usepackage[backend=biber,style=authoryear,sorting=nyt,maxbibnames=99]{biblatex}
+\usepackage[backend=biber,style=apa,sorting=nyt,maxbibnames=99]{biblatex}
 \addbibresource{references.bib}
 
 % --- Referencias cruzadas (SIEMPRE hasta el final) ---------------------------
-\usepackage{hyperref}
+\usepackage[colorlinks=true, linkcolor=blue,citecolor=blue]{hyperref}
 \usepackage[spanish]{cleveref} % \cref{fig:x} escribe solo "Figura 1"
 
 \usepackage{mhchem} % formulas de quimica
@@ -115,6 +134,13 @@ palabra clave \sep otra palabra clave \sep analisis multivariado
 % Para agregar una seccion nueva: crea el archivo en secciones/ y pon su \input
 % aqui, en el orden en que debe aparecer. Sin la extension .tex.
 
+\input{secciones/introduccion.tex}
+\input{secciones/objetivo.tex}
+\input{secciones/res_sima.tex}
+\input{secciones/revi_medio_ambiente.tex}
+\input{secciones/diccionario_datos.tex}
+\input{secciones/seleccion_datos.tex}
+\input{secciones/transformacion_datos.tex}
 
 \printbibliography
 

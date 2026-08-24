@@ -1,9 +1,44 @@
-% Esta es una subseccion que se supone que tomara como seccion la introducción
+% Subseccion pensada para ir dentro de la seccion Introducción. Si debe ir
+% como seccion propia, cambia \subsection por \section.
+%
+% Fusiona lo que antes eran dos subsecciones (objetivo.tex e
+% investigacion_obj.tex): ambas justificaban por que estudiar el ozono
+% troposferico y se solapaban. Se conserva la definicion quimica, el hallazgo
+% de la anomalia invernal en el AMM, los metodos de deteccion y el dato duro
+% de la tendencia 1993-2014 del AMM frente a la CDMX; se recorto el parrafo
+% generico de "crecimiento industrial y vehicular" que repetia, sin datos, lo
+% que el parrafo de la tendencia 1993-2014 ya dice con cifras.
 
 \subsection{Objeto de investigación}
+\label{sec:objetivo}
 
-El ozono \ce{O3} es una substancia elemental compuesta por tres átomos de oxígeno, y se encuentra tanto en la atmosfera superior (ozono estratosférico) como a nivel del suelo (ozono troposférico). El ozono estratosférico es producido de manera natural por la interacción entre el oxígeno molecular \ce{O2} y los rayos ultravioleta provenientes del sol, este uno de los principales responsables de atenuar la exposición de la superficie a los rayos ultravioleta, este efecto se considera sumamente importante, ya que su ausencia podría significar mayores riesgos para los seres vivos. 
+El ozono \ce{O3} es una substancia elemental compuesta por tres átomos de oxígeno, y se encuentra tanto en la atmosfera superior (ozono estratosférico) como a nivel del suelo (ozono troposférico). El ozono estratosférico es producido de manera natural por la interacción entre el oxígeno molecular \ce{O2} y los rayos ultravioleta provenientes del sol, este uno de los principales responsables de atenuar la exposición de la superficie a los rayos ultravioleta, este efecto se considera sumamente importante, ya que su ausencia podría significar mayores riesgos para los seres vivos \parencite{Bernhard2023-lk}.
 
-A diferencia del ozono estratosférico, el ozono troposférico es el principal ingrediente del \textit{smog} y es formado por medio de transformaciones químicas entre los óxidos de nitrógeno \ce{NOx} y los compuestos orgánicos volátiles COV con el calor y luz solar. En el área metropolitana de monterrey, sin embargo, los niveles más altos no coinciden necesariamente con los meses más cálidos: durante el invierno se registran concentraciones más elevadas de \ce{O3}, un comportamiento que motiva el análisis de las variables meteorológicas. 
+A diferencia del ozono estratosférico, el ozono troposférico es el principal ingrediente del \textit{smog} y es formado por medio de transformaciones químicas entre los óxidos de nitrógeno \ce{NOx} y los compuestos orgánicos volátiles COV con el calor y luz solar. En el área metropolitana de monterrey, sin embargo, los niveles más altos no coinciden necesariamente con los meses más cálidos: durante el invierno se registran concentraciones más elevadas de \ce{O3}, un comportamiento que motiva el análisis de las variables meteorológicas.
 
-Esta forma alotrópica será el objeto de investigación; profundizaremos en su formación, sus fuentes, las clasificaciones y haremos uso del análisis multivariado para modelar y explicar cómo sus niveles son afectados por factores meteorológicos.\cite{Bernhard2023-lk}
+Áreas metropolitanas y urbanas de Nuevo León con gran movimiento industrial han
+presentado niveles de \ce{O3} y \ce{PM10} en su atmósfera que, en diversas
+ocasiones, han llegado a superar los límites permisibles establecidos por las
+normas oficiales mexicanas correspondientes: la NOM-020-SSA1-2021 para ozono
+\parencite{nom020ssa1} y la NOM-025-SSA1-2014 para partículas \ce{PM10} y
+\ce{PM_{2.5}} \parencite{nom025ssa1}. Estas tendencias de contaminación del aire se
+han comenzado a documentar desde hace más de 30 años, con distintas herramientas
+de detección que permiten medir tanto las concentraciones de ozono (mediante
+fotometría ultravioleta) como las de sus precursores, los óxidos de nitrógeno
+\ce{NO} y \ce{NO2} (agrupados como \ce{NO_x}, medidos por quimioluminiscencia),
+cuya relación fotoquímica es clave para entender la formación del contaminante
+secundario \ce{O3} \parencite{SanfordSillman}.
+
+Diversos estudios han evidenciado que el Área Metropolitana de Monterrey (AMM)
+no es la excepción a este fenómeno: entre 1993 y 2014 se registró un aumento
+sostenido de las concentraciones de ozono troposférico, en contraste con la
+tendencia descendente observada en la Ciudad de México durante el mismo periodo,
+lo cual ha sido atribuido al crecimiento industrial y vehicular de la región sin
+un control equivalente sobre sus precursores atmosféricos, y a un papel
+meteorológico adicionalmente modulado por el cambio climático
+\parencite{atmos15070779}. Este comportamiento se agrava por las condiciones
+topográficas del valle donde se asienta el AMM, rodeado de sierras que favorecen
+el estancamiento de masas de aire durante episodios de alta presión atmosférica
+(anticiclones), inversión térmica y baja velocidad de viento, factores que
+reducen la dispersión de contaminantes y prolongan los periodos de exposición de
+la población a concentraciones elevadas.
