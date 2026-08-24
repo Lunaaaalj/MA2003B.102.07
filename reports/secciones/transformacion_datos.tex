@@ -5,7 +5,7 @@ transformación aplicar sino si hace falta aplicar alguna. Transformar una
 variable tiene un costo: los coeficientes dejan de leerse en las unidades
 originales y, en el caso de la discretización, se pierde información de manera
 irreversible. Por ello cada decisión de esta sección se sostiene en una medición
-hecha sobre nuestros propios datos, y las transformaciones que se descartaron se
+hecha sobre los datos del proyecto, y las transformaciones que se descartaron se
 documentan junto con su razón.
 
 El diagnóstico se organiza en tres preguntas: si las variables están en escalas
@@ -31,7 +31,7 @@ Se estandarizan por tanto todas las variables numéricas mediante puntuación
 $z$, es decir, $z=(x-\bar{x})/s$. Conviene subrayar que estandarizar equivale
 exactamente a correr el análisis sobre la \emph{matriz de correlación} en lugar
 de la de covarianza; es la misma decisión enunciada de dos maneras. Tras la
-estandarización, cada una de las once variables del conjunto de trabajo aporta
+estandarización, cada una de las 11 variables del conjunto de trabajo aporta
 el $9.09\%$ de la varianza total, que es el reparto uniforme buscado.
 
 Se consideraron dos alternativas y ambas se descartaron. El escalamiento
@@ -119,7 +119,7 @@ depósito húmedo. Se conserva la variable continua y se agrega una indicadora d
 ocurrencia de lluvia.
 
 La hora y el mes plantean un problema distinto. Como enteros, mienten sobre la
-distancia entre categorías: colocan las 23:00 a veintitrés unidades de las 00:00
+distancia entre categorías: colocan las 23:00 a 23 unidades de las 00:00
 cuando son consecutivas. La solución no es agruparlas en bloques sino
 proyectarlas al círculo mediante $\sin(2\pi h/24)$ y $\cos(2\pi h/24)$, y de
 manera análoga para el mes, con lo que diciembre y enero recuperan su vecindad.
@@ -142,7 +142,7 @@ a la conveniencia. De la temperatura se toma el máximo diario, porque la
 formación fotoquímica escala con el pico y no con el promedio de la jornada. De
 los precursores ---NOX, \ce{NO2} y \ce{CO}--- se toma el promedio de la ventana
 de 06:00 a 09:00, correspondiente a la emisión matutina del tráfico, que es la
-que alimenta el ozono de la tarde; promediar las veinticuatro horas mezclaría esa
+que alimenta el ozono de la tarde; promediar las 24 horas mezclaría esa
 emisión con la titulación nocturna y cancelaría justamente la señal de interés.
 Las variables de ventilación se promedian sobre el día, por tratarse de un efecto
 acumulado sobre la masa de aire, y la precipitación se acumula. El resultado es la
