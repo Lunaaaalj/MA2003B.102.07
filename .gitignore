@@ -278,9 +278,11 @@ renv/staging/
 packrat/lib*/
 packrat/src/
 
-# Datos derivados de data/raw/ por src/importar_datos.py. No se versionan:
-# son reproducibles con `python src/importar_datos.py` y pesan ~22 MB.
-data/processed/
+# Datos derivados de data/raw/ por src/importar_datos.py + limpieza.py + transformaciones.qmd.
+# No se versionan (son reproducibles corriendo el pipeline), excepto el dataset
+# final limpio y transformado, que sí se commitea (issue #15).
+data/processed/*
+!data/processed/sima_transformado_horario.parquet
 
 .vscode/
 .idea/

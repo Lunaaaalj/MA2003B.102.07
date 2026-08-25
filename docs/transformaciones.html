@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>transformaciones</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="transformaciones_files/libs/clipboard/clipboard.min.js"></script>
+<script src="transformaciones_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="transformaciones_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="transformaciones_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="transformaciones_files/libs/quarto-html/popper.min.js"></script>
+<script src="transformaciones_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="transformaciones_files/libs/quarto-html/anchor.min.js"></script>
+<link href="transformaciones_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="transformaciones_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="transformaciones_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="transformaciones_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="transformaciones_files/libs/bootstrap/bootstrap-d6a003b94517c951b2d65075d42fb01b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<section id="transformaciones-y-escalamiento-de-datos" class="level1">
+<h1>Transformaciones y escalamiento de datos</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(nanoparquet)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>sima_horario <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"../data/processed/sima_limpio_horario.csv"</span>) <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(<span class="st">"WDR"</span>)) <span class="co"># no es necesario tener la direccion del viendo si ya se tienen viento_u y viento_v</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sima_horario)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                fecha estacion anio O3   CO NO2 NOX PM10 PM2.5 TOUT RAINF   PRS
+1 2021-01-01 00:00:00       CE 2021 NA   NA  NA  NA   NA    NA   NA    NA    NA
+2 2021-01-01 01:00:00       CE 2021 27 4.73  NA  NA   68 46.00 8.26     0 709.7
+3 2021-01-01 02:00:00       CE 2021 23 4.72  NA  NA   55 47.64 7.15     0 710.1
+4 2021-01-01 03:00:00       CE 2021 25 4.82  NA  NA   57 52.07 6.20     0 710.4
+5 2021-01-01 04:00:00       CE 2021 25 5.02  NA  NA   65 61.62 5.64     0 710.6
+6 2021-01-01 05:00:00       CE 2021 19 4.79  NA  NA   71 49.13 5.08     0 710.6
+  WSR   viento_u  viento_v hora mes dia_semana fin_de_semana temporada O3_8h
+1  NA         NA        NA    0   1          4             0  invierno    NA
+2 7.9 -7.7273660 -1.642502    1   1          4             0  invierno    NA
+3 4.8 -3.5104978 -3.273592    2   1          4             0  invierno    NA
+4 5.2  0.9922068 -5.104461    3   1          4             0  invierno    NA
+5 3.2  0.1116784 -3.198051    4   1          4             0  invierno    NA
+6 3.0 -0.9767045 -2.836556    5   1          4             0  invierno    NA
+  outlier_O3 outlier_CO outlier_NO2 outlier_NOX outlier_PM10 outlier_PM2.5
+1          0          0           0           0            0             0
+2          0          1           0           0            0             0
+3          0          1           0           0            0             0
+4          0          1           0           0            0             1
+5          0          1           0           0            0             1
+6          0          1           0           0            0             0
+  outlier_TOUT outlier_PRS outlier_WSR
+1            0           0           0
+2            0           0           0
+3            0           0           0
+4            0           0           0
+5            0           0           0
+6            0           0           0</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(sima_horario)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       fecha             estacion           anio            O3        
+ Length   :574343   Length   :574343   Min.   :2021   Min.   :  0.50  
+ N.unique : 39408   N.unique :    15   1st Qu.:2022   1st Qu.: 13.00  
+ N.blank  :     0   N.blank  :     0   Median :2023   Median : 23.00  
+ Min.nchar:    19   Min.nchar:     2   Mean   :2023   Mean   : 26.92  
+ Max.nchar:    19   Max.nchar:     4   3rd Qu.:2024   3rd Qu.: 37.00  
+                                       Max.   :2025   Max.   :265.00  
+                                                      NAs    :25224   
+       CO              NO2              NOX              PM10       
+ Min.   : 0.000   Min.   :  0.00   Min.   :  0.50   Min.   :  1.00  
+ 1st Qu.: 0.710   1st Qu.:  6.90   1st Qu.: 10.95   1st Qu.: 35.00  
+ Median : 1.210   Median : 11.70   Median : 17.50   Median : 51.00  
+ Mean   : 1.356   Mean   : 14.81   Mean   : 26.36   Mean   : 60.19  
+ 3rd Qu.: 1.825   3rd Qu.: 19.70   3rd Qu.: 30.70   3rd Qu.: 74.00  
+ Max.   :37.000   Max.   :167.80   Max.   :500.00   Max.   :998.00  
+ NAs    :35361    NAs    :36828    NAs    :35715    NAs    :14113   
+     PM2.5             TOUT           RAINF                PRS       
+ Min.   :  0.00   Min.   :-9.62   Min.   :  0.00000   Min.   :655.4  
+ 1st Qu.: 10.00   1st Qu.:18.49   1st Qu.:  0.00000   1st Qu.:709.7  
+ Median : 17.00   Median :24.01   Median :  0.00000   Median :714.5  
+ Mean   : 20.53   Mean   :23.23   Mean   :  0.02056   Mean   :715.3  
+ 3rd Qu.: 26.74   3rd Qu.:28.39   3rd Qu.:  0.00000   3rd Qu.:721.7  
+ Max.   :782.00   Max.   :47.58   Max.   :360.00000   Max.   :750.0  
+ NAs    :118049   NAs    :26674   NAs    :17251       NAs    :14271  
+      WSR             viento_u            viento_v              hora     
+ Min.   :  0.100   Min.   :-178.1196   Min.   :-177.4876   Min.   : 0.0  
+ 1st Qu.:  4.700   1st Qu.:  -8.5649   1st Qu.:  -3.3773   1st Qu.: 6.0  
+ Median :  7.700   Median :  -4.1690   Median :   0.2408   Median :12.0  
+ Mean   :  8.678   Mean   :  -4.2425   Mean   :   0.2676   Mean   :11.5  
+ 3rd Qu.: 11.600   3rd Qu.:   0.2093   3rd Qu.:   3.9794   3rd Qu.:17.5  
+ Max.   :179.700   Max.   : 162.6009   Max.   : 160.8832   Max.   :23.0  
+ NAs    :19773     NAs    :28971       NAs    :28971                     
+      mes           dia_semana    fin_de_semana        temporada     
+ Min.   : 1.000   Min.   :0.000   Min.   :0.0000   Length   :574343  
+ 1st Qu.: 3.000   1st Qu.:1.000   1st Qu.:0.0000   N.unique :     4  
+ Median : 6.000   Median :3.000   Median :0.0000   N.blank  :     0  
+ Mean   : 6.188   Mean   :3.002   Mean   :0.2862   Min.nchar:     5  
+ 3rd Qu.: 9.000   3rd Qu.:5.000   3rd Qu.:1.0000   Max.nchar:     9  
+ Max.   :12.000   Max.   :6.000   Max.   :1.0000                     
+                                                                     
+     O3_8h           outlier_O3        outlier_CO       outlier_NO2     
+ Min.   :  0.725   Min.   :0.00000   Min.   :0.00000   Min.   :0.00000  
+ 1st Qu.: 15.438   1st Qu.:0.00000   1st Qu.:0.00000   1st Qu.:0.00000  
+ Median : 24.375   Median :0.00000   Median :0.00000   Median :0.00000  
+ Mean   : 26.953   Mean   :0.02398   Mean   :0.01935   Mean   :0.03596  
+ 3rd Qu.: 35.750   3rd Qu.:0.00000   3rd Qu.:0.00000   3rd Qu.:0.00000  
+ Max.   :147.875   Max.   :1.00000   Max.   :1.00000   Max.   :1.00000  
+ NAs    :27103                                                          
+  outlier_NOX       outlier_PM10     outlier_PM2.5      outlier_TOUT    
+ Min.   :0.00000   Min.   :0.00000   Min.   :0.00000   Min.   :0.00000  
+ 1st Qu.:0.00000   1st Qu.:0.00000   1st Qu.:0.00000   1st Qu.:0.00000  
+ Median :0.00000   Median :0.00000   Median :0.00000   Median :0.00000  
+ Mean   :0.07839   Mean   :0.04677   Mean   :0.02963   Mean   :0.00768  
+ 3rd Qu.:0.00000   3rd Qu.:0.00000   3rd Qu.:0.00000   3rd Qu.:0.00000  
+ Max.   :1.00000   Max.   :1.00000   Max.   :1.00000   Max.   :1.00000  
+                                                                        
+  outlier_PRS        outlier_WSR     
+ Min.   :0.000000   Min.   :0.00000  
+ 1st Qu.:0.000000   1st Qu.:0.00000  
+ Median :0.000000   Median :0.00000  
+ Mean   :0.006033   Mean   :0.01376  
+ 3rd Qu.:0.000000   3rd Qu.:0.00000  
+ Max.   :1.000000   Max.   :1.00000  
+                                     </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(sima_horario)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   574343 obs. of  30 variables:
+ $ fecha        : chr  "2021-01-01 00:00:00" "2021-01-01 01:00:00" "2021-01-01 02:00:00" "2021-01-01 03:00:00" ...
+ $ estacion     : chr  "CE" "CE" "CE" "CE" ...
+ $ anio         : int  2021 2021 2021 2021 2021 2021 2021 2021 2021 2021 ...
+ $ O3           : num  NA 27 23 25 25 19 20 17 13 15 ...
+ $ CO           : num  NA 4.73 4.72 4.82 5.02 4.79 4.77 4.73 4.76 4.64 ...
+ $ NO2          : num  NA NA NA NA NA NA NA NA NA NA ...
+ $ NOX          : num  NA NA NA NA NA NA NA NA NA NA ...
+ $ PM10         : num  NA 68 55 57 65 71 60 57 47 45 ...
+ $ PM2.5        : num  NA 46 47.6 52.1 61.6 ...
+ $ TOUT         : num  NA 8.26 7.15 6.2 5.64 5.08 4.73 4.68 4.39 4.6 ...
+ $ RAINF        : num  NA 0 0 0 0 0 0 0 0 0 ...
+ $ PRS          : num  NA 710 710 710 711 ...
+ $ WSR          : num  NA 7.9 4.8 5.2 3.2 3 2.4 3 4.7 4.5 ...
+ $ viento_u     : num  NA -7.727 -3.51 0.992 0.112 ...
+ $ viento_v     : num  NA -1.64 -3.27 -5.1 -3.2 ...
+ $ hora         : int  0 1 2 3 4 5 6 7 8 9 ...
+ $ mes          : int  1 1 1 1 1 1 1 1 1 1 ...
+ $ dia_semana   : int  4 4 4 4 4 4 4 4 4 4 ...
+ $ fin_de_semana: int  0 0 0 0 0 0 0 0 0 0 ...
+ $ temporada    : chr  "invierno" "invierno" "invierno" "invierno" ...
+ $ O3_8h        : num  NA NA NA NA NA ...
+ $ outlier_O3   : int  0 0 0 0 0 0 0 0 0 0 ...
+ $ outlier_CO   : int  0 1 1 1 1 1 1 1 1 1 ...
+ $ outlier_NO2  : int  0 0 0 0 0 0 0 0 0 0 ...
+ $ outlier_NOX  : int  0 0 0 0 0 0 0 0 0 0 ...
+ $ outlier_PM10 : int  0 0 0 0 0 0 0 0 0 0 ...
+ $ outlier_PM2.5: int  0 0 0 1 1 0 0 0 0 0 ...
+ $ outlier_TOUT : int  0 0 0 0 0 0 0 0 0 0 ...
+ $ outlier_PRS  : int  0 0 0 0 0 0 0 0 0 0 ...
+ $ outlier_WSR  : int  0 0 0 0 0 0 0 0 0 0 ...</code></pre>
+</div>
+</div>
+<p>Hay variables cuantitativas que tienen escalas diferentes, como <code>O3</code>, que tiene como <code>Min</code> 0.5 y <code>Max</code> de 265, mientras se tienen otras variables con máximos de 37,167,55,998, etc. se considera que se debe hacer un escalamiento.</p>
+<p>Se hace una complot de los datos para comparación visual</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sima_horario_quant <span class="ot">&lt;-</span> sima_horario <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(<span class="st">"estacion"</span>,<span class="st">"fecha"</span>,<span class="st">"anio"</span>,<span class="st">"hora"</span>,<span class="st">"mes"</span>,<span class="st">"dia_semana"</span>,<span class="st">"fin_de_semana"</span>,<span class="st">"temporada"</span>,<span class="st">"outlier_O3"</span>,<span class="st">"outlier_CO"</span>,<span class="st">"outlier_NO2"</span>,<span class="st">"outlier_NOX"</span>,<span class="st">"outlier_PM10"</span>,<span class="st">"outlier_PM2.5"</span>,<span class="st">"outlier_TOUT"</span>,<span class="st">"outlier_PRS"</span>,<span class="st">"outlier_WSR"</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sima_horario_quant)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  O3   CO NO2 NOX PM10 PM2.5 TOUT RAINF   PRS WSR   viento_u  viento_v O3_8h
+1 NA   NA  NA  NA   NA    NA   NA    NA    NA  NA         NA        NA    NA
+2 27 4.73  NA  NA   68 46.00 8.26     0 709.7 7.9 -7.7273660 -1.642502    NA
+3 23 4.72  NA  NA   55 47.64 7.15     0 710.1 4.8 -3.5104978 -3.273592    NA
+4 25 4.82  NA  NA   57 52.07 6.20     0 710.4 5.2  0.9922068 -5.104461    NA
+5 25 5.02  NA  NA   65 61.62 5.64     0 710.6 3.2  0.1116784 -3.198051    NA
+6 19 4.79  NA  NA   71 49.13 5.08     0 710.6 3.0 -0.9767045 -2.836556    NA</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(sima_horario_quant)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="transformaciones_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>La boxplot confirma la necesidad de escalamiento de las variables. Las distintas variables tienen diferentes unidades y escalas por lo que se lleva a cabo un escalamiento</p>
+<p>Se define</p>
+<p><span class="math display">\[|\text{skewness}(x_i)|&lt;0.5\,\forall\, x_i\in\text{dataset}\;i=1\,,2\,\dots,n\]</span></p>
+<p>Entonces:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(moments)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>sk <span class="ot">&lt;-</span> sima_horario_quant <span class="sc">|&gt;</span> <span class="fu">apply</span>(<span class="dv">2</span>,skewness,<span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>sk</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         O3          CO         NO2         NOX        PM10       PM2.5 
+  1.2931781   1.8147506   1.9324655   3.6307418   3.6553276   5.8125784 
+       TOUT       RAINF         PRS         WSR    viento_u    viento_v 
+ -0.4177213 238.4555408   0.1020772   6.9439615  -1.4683483  -0.5209155 
+      O3_8h 
+  0.9737003 </code></pre>
+</div>
+</div>
+<p>La mayoría de las variables no cumplen con la regla propuesta, se convierten en candidatos a transformar, a excepción de <code>RAINF</code>,que tiene un sesgo de 238.46, debido a la naturaleza de la precipitación, es una variable inflada de zeros, ni Box-Cox ni Yeo-Johnson funcionaran con esta variable. Para esta variable sera mejor crear una nueva <code>llovio</code> que sea la dicotomizacion de la variable original <code>RAINF</code></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>sima_horario<span class="sc">$</span>llovio <span class="ot">&lt;-</span> (<span class="fu">as.integer</span>(sima_horario<span class="sc">$</span>RAINF <span class="sc">&gt;</span> <span class="dv">0</span>))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>sima_horario<span class="sc">$</span>llovio[<span class="fu">is.na</span>(sima_horario<span class="sc">$</span>llovio)] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sample</span>(sima_horario<span class="sc">$</span>llovio, <span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'MASS'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:dplyr':
+
+    select</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>box_cox <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  bc <span class="ot">&lt;-</span> <span class="fu">boxcox</span>(<span class="fu">na.omit</span>(x) <span class="sc">~</span> <span class="dv">1</span>, <span class="at">plotit =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  lambda <span class="ot">&lt;-</span> bc<span class="sc">$</span>x[<span class="fu">which.max</span>(bc<span class="sc">$</span>y)]</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (lambda <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">log</span>(x) <span class="cf">else</span> (x<span class="sc">^</span>lambda <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> lambda</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>candidates_bc <span class="ot">&lt;-</span> sima_horario_quant <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(<span class="st">"RAINF"</span>))</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col <span class="cf">in</span> <span class="fu">names</span>(candidates_bc)) {</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> candidates_bc[[col]]</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">any</span>(x <span class="sc">&lt;=</span> <span class="dv">0</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) x <span class="ot">&lt;-</span> x <span class="sc">-</span> <span class="fu">min</span>(x,<span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    candidates_bc[[col]] <span class="ot">&lt;-</span> <span class="fu">box_cox</span>(x)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(candidates_bc)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        O3       CO NO2 NOX     PM10    PM2.5     TOUT       PRS      WSR
+1       NA       NA  NA  NA       NA       NA       NA        NA       NA
+2 5.626251 1.358946  NA  NA 5.249335 4.696360 68.15833 0.5882269 2.863458
+3 5.205472 1.357911  NA  NA 4.929191 4.746853 61.80307 0.5882269 2.003100
+4 5.421759 1.368156  NA  NA 4.982610 4.875957 56.54940 0.5882269 2.132794
+5 5.421759 1.387974  NA  NA 5.180684 5.124162 53.53428 0.5882269 1.391905
+6 4.729818 1.365106  NA  NA 5.315312 4.791417 50.58084 0.5882269 1.301297
+   viento_u viento_v O3_8h
+1        NA       NA    NA
+2  9242.828 1567.161    NA
+3  9679.706 1545.520    NA
+4 10156.734 1521.349    NA
+5 10062.594 1546.520    NA
+6  9946.806 1551.309    NA</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>sk_trs <span class="ot">=</span> candidates_bc <span class="sc">|&gt;</span> <span class="fu">apply</span>(<span class="dv">2</span>,skewness,<span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>sk_trs</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>          O3           CO          NO2          NOX         PM10        PM2.5 
+-0.067803824  0.018530235  0.028693551 -0.026059173 -0.064685182  0.077793131 
+        TOUT          PRS          WSR     viento_u     viento_v        O3_8h 
+-0.042733339  0.000777554  0.119713962  0.783719306  0.650433899  0.016148435 </code></pre>
+</div>
+</div>
+<p>El sesgo de las variables fue reducido con exito, dada una transformacion de Box-Cox con dezplazamiento para tratar las variables con valores negativos.</p>
+<p><code>RAINF</code> es un caso especial, debido a que es una variable con zero inflacion , tiene demasiado sesgo que una transformacion como Box-Cox no puede disminuir, ya se habia hecho una binaria a partir de esta <code>llovio</code> que podria tomarse en cuenta para otros analisis, pero hay que considerar que el uso de variables binarias en algunas tecnicas, como PCA, no es estadisticamente prolijo.</p>
+<p>Se reemplazan en <code>sima_horario</code> las columnas originales por su version transformada con Box-Cox, y se descarta <code>RAINF</code> (ya representada por <code>llovio</code>), para obtener el dataset final de esta fase.</p>
+<p>Se procede al escalamiento de las variables de <code>candidates_bc</code></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>scaled_dt <span class="ot">&lt;-</span> candidates_bc <span class="sc">|&gt;</span> <span class="fu">scale</span>(<span class="at">scale =</span> <span class="cn">TRUE</span>, <span class="at">center =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(scaled_dt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              O3       CO NO2 NOX      PM10    PM2.5      TOUT        PRS
+[1,]          NA       NA  NA  NA        NA       NA        NA         NA
+[2,]  0.25275648 2.498112  NA  NA 0.4763621 1.556242 -1.852320 -0.5880603
+[3,]  0.03505242 2.494212  NA  NA 0.1257665 1.614059 -1.958949 -0.5445906
+[4,]  0.14695591 2.532811  NA  NA 0.1842673 1.761888 -2.047096 -0.5120317
+[5,]  0.14695591 2.607484  NA  NA 0.4011814 2.046093 -2.097684 -0.4903464
+[6,] -0.21104241 2.521323  NA  NA 0.5486148 1.665086 -2.147238 -0.4903464
+             WSR    viento_u   viento_v O3_8h
+[1,]          NA          NA         NA    NA
+[2,]  0.08335598 -0.48390850 -0.3057850    NA
+[3,] -0.61575400  0.07839821 -0.5578165    NA
+[4,] -0.51036741  0.69238216 -0.8393230    NA
+[5,] -1.11239933  0.57121418 -0.5461699    NA
+[6,] -1.18602563  0.42218249 -0.4904014    NA</code></pre>
+</div>
+</div>
+<p>Distribución superpuesta de las variables ya escaladas:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>cols <span class="ot">&lt;-</span> <span class="fu">colnames</span>(scaled_dt)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>dens <span class="ot">&lt;-</span> <span class="fu">lapply</span>(cols, <span class="cf">function</span>(c) <span class="fu">density</span>(scaled_dt[, c], <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>xr <span class="ot">&lt;-</span> <span class="fu">range</span>(<span class="fu">sapply</span>(dens, <span class="cf">function</span>(d) <span class="fu">range</span>(d<span class="sc">$</span>x)))</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>yr <span class="ot">&lt;-</span> <span class="fu">range</span>(<span class="fu">sapply</span>(dens, <span class="cf">function</span>(d) <span class="fu">range</span>(d<span class="sc">$</span>y)))</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>paleta <span class="ot">&lt;-</span> <span class="fu">rainbow</span>(<span class="fu">length</span>(cols))</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dens[[<span class="dv">1</span>]], <span class="at">main =</span> <span class="st">"Distribucion de variables escaladas"</span>, <span class="at">xlab =</span> <span class="st">"z-score"</span>, <span class="at">col =</span> paleta[<span class="dv">1</span>], <span class="at">xlim =</span> xr, <span class="at">ylim =</span> yr)</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(dens)[<span class="sc">-</span><span class="dv">1</span>]) <span class="fu">lines</span>(dens[[i]], <span class="at">col =</span> paleta[i])</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend =</span> cols, <span class="at">col =</span> paleta, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="transformaciones_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>QQ-plots contra la normal, uno por variable:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">3</span>))</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (col <span class="cf">in</span> cols) {</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">qqnorm</span>(scaled_dt[, col], <span class="at">main =</span> col)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">qqline</span>(scaled_dt[, col], <span class="at">col =</span> <span class="st">"red"</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="transformaciones_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>viento_u</code> y <code>viento_v</code> quedan mucho mas leptocurticas que el resto (curtosis de exceso ≈38 y ≈39, contra valores cercanos a 0 en casi todas las demas, ej. <code>PM10</code> ≈1.2, <code>PM2.5</code> ≈0.1). Esto no lo corrige Box-Cox: el metodo optimiza simetria (tercer momento), no curtosis (cuarto momento), y el <code>λ</code> estimado para estas dos variables fue alto (1.9 y 1.5), lo que amplifica en vez de comprimir los valores alejados del centro. Tiene sentido fisico: la mayoria de las horas el viento es tranquilo y con direccion similar (pico central angosto), pero hay rafagas raras con magnitudes mucho mayores (colas pesadas) que Box-Cox no aplana. Junto con que ya eran las unicas variables que no bajaron de <code>|sesgo|&lt;0.5</code> tras la transformacion, quedan marcadas como caso a vigilar si el metodo de #15 es sensible a colas pesadas (ej. distancia de Mahalanobis para outliers).</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>sima_horario_transformado <span class="ot">&lt;-</span> sima_horario</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>sima_horario_transformado[<span class="fu">colnames</span>(scaled_dt)] <span class="ot">&lt;-</span> scaled_dt</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>sima_horario_transformado <span class="ot">&lt;-</span> sima_horario_transformado <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>RAINF)</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sima_horario_transformado)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                fecha estacion anio          O3       CO NO2 NOX      PM10
+1 2021-01-01 00:00:00       CE 2021          NA       NA  NA  NA        NA
+2 2021-01-01 01:00:00       CE 2021  0.25275648 2.498112  NA  NA 0.4763621
+3 2021-01-01 02:00:00       CE 2021  0.03505242 2.494212  NA  NA 0.1257665
+4 2021-01-01 03:00:00       CE 2021  0.14695591 2.532811  NA  NA 0.1842673
+5 2021-01-01 04:00:00       CE 2021  0.14695591 2.607484  NA  NA 0.4011814
+6 2021-01-01 05:00:00       CE 2021 -0.21104241 2.521323  NA  NA 0.5486148
+     PM2.5      TOUT        PRS         WSR    viento_u   viento_v hora mes
+1       NA        NA         NA          NA          NA         NA    0   1
+2 1.556242 -1.852320 -0.5880603  0.08335598 -0.48390850 -0.3057850    1   1
+3 1.614059 -1.958949 -0.5445906 -0.61575400  0.07839821 -0.5578165    2   1
+4 1.761888 -2.047096 -0.5120317 -0.51036741  0.69238216 -0.8393230    3   1
+5 2.046093 -2.097684 -0.4903464 -1.11239933  0.57121418 -0.5461699    4   1
+6 1.665086 -2.147238 -0.4903464 -1.18602563  0.42218249 -0.4904014    5   1
+  dia_semana fin_de_semana temporada O3_8h outlier_O3 outlier_CO outlier_NO2
+1          4             0  invierno    NA          0          0           0
+2          4             0  invierno    NA          0          1           0
+3          4             0  invierno    NA          0          1           0
+4          4             0  invierno    NA          0          1           0
+5          4             0  invierno    NA          0          1           0
+6          4             0  invierno    NA          0          1           0
+  outlier_NOX outlier_PM10 outlier_PM2.5 outlier_TOUT outlier_PRS outlier_WSR
+1           0            0             0            0           0           0
+2           0            0             0            0           0           0
+3           0            0             0            0           0           0
+4           0            0             1            0           0           0
+5           0            0             1            0           0           0
+6           0            0             0            0           0           0
+  llovio
+1      0
+2      0
+3      0
+4      0
+5      0
+6      0</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_parquet</span>(sima_horario_transformado, <span class="st">"../data/processed/sima_transformado_horario.parquet"</span>)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(sima_horario_transformado, <span class="st">"../data/processed/sima_transformado_horario.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="uso-de-ia-en-este-notebook" class="level2">
+<h2 class="anchored" data-anchor-id="uso-de-ia-en-este-notebook">Uso de IA en este notebook</h2>
+<p>Se uso Claude Code como asistente durante todo el proceso, principalmente de tres formas: (1) depurar codigo R que fallaba o daba resultados incorrectos sin avisar (ej. <code>select()</code> de dplyr enmascarado por <code>library(MASS)</code>, <code>names()</code> en vez de <code>colnames()</code> sobre la matriz que devuelve <code>scale()</code> -que dejaba <code>sima_horario_transformado</code> sin transformar de forma silenciosa-, el shift de Box-Cox que no cubria columnas con valores negativos, y la colision de colores en la grafica de densidad por reciclar solo 8 colores para 12 variables); (2) explicar conceptos estadisticos aplicados a este dataset (diferencia entre normalizar y estandarizar, por que Box-Cox no corrige zero-inflacion ni curtosis, por que <code>WDR</code> como variable circular no deberia tratarse como continua); y (3) escribir funciones y chunks especificos (<code>box_cox()</code>, la union de <code>candidates_bc</code> con <code>sima_horario</code>, las graficas de densidad y Q-Q). Cada hallazgo y cada pieza de codigo se verifico corriendola contra los datos reales del equipo (<code>sima_limpio_horario.csv</code>) antes de incorporarla al notebook -no se acepto ninguna explicacion ni resultado numerico sin reproducirlo primero-, y las decisiones de fondo (que variable dicotomizar, que hacer con <code>WDR</code>, si escalar variables binarias) se discutieron y decidieron en conversacion, no se delegaron a la IA.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

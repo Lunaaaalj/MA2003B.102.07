@@ -75,10 +75,10 @@ La documentación real de los datos (inconsistencias entre años, qué contiene 
 
 - Los seis `BD <año>.xlsx` **no comparten estructura**: 2024 trae las unidades pegadas al encabezado (`CO (ppm)`), 2025 renombró la fecha a `date` y metió una fila de unidades bajo el encabezado, y el número de estaciones va de 13 (2020) a 15 (2024-2025). `src/importar_datos.py` normaliza todo eso; no leas los Excel a mano.
 - Cada **hoja es una estación**, no hay columna de estación en el origen.
-- `data/processed/` **no se versiona**: se regenera con `python src/importar_datos.py` (~5 min, el padrón es lo lento).
+- `data/processed/` **no se versiona**, salvo `sima_transformado_horario.parquet` (el dataset limpio y transformado final, issue #15, sí commiteado). El resto se regenera con `python src/importar_datos.py` (~5 min, el padrón es lo lento) → `src/limpieza.py` → `notebooks/transformaciones.qmd`.
 - Las marcas de tiempo son **hora local de pared sin zona horaria**. Al leerlas desde R hay que declarar `tzone <- "UTC"` (no convertir), o se corren 6 horas; `cargar_datos.R` ya lo hace.
 
-`data/raw/` contiene los Excel del SIMA (`BD 2020.xlsx` … `BD 2025.xlsx`, `Etiquetas.xlsx`, inventario y padrón). **Son inmutables**: no se editan ni se sobrescriben. Los datasets limpios van a `data/processed/`, los de terceros a `data/external/` (ninguna de esas carpetas existe todavía; créalas al necesitarlas).
+`data/raw/` contiene los Excel del SIMA (`BD 2020.xlsx` … `BD 2025.xlsx`, `Etiquetas.xlsx`, inventario y padrón). **Son inmutables**: no se editan ni se sobrescriben. Los datasets limpios van a `data/processed/`, los de terceros a `data/external/` (esta última no existe todavía; créala al necesitarla).
 
 Contexto de dominio en `docs/`: `Rangos de los parámetros del SIMA.pdf` y `Ubicación de las estaciones de monitoreo.docx` — consúltalos antes de interpretar columnas o filtrar valores fuera de rango. Ojo: en esa misma carpeta caen los PDF que genera Quarto, así que ahí conviven material de referencia (inmutable, no se toca) y artefactos regenerables.
 
