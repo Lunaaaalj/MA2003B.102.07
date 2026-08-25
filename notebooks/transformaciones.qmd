@@ -79,12 +79,36 @@ Se reemplazan en `sima_horario` las columnas originales por su version transform
 Se procede al escalamiento de las variables de `candidates_bc`
 
 ```{r}
+scaled_dt <- candidates_bc |> scale(scale = TRUE, center = TRUE)
+head(scaled_dt)
+```
 
+Distribución superpuesta de las variables ya escaladas:
+
+```{r}
+cols <- colnames(scaled_dt)
+dens <- lapply(cols, function(c) density(scaled_dt[, c], na.rm = TRUE))
+xr <- range(sapply(dens, function(d) range(d$x)))
+yr <- range(sapply(dens, function(d) range(d$y)))
+plot(dens[[1]], main = "Distribucion de variables escaladas", xlab = "z-score", col = 1, xlim = xr, ylim = yr)
+for (i in seq_along(dens)[-1]) lines(dens[[i]], col = i)
+legend("topright", legend = cols, col = seq_along(cols), lty = 1, cex = 0.6)
+```
+
+QQ-plots contra la normal, uno por variable:
+
+```{r}
+par(mfrow = c(4, 3))
+for (col in cols) {
+  qqnorm(scaled_dt[, col], main = col)
+  qqline(scaled_dt[, col], col = "red")
+}
+par(mfrow = c(1, 1))
 ```
 
 ```{r}
 sima_horario_transformado <- sima_horario
-sima_horario_transformado[names(candidates_bc)] <- candidates_bc
+sima_horario_transformado[colnames(scaled_dt)] <- scaled_dt
 sima_horario_transformado <- sima_horario_transformado |> dplyr::select(-RAINF)
 head(sima_horario_transformado)
 ```
