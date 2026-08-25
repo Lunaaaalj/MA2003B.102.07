@@ -1,0 +1,172 @@
+---
+title: "Transformación y escalamiento de datos"
+subtitle: "Issue #35 — MA2003B, equipo 7"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      # Sin esto, las tablas y los prints anchos se salen del margen: fvextra
+      # parte los renglones largos de los bloques verbatim en vez de recortarlos.
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+---
+
+# Transformaciones y escalamiento de datos
+
+```{r}
+library(dplyr)
+library(nanoparquet)
+sima_horario <- read.csv("../data/processed/sima_limpio_horario.csv") |> dplyr::select(-c("WDR")) # no es necesario tener la direccion del viendo si ya se tienen viento_u y viento_v
+head(sima_horario)
+summary(sima_horario)
+str(sima_horario)
+```
+
+
+Hay variables cuantitativas que tienen escalas diferentes, como `O3`, que tiene como `Min` 0.5 y `Max` de 265, mientras se tienen otras variables con máximos de 37,167,55,998, etc. se considera que se debe hacer un escalamiento.
+
+Se hace una complot de los datos para comparación visual
+
+```{r}
+#| fig-format: png
+sima_horario_quant <- sima_horario %>% dplyr::select(-c("estacion","fecha","anio","hora","mes","dia_semana","fin_de_semana","temporada","outlier_O3","outlier_CO","outlier_NO2","outlier_NOX","outlier_PM10","outlier_PM2.5","outlier_TOUT","outlier_PRS","outlier_WSR"))
+head(sima_horario_quant)
+boxplot(sima_horario_quant)
+
+png("../reports/figuras/boxplot_variables_originales.png", width = 1200, height = 800, res = 150)
+boxplot(sima_horario_quant)
+dev.off()
+```
+
+La boxplot confirma la necesidad de escalamiento de las variables. Las distintas variables tienen diferentes unidades y escalas por lo que se lleva a cabo un escalamiento
+
+Se define 
+
+$$|\text{skewness}(x_i)|<0.5\,\forall\, x_i\in\text{dataset}\;i=1\,,2\,\dots,n$$
+
+Entonces:
+
+```{r}
+library(moments)
+sk <- sima_horario_quant |> apply(2,skewness,na.rm = TRUE)
+sk
+```
+
+La mayoría de las variables no cumplen con la regla propuesta, se convierten en candidatos a transformar, a excepción de `RAINF`,que tiene un sesgo de  238.46, debido a la naturaleza de la precipitación, es una variable inflada de zeros, ni Box-Cox ni Yeo-Johnson funcionaran con esta variable. Para esta variable sera mejor crear una nueva `llovio` que sea la dicotomizacion de la variable original `RAINF`
+
+```{r}
+sima_horario$llovio <- (as.integer(sima_horario$RAINF > 0))
+sima_horario$llovio[is.na(sima_horario$llovio)] <- 0
+sample(sima_horario$llovio, 20)
+```
+
+
+```{r}
+library(MASS)
+
+box_cox <- function(x) {
+  bc <- boxcox(na.omit(x) ~ 1, plotit = FALSE)
+  lambda <- bc$x[which.max(bc$y)]
+
+  if (lambda == 0) log(x) else (x^lambda - 1) / lambda
+}
+```
+
+```{r}
+candidates_bc <- sima_horario_quant |> dplyr::select(-c("RAINF"))
+for (col in names(candidates_bc)) {
+    x <- candidates_bc[[col]]
+    if (any(x <= 0, na.rm = TRUE)) x <- x - min(x,na.rm = TRUE) + 1
+    candidates_bc[[col]] <- box_cox(x)
+}
+head(candidates_bc)
+```
+
+```{r}
+sk_trs = candidates_bc |> apply(2,skewness,na.rm = TRUE)
+sk_trs
+```
+
+El sesgo de las variables fue reducido con exito, dada una transformacion de Box-Cox con dezplazamiento para tratar las variables con valores negativos.
+
+`RAINF` es un caso especial, debido a que es una variable con zero inflacion , tiene demasiado sesgo que una transformacion como Box-Cox no puede disminuir, ya se habia hecho una binaria a partir de esta `llovio` que podria tomarse en cuenta para otros analisis, pero hay que considerar que el uso de variables binarias en algunas tecnicas, como PCA, no es estadisticamente prolijo.
+
+Se reemplazan en `sima_horario` las columnas originales por su version transformada con Box-Cox, y se descarta `RAINF` (ya representada por `llovio`), para obtener el dataset final de esta fase.
+
+
+Se procede al escalamiento de las variables de `candidates_bc`
+
+```{r}
+scaled_dt <- candidates_bc |> scale(scale = TRUE, center = TRUE)
+head(scaled_dt)
+```
+
+Distribución superpuesta de las variables ya escaladas:
+
+```{r}
+cols <- colnames(scaled_dt)
+dens <- lapply(cols, function(c) density(scaled_dt[, c], na.rm = TRUE))
+xr <- range(sapply(dens, function(d) range(d$x)))
+yr <- range(sapply(dens, function(d) range(d$y)))
+paleta <- rainbow(length(cols))
+
+graficar_densidades <- function() {
+  plot(dens[[1]], main = "Distribucion de variables escaladas", xlab = "z-score", col = paleta[1], xlim = xr, ylim = yr)
+  for (i in seq_along(dens)[-1]) lines(dens[[i]], col = paleta[i])
+  legend("topright", legend = cols, col = paleta, lty = 1, cex = 0.6)
+}
+
+graficar_densidades()
+
+pdf("../reports/figuras/densidad_variables_escaladas.pdf", width = 8, height = 6)
+graficar_densidades()
+dev.off()
+```
+
+QQ-plots contra la normal, uno por variable:
+
+```{r}
+#| fig-width: 9
+#| fig-height: 11
+#| fig-format: png
+graficar_qqplots <- function() {
+  par(mfrow = c(4, 3), mar = c(2, 2, 2, 1))
+  for (col in cols) {
+    qqnorm(scaled_dt[, col], main = col)
+    qqline(scaled_dt[, col], col = "red")
+  }
+  par(mfrow = c(1, 1))
+}
+
+graficar_qqplots()
+
+png("../reports/figuras/qqplots_variables_escaladas.png", width = 1800, height = 2200, res = 200)
+graficar_qqplots()
+dev.off()
+```
+
+`viento_u` y `viento_v` quedan mucho mas leptocurticas que el resto (curtosis de exceso ≈38 y ≈39, contra valores cercanos a 0 en casi todas las demas, ej. `PM10` ≈1.2, `PM2.5` ≈0.1). Esto no lo corrige Box-Cox: el metodo optimiza simetria (tercer momento), no curtosis (cuarto momento), y el `λ` estimado para estas dos variables fue alto (1.9 y 1.5), lo que amplifica en vez de comprimir los valores alejados del centro. Tiene sentido fisico: la mayoria de las horas el viento es tranquilo y con direccion similar (pico central angosto), pero hay rafagas raras con magnitudes mucho mayores (colas pesadas) que Box-Cox no aplana. Junto con que ya eran las unicas variables que no bajaron de `|sesgo|<0.5` tras la transformacion, quedan marcadas como caso a vigilar si el metodo de #15 es sensible a colas pesadas (ej. distancia de Mahalanobis para outliers).
+
+```{r}
+sima_horario_transformado <- sima_horario
+sima_horario_transformado[colnames(scaled_dt)] <- scaled_dt
+sima_horario_transformado <- sima_horario_transformado |> dplyr::select(-RAINF)
+head(sima_horario_transformado)
+```
+
+```{r}
+write_parquet(sima_horario_transformado, "../data/processed/sima_transformado_horario.parquet")
+write.csv(sima_horario_transformado, "../data/processed/sima_transformado_horario.csv", row.names = FALSE)
+```
+
+## Uso de IA en este notebook
+
+Se uso Claude Code como asistente durante todo el proceso, principalmente de tres formas: (1) depurar codigo R que fallaba o daba resultados incorrectos sin avisar (ej. `select()` de dplyr enmascarado por `library(MASS)`, `names()` en vez de `colnames()` sobre la matriz que devuelve `scale()` -que dejaba `sima_horario_transformado` sin transformar de forma silenciosa-, el shift de Box-Cox que no cubria columnas con valores negativos, y la colision de colores en la grafica de densidad por reciclar solo 8 colores para 12 variables); (2) explicar conceptos estadisticos aplicados a este dataset (diferencia entre normalizar y estandarizar, por que Box-Cox no corrige zero-inflacion ni curtosis, por que `WDR` como variable circular no deberia tratarse como continua); y (3) escribir funciones y chunks especificos (`box_cox()`, la union de `candidates_bc` con `sima_horario`, las graficas de densidad y Q-Q). Cada hallazgo y cada pieza de codigo se verifico corriendola contra los datos reales del equipo (`sima_limpio_horario.csv`) antes de incorporarla al notebook -no se acepto ninguna explicacion ni resultado numerico sin reproducirlo primero-, y las decisiones de fondo (que variable dicotomizar, que hacer con `WDR`, si escalar variables binarias) se discutieron y decidieron en conversacion, no se delegaron a la IA.
