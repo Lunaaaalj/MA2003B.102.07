@@ -24,3 +24,41 @@ Al ejecutar la transformacion, se aplico un desplazamiento a Box-Cox con el obje
 \begin{align}
     \forall i\in X\;\forall j\in x_i\;x_{ij} \leq0 \implies x_i = x_i - \min{x} + 1
 \end{align}
+
+Los sesgos post-transformación resultan en la tabla siguiente:
+
+\begin{table}[h]
+  \centering
+  \caption{Sesgo de cada variable cuantitativa antes y después de la transformación Box-Cox con desplazamiento.}
+  \label{tab:sesgos-transformacion}
+  \begin{tabular}{lrr}
+    \toprule
+    Variable & Sesgo original & Sesgo transformado \\
+    \midrule
+    O3        & 1.29   & -0.07 \\
+    CO        & 1.81   & 0.02 \\
+    NO2       & 1.93   & 0.03 \\
+    NOX       & 3.63   & -0.03 \\
+    PM10      & 3.66   & -0.06 \\
+    PM2.5     & 5.81   & 0.08 \\
+    TOUT      & -0.42  & -0.04 \\
+    RAINF     & 238.46 & --\footnotemark \\
+    PRS       & 0.10   & 0.00 \\
+    WSR       & 6.94   & 0.12 \\
+    viento\_u & -1.47  & 0.78 \\
+    viento\_v & -0.52  & 0.65 \\
+    O3\_8h    & 0.97   & 0.02 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\footnotetext{\texttt{RAINF} no se transformó: al ser una variable inflada de ceros, Box-Cox no reduce su sesgo. Se sustituyó por la variable binaria \texttt{llovio}.}
+
+Tras el escalamiento ($z$-score), las densidades de las variables quedan centradas y comparables entre sí (\cref{fig:densidad-escaladas}).
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{densidad_variables_escaladas.pdf}
+  \caption{Distribución (densidad) de las variables cuantitativas tras la transformación Box-Cox y el escalamiento.}
+  \label{fig:densidad-escaladas}
+\end{figure}
+
