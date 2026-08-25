@@ -40,6 +40,10 @@ Se hace una complot de los datos para comparación visual
 sima_horario_quant <- sima_horario %>% dplyr::select(-c("estacion","fecha","anio","hora","mes","dia_semana","fin_de_semana","temporada","outlier_O3","outlier_CO","outlier_NO2","outlier_NOX","outlier_PM10","outlier_PM2.5","outlier_TOUT","outlier_PRS","outlier_WSR"))
 head(sima_horario_quant)
 boxplot(sima_horario_quant)
+
+png("../reports/figuras/boxplot_variables_originales.png", width = 1200, height = 800, res = 150)
+boxplot(sima_horario_quant)
+dev.off()
 ```
 
 La boxplot confirma la necesidad de escalamiento de las variables. Las distintas variables tienen diferentes unidades y escalas por lo que se lleva a cabo un escalamiento
@@ -113,9 +117,18 @@ dens <- lapply(cols, function(c) density(scaled_dt[, c], na.rm = TRUE))
 xr <- range(sapply(dens, function(d) range(d$x)))
 yr <- range(sapply(dens, function(d) range(d$y)))
 paleta <- rainbow(length(cols))
-plot(dens[[1]], main = "Distribucion de variables escaladas", xlab = "z-score", col = paleta[1], xlim = xr, ylim = yr)
-for (i in seq_along(dens)[-1]) lines(dens[[i]], col = paleta[i])
-legend("topright", legend = cols, col = paleta, lty = 1, cex = 0.6)
+
+graficar_densidades <- function() {
+  plot(dens[[1]], main = "Distribucion de variables escaladas", xlab = "z-score", col = paleta[1], xlim = xr, ylim = yr)
+  for (i in seq_along(dens)[-1]) lines(dens[[i]], col = paleta[i])
+  legend("topright", legend = cols, col = paleta, lty = 1, cex = 0.6)
+}
+
+graficar_densidades()
+
+pdf("../reports/figuras/densidad_variables_escaladas.pdf", width = 8, height = 6)
+graficar_densidades()
+dev.off()
 ```
 
 QQ-plots contra la normal, uno por variable:
@@ -124,12 +137,20 @@ QQ-plots contra la normal, uno por variable:
 #| fig-width: 9
 #| fig-height: 11
 #| fig-format: png
-par(mfrow = c(4, 3), mar = c(2, 2, 2, 1))
-for (col in cols) {
-  qqnorm(scaled_dt[, col], main = col)
-  qqline(scaled_dt[, col], col = "red")
+graficar_qqplots <- function() {
+  par(mfrow = c(4, 3), mar = c(2, 2, 2, 1))
+  for (col in cols) {
+    qqnorm(scaled_dt[, col], main = col)
+    qqline(scaled_dt[, col], col = "red")
+  }
+  par(mfrow = c(1, 1))
 }
-par(mfrow = c(1, 1))
+
+graficar_qqplots()
+
+png("../reports/figuras/qqplots_variables_escaladas.png", width = 1800, height = 2200, res = 200)
+graficar_qqplots()
+dev.off()
 ```
 
 `viento_u` y `viento_v` quedan mucho mas leptocurticas que el resto (curtosis de exceso ≈38 y ≈39, contra valores cercanos a 0 en casi todas las demas, ej. `PM10` ≈1.2, `PM2.5` ≈0.1). Esto no lo corrige Box-Cox: el metodo optimiza simetria (tercer momento), no curtosis (cuarto momento), y el `λ` estimado para estas dos variables fue alto (1.9 y 1.5), lo que amplifica en vez de comprimir los valores alejados del centro. Tiene sentido fisico: la mayoria de las horas el viento es tranquilo y con direccion similar (pico central angosto), pero hay rafagas raras con magnitudes mucho mayores (colas pesadas) que Box-Cox no aplana. Junto con que ya eran las unicas variables que no bajaron de `|sesgo|<0.5` tras la transformacion, quedan marcadas como caso a vigilar si el metodo de #15 es sensible a colas pesadas (ej. distancia de Mahalanobis para outliers).
