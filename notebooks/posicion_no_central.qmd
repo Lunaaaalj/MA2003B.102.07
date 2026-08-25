@@ -1,0 +1,62 @@
+---
+title: "Posicion no central y forma"
+subtitle: "Issue #37 — MA2003B, equipo 7"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      # Sin esto, las tablas y los prints anchos se salen del margen: fvextra
+      # parte los renglones largos de los bloques verbatim en vez de recortarlos.
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+---
+
+```{r}
+library(nanoparquet)
+sth <- read_parquet("../data/processed/sima_transformado_horario.parquet")
+head(sth)
+```
+
+## Cuartiles y límites IQR
+
+Para `O3`, `CO`, `NO2`, `NOX`, `PM10`, `PM2.5`, `TOUT`, `PRS` y `WSR` los cuartiles y
+límites IQR **no se recalculan aquí**: se reusan los que ya produjo el criterio de
+outliers de la #13 (`docs/log_limpieza.md`, sección 7), guardados en
+`data/processed/resumen_outliers.csv`. Ese archivo solo publica `limite_inf` y
+`limite_sup` (los límites de 1.5×IQR usados para marcar outliers), así que Q1, Q3 e
+IQR se recuperan de ellos por álgebra —no por un nuevo cálculo sobre los datos crudos—,
+despejando el mismo criterio de 1.5×IQR que ya se aplicó:
+
+$$
+\text{limite\_inf} = Q_1 - 1.5\cdot\text{IQR}, \qquad
+\text{limite\_sup} = Q_3 + 1.5\cdot\text{IQR}
+\;\;\Rightarrow\;\;
+\text{IQR} = \frac{\text{limite\_sup}-\text{limite\_inf}}{4}
+$$
+
+`RAINF` y `WDR` quedan fuera de esta tabla por la misma razón documentada en la #13:
+`WDR` es circular (un cuartil sobre grados no tiene sentido) y `RAINF` está inflada de
+ceros (su IQR es 0 y marcaría como atípica toda la lluvia registrada).
+
+```{r}
+resumen_outliers <- read.csv("../data/processed/resumen_outliers.csv")
+
+cuartiles_iqr <- within(resumen_outliers, {
+    iqr <- (limite_sup - limite_inf) / 4
+    q1 <- round(limite_inf + 1.5 * iqr, 2)
+    q3 <- round(limite_sup - 1.5 * iqr, 2)
+    iqr <- round(iqr, 2)
+})[, c("variable", "q1", "q3", "iqr", "limite_inf", "limite_sup")]
+
+cuartiles_iqr
+```
+
+
