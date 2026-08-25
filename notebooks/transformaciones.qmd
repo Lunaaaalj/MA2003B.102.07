@@ -1,9 +1,30 @@
+---
+title: "Transformación y escalamiento de datos"
+subtitle: "Issue #35 — MA2003B, equipo 7"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      # Sin esto, las tablas y los prints anchos se salen del margen: fvextra
+      # parte los renglones largos de los bloques verbatim en vez de recortarlos.
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+---
+
 # Transformaciones y escalamiento de datos
 
 ```{r}
 library(dplyr)
 library(nanoparquet)
-sima_horario <- read.csv("data/processed/sima_limpio_horario.csv") |> dplyr::select(-c("WDR")) # no es necesario tener la direccion del viendo si ya se tienen viento_u y viento_v
+sima_horario <- read.csv("../data/processed/sima_limpio_horario.csv") |> dplyr::select(-c("WDR")) # no es necesario tener la direccion del viendo si ya se tienen viento_u y viento_v
 head(sima_horario)
 summary(sima_horario)
 str(sima_horario)
@@ -15,6 +36,7 @@ Hay variables cuantitativas que tienen escalas diferentes, como `O3`, que tiene 
 Se hace una complot de los datos para comparación visual
 
 ```{r}
+#| fig-format: png
 sima_horario_quant <- sima_horario %>% dplyr::select(-c("estacion","fecha","anio","hora","mes","dia_semana","fin_de_semana","temporada","outlier_O3","outlier_CO","outlier_NO2","outlier_NOX","outlier_PM10","outlier_PM2.5","outlier_TOUT","outlier_PRS","outlier_WSR"))
 head(sima_horario_quant)
 boxplot(sima_horario_quant)
@@ -99,7 +121,10 @@ legend("topright", legend = cols, col = paleta, lty = 1, cex = 0.6)
 QQ-plots contra la normal, uno por variable:
 
 ```{r}
-par(mfrow = c(4, 3))
+#| fig-width: 9
+#| fig-height: 11
+#| fig-format: png
+par(mfrow = c(4, 3), mar = c(2, 2, 2, 1))
 for (col in cols) {
   qqnorm(scaled_dt[, col], main = col)
   qqline(scaled_dt[, col], col = "red")
@@ -117,8 +142,8 @@ head(sima_horario_transformado)
 ```
 
 ```{r}
-write_parquet(sima_horario_transformado, "data/processed/sima_transformado_horario.parquet")
-write.csv(sima_horario_transformado, "data/processed/sima_transformado_horario.csv", row.names = FALSE)
+write_parquet(sima_horario_transformado, "../data/processed/sima_transformado_horario.parquet")
+write.csv(sima_horario_transformado, "../data/processed/sima_transformado_horario.csv", row.names = FALSE)
 ```
 
 ## Uso de IA en este notebook
