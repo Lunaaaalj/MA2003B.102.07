@@ -90,9 +90,10 @@ cols <- colnames(scaled_dt)
 dens <- lapply(cols, function(c) density(scaled_dt[, c], na.rm = TRUE))
 xr <- range(sapply(dens, function(d) range(d$x)))
 yr <- range(sapply(dens, function(d) range(d$y)))
-plot(dens[[1]], main = "Distribucion de variables escaladas", xlab = "z-score", col = 1, xlim = xr, ylim = yr)
-for (i in seq_along(dens)[-1]) lines(dens[[i]], col = i)
-legend("topright", legend = cols, col = seq_along(cols), lty = 1, cex = 0.6)
+paleta <- rainbow(length(cols))
+plot(dens[[1]], main = "Distribucion de variables escaladas", xlab = "z-score", col = paleta[1], xlim = xr, ylim = yr)
+for (i in seq_along(dens)[-1]) lines(dens[[i]], col = paleta[i])
+legend("topright", legend = cols, col = paleta, lty = 1, cex = 0.6)
 ```
 
 QQ-plots contra la normal, uno por variable:
@@ -106,6 +107,8 @@ for (col in cols) {
 par(mfrow = c(1, 1))
 ```
 
+`viento_u` y `viento_v` quedan mucho mas leptocurticas que el resto (curtosis de exceso ≈38 y ≈39, contra valores cercanos a 0 en casi todas las demas, ej. `PM10` ≈1.2, `PM2.5` ≈0.1). Esto no lo corrige Box-Cox: el metodo optimiza simetria (tercer momento), no curtosis (cuarto momento), y el `λ` estimado para estas dos variables fue alto (1.9 y 1.5), lo que amplifica en vez de comprimir los valores alejados del centro. Tiene sentido fisico: la mayoria de las horas el viento es tranquilo y con direccion similar (pico central angosto), pero hay rafagas raras con magnitudes mucho mayores (colas pesadas) que Box-Cox no aplana. Junto con que ya eran las unicas variables que no bajaron de `|sesgo|<0.5` tras la transformacion, quedan marcadas como caso a vigilar si el metodo de #15 es sensible a colas pesadas (ej. distancia de Mahalanobis para outliers).
+
 ```{r}
 sima_horario_transformado <- sima_horario
 sima_horario_transformado[colnames(scaled_dt)] <- scaled_dt
@@ -118,3 +121,6 @@ write_parquet(sima_horario_transformado, "data/processed/sima_transformado_horar
 write.csv(sima_horario_transformado, "data/processed/sima_transformado_horario.csv", row.names = FALSE)
 ```
 
+## Uso de IA en este notebook
+
+Se uso Claude Code como asistente durante todo el proceso, principalmente de tres formas: (1) depurar codigo R que fallaba o daba resultados incorrectos sin avisar (ej. `select()` de dplyr enmascarado por `library(MASS)`, `names()` en vez de `colnames()` sobre la matriz que devuelve `scale()` -que dejaba `sima_horario_transformado` sin transformar de forma silenciosa-, el shift de Box-Cox que no cubria columnas con valores negativos, y la colision de colores en la grafica de densidad por reciclar solo 8 colores para 12 variables); (2) explicar conceptos estadisticos aplicados a este dataset (diferencia entre normalizar y estandarizar, por que Box-Cox no corrige zero-inflacion ni curtosis, por que `WDR` como variable circular no deberia tratarse como continua); y (3) escribir funciones y chunks especificos (`box_cox()`, la union de `candidates_bc` con `sima_horario`, las graficas de densidad y Q-Q). Cada hallazgo y cada pieza de codigo se verifico corriendola contra los datos reales del equipo (`sima_limpio_horario.csv`) antes de incorporarla al notebook -no se acepto ninguna explicacion ni resultado numerico sin reproducirlo primero-, y las decisiones de fondo (que variable dicotomizar, que hacer con `WDR`, si escalar variables binarias) se discutieron y decidieron en conversacion, no se delegaron a la IA.
