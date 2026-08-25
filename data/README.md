@@ -4,22 +4,17 @@
 
 - **`raw/`** — Datos originales tal como los entregó SIMA. **Son inmutables**: no se
   editan, no se sobrescriben, no se limpian aquí.
-- **`processed/`** — Generado por el pipeline `importar_datos.py` → `limpieza.py` →
-  `notebooks/transformaciones.qmd`. **No se versiona** (está en `.gitignore`), salvo
-  una excepción: `sima_transformado_horario.parquet`, el dataset limpio y
-  transformado **final**, que sí está commiteado al repo (issue #15) porque es el
-  que se linkea en el informe (#17) y no todo el equipo necesita correr Python + R
-  solo para leerlo.
+- **`processed/`** — Generado por [`src/importar_datos.py`](../src/importar_datos.py).
+  **No se versiona** (está en `.gitignore`): cualquiera lo reconstruye corriendo el
+  script.
 
 ## Cómo generar `processed/`
 
 ```bash
 source venv/bin/activate
 pip install -r requirements.txt
-python src/importar_datos.py            # ~5 min (el padrón es lo lento) -> sima_horario.parquet
+python src/importar_datos.py            # ~5 min (el padrón es lo lento)
 python src/importar_datos.py --solo bd  # solo las bases anuales del SIMA
-python src/limpieza.py                  # -> sima_limpio_horario.csv / sima_limpio_diario.csv
-quarto render notebooks/transformaciones.qmd  # -> sima_transformado_horario.{csv,parquet}
 ```
 
 Luego, desde Python o desde R:
@@ -62,24 +57,18 @@ Además, en todos los años buena parte de los valores están guardados **como t
 
 ## Qué hay en `processed/`
 
-| Archivo | Filas × cols | Qué es | ¿Se versiona? |
-|---|---|---|---|
-| `sima_horario.parquet` | 688,184 × 18 | Las seis bases anuales consolidadas: `fecha`, `estacion`, `anio` + 15 parámetros. | No |
-| `sima_limpio_horario.csv` | — | Salida de la limpieza (#13): outliers marcados, `WDR` descompuesto en `viento_u`/`viento_v`. | No |
-| `sima_limpio_diario.csv` | — | Agregado diario de lo anterior. | No |
-| `resumen_outliers.csv` | — | Conteo de outliers detectados por parámetro. | No |
-| `sima_transformado_horario.parquet` | 574,343 × 30 | **Dataset limpio y transformado final** (#14 + #15): variables escaladas/Box-Cox, `hora`/`mes`/`dia_semana`/`fin_de_semana`/`temporada`, `O3_8h`, `outlier_*`, `llovio`. Es el que se linkea en el informe (#17). | **Sí** |
-| `sima_transformado_horario.csv` | 574,343 × 30 | Misma tabla que el parquet, en texto. Pesa ~160 MB (pasa el límite de GitHub) — no se commitea, se regenera si hace falta un CSV. | No |
-| `padron_vehicular.parquet` | 1,000,473 × 12 | Padrón vehicular. | No |
-| `inventario_nl_2018.parquet` | 2,816 × 17 | Emisiones, todo Nuevo León. | No |
-| `inventario_zmm_2018.parquet` | 1,109 × 17 | Emisiones, zona metropolitana de Monterrey. | No |
-| `etiquetas_*.csv` | — | Catálogos de `Etiquetas.xlsx` ya tabulados. | No |
-| `unidades.csv` | 15 | Parámetro → unidad de medición. | No |
+| Archivo | Filas × cols | Qué es |
+|---|---|---|
+| `sima_horario.parquet` | 688,184 × 18 | Las seis bases anuales consolidadas: `fecha`, `estacion`, `anio` + 15 parámetros. |
+| `padron_vehicular.parquet` | 1,000,473 × 12 | Padrón vehicular. |
+| `inventario_nl_2018.parquet` | 2,816 × 17 | Emisiones, todo Nuevo León. |
+| `inventario_zmm_2018.parquet` | 1,109 × 17 | Emisiones, zona metropolitana de Monterrey. |
+| `etiquetas_*.csv` | — | Catálogos de `Etiquetas.xlsx` ya tabulados. |
+| `unidades.csv` | 15 | Parámetro → unidad de medición. |
 
-Todos estos archivos están en formato **observaciones × variables** (una fila por
+`sima_horario.parquet` está en formato **observaciones × variables** (una fila por
 `(fecha, estación)`, una columna por parámetro), que es la forma que piden los
-métodos multivariados del curso — no hace falta pivotear ancho/largo en ningún
-punto del pipeline.
+métodos multivariados del curso.
 
 ## Estado de los datos consolidados
 
