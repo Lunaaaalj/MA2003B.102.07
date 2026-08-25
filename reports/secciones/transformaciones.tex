@@ -1,0 +1,64 @@
+\subsection{Transformaciones de datos}
+
+Posterior a un análisis de los rangos de los datos y su normalidad, se identificó que los datos cuantitativos tenían un sesgo excesivo y escalas y unidades diferentes que sin tratamiento entorpecería el análisis pro siguiente. Se tomaron un conjunto de decisiones para formar la base de datos final.
+
+Se seleccionaron todas las variables cuantitativas disponibles, exceptuando aquellas que son cualitativas y binarias. Tambien se noto el caso de \texttt{RAINF} variable la cual mide la precipitacion por $mm/h$, esta variable presento un sesgo de 238.45, el cual es significativamente alto comparado con los sesgos de las otras variables, los cuales se encontraban en los rangos de -1 a 5. Esta discrepancia es debido a que la frecuencia de dias sin lluvia es mayor a los dias con lluvia, causando que la variable tenga una frecuencia desproporcionada de ceros, se clasifico como una \textbf{variable inflada de ceros}. Esta requiere un tratamiento especial al de las otras variables. Se decidió generar una variable derivada binaria \texttt{llovio} que exprese 
+
+\begin{align}
+     \texttt{llovio}=\begin{cases}
+        0\;\texttt{RAINF} = 0\\
+        1\;\texttt{RAINF} > 0
+    \end{cases}
+\end{align}
+
+en caso de requerirla.
+
+El principal supuesto que se hizo para decidir si una variable seria transformada o no es:
+
+\begin{align}
+    |\text{skewness}(x_i)|<0.5\,\forall\, x_i\in X\;\;i=1\,,2\,\dots,n
+\end{align}
+
+Al ejecutar la transformacion, se aplico un desplazamiento a Box-Cox con el objetivo de que sea usable para las variables que tienen observaciones menores a cero.
+
+\begin{align}
+    \forall i\in X\;\forall j\in x_i\;x_{ij} \leq0 \implies x_i = x_i - \min{x} + 1
+\end{align}
+
+Los sesgos post-transformación resultan en la tabla siguiente:
+
+\begin{table}[h]
+  \centering
+  \caption{Sesgo de cada variable cuantitativa antes y después de la transformación Box-Cox con desplazamiento.}
+  \label{tab:sesgos-transformacion}
+  \begin{tabular}{lrr}
+    \toprule
+    Variable & Sesgo original & Sesgo transformado \\
+    \midrule
+    O3        & 1.29   & -0.07 \\
+    CO        & 1.81   & 0.02 \\
+    NO2       & 1.93   & 0.03 \\
+    NOX       & 3.63   & -0.03 \\
+    PM10      & 3.66   & -0.06 \\
+    PM2.5     & 5.81   & 0.08 \\
+    TOUT      & -0.42  & -0.04 \\
+    RAINF     & 238.46 & --\footnotemark \\
+    PRS       & 0.10   & 0.00 \\
+    WSR       & 6.94   & 0.12 \\
+    viento\_u & -1.47  & 0.78 \\
+    viento\_v & -0.52  & 0.65 \\
+    O3\_8h    & 0.97   & 0.02 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\footnotetext{\texttt{RAINF} no se transformó: al ser una variable inflada de ceros, Box-Cox no reduce su sesgo. Se sustituyó por la variable binaria \texttt{llovio}.}
+
+Tras el escalamiento ($z$-score), las densidades de las variables quedan centradas y comparables entre sí (\cref{fig:densidad-escaladas}).
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{densidad_variables_escaladas.pdf}
+  \caption{Distribución (densidad) de las variables cuantitativas tras la transformación Box-Cox y el escalamiento.}
+  \label{fig:densidad-escaladas}
+\end{figure}
+

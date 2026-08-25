@@ -65,6 +65,7 @@ Reglas que importan al editar el reporte:
 - Las opciones de babel-spanish van en `\spanishoptions` **antes** de cargar babel, no como opciones de `\usepackage`.
 - `references.bib` es compartido: **agregar entradas al final**, nunca reordenar ni insertar en medio (genera conflictos de merge).
 - Los auxiliares y `main.pdf` están en `.gitignore`. Para la entrega final: `git add -f reports/main.pdf`.
+- El registro, la densidad, el manejo de números y el criterio de qué detalle de ingeniería de datos vale la pena incluir están en [`reports/guia-estilo.md`](reports/guia-estilo.md). Aplícala al escribir o revisar cualquier `.tex` de `secciones/`, además de las reglas de esta sección.
 
 Nota: hay `main.fdb_latexmk` y `main.out` sueltos en la raíz del repo, restos de una compilación hecha fuera de `reports/`. Son basura; no compiles desde la raíz.
 
@@ -74,10 +75,10 @@ La documentación real de los datos (inconsistencias entre años, qué contiene 
 
 - Los seis `BD <año>.xlsx` **no comparten estructura**: 2024 trae las unidades pegadas al encabezado (`CO (ppm)`), 2025 renombró la fecha a `date` y metió una fila de unidades bajo el encabezado, y el número de estaciones va de 13 (2020) a 15 (2024-2025). `src/importar_datos.py` normaliza todo eso; no leas los Excel a mano.
 - Cada **hoja es una estación**, no hay columna de estación en el origen.
-- `data/processed/` **no se versiona**: se regenera con `python src/importar_datos.py` (~5 min, el padrón es lo lento).
+- `data/processed/` **no se versiona**, salvo `sima_transformado_horario.parquet` (el dataset limpio y transformado final, issue #15, sí commiteado). El resto se regenera con `python src/importar_datos.py` (~5 min, el padrón es lo lento) → `src/limpieza.py` → `notebooks/transformaciones.qmd`.
 - Las marcas de tiempo son **hora local de pared sin zona horaria**. Al leerlas desde R hay que declarar `tzone <- "UTC"` (no convertir), o se corren 6 horas; `cargar_datos.R` ya lo hace.
 
-`data/raw/` contiene los Excel del SIMA (`BD 2020.xlsx` … `BD 2025.xlsx`, `Etiquetas.xlsx`, inventario y padrón). **Son inmutables**: no se editan ni se sobrescriben. Los datasets limpios van a `data/processed/`, los de terceros a `data/external/` (ninguna de esas carpetas existe todavía; créalas al necesitarlas).
+`data/raw/` contiene los Excel del SIMA (`BD 2020.xlsx` … `BD 2025.xlsx`, `Etiquetas.xlsx`, inventario y padrón). **Son inmutables**: no se editan ni se sobrescriben. Los datasets limpios van a `data/processed/`, los de terceros a `data/external/` (esta última no existe todavía; créala al necesitarla).
 
 Contexto de dominio en `docs/`: `Rangos de los parámetros del SIMA.pdf` y `Ubicación de las estaciones de monitoreo.docx` — consúltalos antes de interpretar columnas o filtrar valores fuera de rango. Ojo: en esa misma carpeta caen los PDF que genera Quarto, así que ahí conviven material de referencia (inmutable, no se toca) y artefactos regenerables.
 

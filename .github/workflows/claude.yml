@@ -41,7 +41,39 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
+          prompt: |
+            REPO: ${{ github.repository }}
+
+            Lee el CLAUDE.md del repo antes de responder: define las
+            convenciones del equipo y manda sobre cualquier costumbre
+            general.
+
+            Responde en espanol a lo que se te pidio en el comentario,
+            issue o review que te menciono.
+
+            Si te piden revisar codigo o una PR, enfocate en:
+
+            - **Correccion del analisis**: manejo de nulos, valores fuera de
+              los rangos fisicos del SIMA, zonas horarias (las marcas de
+              tiempo son hora local sin zona; en R se declara tzone "UTC",
+              no se convierte), y el hecho de que cada hoja de los Excel es
+              una estacion.
+            - **Convenciones del repo**: commits en espanol con Conventional
+              Commits, nada de rebase ni push directo a main, los analisis
+              van en .qmd (no .ipynb) y el .qmd no lleva resultados, el
+              texto del reporte va en secciones/ y nunca directo en
+              main.tex, las entradas nuevas de references.bib van al final.
+            - **Alcance**: que la PR haga lo que dice su issue, ni mas ni
+              menos. Escribir de mas en el reporte pisa el trabajo de otra
+              persona.
+            - Bugs reales y casos borde en el codigo Python/R.
+
+            Se breve y concreto. Usa comentarios inline para problemas
+            puntuales de codigo y un comentario general para el resumen. Si
+            todo esta bien, dilo en una linea en vez de inventar
+            observaciones.
+
           # Limite de turnos: evita corridas largas accidentales que quemen
           # la cuota de la suscripcion ligada al token.
           claude_args: |
-            --max-turns 15
+            --max-turns 30
