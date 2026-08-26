@@ -3,7 +3,38 @@
 
 \subsubsection{Medidas de tendencia central}
 
+Las 12 variables se calculan sobre la escala transformada (Box-Cox + z-score,
+\cref{sec:transformaciones}): promedio $\approx 0$ y varianza/desviación
+estándar $\approx 1$ para todas por construcción, así que la mediana y el
+rango son las cifras informativas de \cref{tab:tendencia-central}. La moda
+clásica no aplica a variables continuas (los valores casi nunca se repiten
+exactamente); se reporta como ``no aplica'' en vez de forzar un cálculo sin
+sentido estadístico.
 
+\begin{table*}[t]
+  \centering
+  \caption{Tendencia central y dispersión de las 12 variables cuantitativas,
+    sobre la escala transformada.}
+  \label{tab:tendencia-central}
+  \begin{tabular}{lrrlrrr}
+    \toprule
+    Variable & Promedio & Mediana & Moda & Rango & Varianza & Desv. est. \\
+    \midrule
+    \texttt{O3}        & 0.000 & 0.035  & No aplica & 7.797  & 1.000 & 1.000 \\
+    \texttt{CO}        & 0.000 & 0.037  & No aplica & 8.342  & 1.000 & 1.000 \\
+    \texttt{NO2}       & 0.000 & $-0.029$ & No aplica & 7.652  & 1.000 & 1.000 \\
+    \texttt{NOX}       & 0.000 & $-0.052$ & No aplica & 9.119  & 1.000 & 1.000 \\
+    \texttt{PM10}      & 0.000 & 0.003  & No aplica & 10.895 & 1.000 & 1.000 \\
+    \texttt{PM2.5}     & 0.000 & 0.016  & No aplica & 10.844 & 1.000 & 1.000 \\
+    \texttt{TOUT}      & 0.000 & 0.040  & No aplica & 6.980  & 1.000 & 1.000 \\
+    \texttt{PRS}       & 0.000 & $-0.071$ & No aplica & 10.648 & 1.000 & 1.000 \\
+    \texttt{WSR}       & 0.000 & 0.045  & No aplica & 11.499 & 1.000 & 1.000 \\
+    \texttt{viento\_u} & 0.000 & $-0.010$ & No aplica & 44.140 & 1.000 & 1.000 \\
+    \texttt{viento\_v} & 0.000 & $-0.013$ & No aplica & 48.533 & 1.000 & 1.000 \\
+    \texttt{O3\_8h}    & 0.000 & 0.004  & No aplica & 7.534  & 1.000 & 1.000 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
 
 \subsubsection{Cuartiles y límites IQR}
 
@@ -44,7 +75,7 @@ límite de outliers (\cref{sec:dic:meteorologicos}).
 
 \subsubsection{Visualizaciones cuantitativas}
 
-El boxplot combinado \ref{fig:boxplot-originales} de las variables en una sola escala se usó para justificar su escalamiento.
+El boxplot combinado de las variables en una sola escala (\cref{fig:boxplot-originales}) se usó para justificar su escalamiento.
 
 \begin{figure}[h]
   \centering
@@ -53,9 +84,7 @@ El boxplot combinado \ref{fig:boxplot-originales} de las variables en una sola e
   \label{fig:boxplot-originales}
 \end{figure}
 
-Aqui se hace una rejilla de boxplots individuales, uno por variable en sus unidades originales, que es lo que permite leer Q1/Q3/mediana/bigotes de cada una (\ref{fig:boxplot-originales}), (\ref{fig:boxplot-mda8-estacion}).
-
-
+Aquí se hace una rejilla de boxplots individuales, uno por variable en sus unidades originales, que es lo que permite leer Q1/Q3/mediana/bigotes de cada una (\cref{fig:boxplot-medidas}), con O3 y MDA8 desagregados además por estación (\cref{fig:boxplot-o3-estacion,fig:boxplot-mda8-estacion}).
 
 \begin{figure}[h]
     \centering
@@ -64,15 +93,21 @@ Aqui se hace una rejilla de boxplots individuales, uno por variable en sus unida
     \label{fig:boxplot-medidas}
 \end{figure}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{boxplot_o3_por_estacion.pdf}
+    \caption{Boxplot de \texttt{O3} por estación}
+    \label{fig:boxplot-o3-estacion}
+\end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width = \linewidth]{boxplot_mda8_por_estacion.pdf}
-    \caption{Boxplot de \texttt{MDA8} por estacion}
+    \caption{Boxplot de \texttt{MDA8} por estación}
     \label{fig:boxplot-mda8-estacion}
 \end{figure}
 
-Se sigue el mismo criterio de las transformaciones $|\text{sesgo(x)}| < 0.5$. \texttt{RAINF} se excluye del gráfico por la misma razón de la sección de cuartiles: está inflada de ceros, su densidad estandarizada es una espiga angosta que domina el eje y aplasta el resto de las curvas a una línea punta. Para comparar la forma de las 13 variables en un solo gráfico, cada una se estandariza por z-score (\ref{fig:densidades-estd}) $\frac{(x-\bar{x})}{s}$ solo para este eje, no es la transformación Box-Cox de \ref{sec:transformaciones}.
+Se sigue el mismo criterio de las transformaciones $|\text{sesgo(x)}| < 0.5$. \texttt{RAINF} se excluye del gráfico por la misma razón de la sección de cuartiles: está inflada de ceros, su densidad estandarizada es una espiga angosta que domina el eje y aplasta el resto de las curvas a una línea plana. Para comparar la forma de las 13 variables en un solo gráfico, cada una se estandariza por z-score $\frac{(x-\bar{x})}{s}$ solo para este eje, no es la transformación Box-Cox de \cref{sec:transformaciones} (\cref{fig:densidades-estd}).
 
 \begin{figure}[h]
     \centering
@@ -81,5 +116,30 @@ Se sigue el mismo criterio de las transformaciones $|\text{sesgo(x)}| < 0.5$. \t
     \label{fig:densidades-estd}
 \end{figure}
 
+\subsubsection{Correlación}
+
+La correlación de Pearson entre las 12 variables se calcula sobre la escala
+transformada (\cref{sec:transformaciones}), no la cruda, ya que ahí se mostró
+que la escala original subestima la relación real. \Cref{fig:mapa-calor}
+resume la matriz completa.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{mapa_calor_correlacion.pdf}
+    \caption{Mapa de calor de correlación de Pearson entre las 12 variables
+      cuantitativas, escala transformada.}
+    \label{fig:mapa-calor}
+\end{figure}
+
+Pares más fuertes: \texttt{NO2}--\texttt{NOX} ($r=0.89$), multicolinealidad
+esperada entre precursores del mismo ciclo de reacción; \texttt{O3}--
+\texttt{O3\_8h} ($r=0.69$), por construcción (el segundo deriva del primero);
+\texttt{PM10}--\texttt{PM2.5} ($r=0.62$), material particulado de origen
+común; \texttt{O3}--\texttt{TOUT} ($r=0.51$) y \texttt{O3}--\texttt{WSR}
+($r=0.43$), consistentes con el mecanismo fotoquímico de formación de ozono;
+\texttt{viento\_u}--\texttt{WSR} ($r=-0.45$) y \texttt{O3}--\texttt{NOX}
+($r=-0.43$), esta última refleja el consumo de \ce{O3} por titulación con
+\ce{NO} cerca de fuentes de tráfico. Los grupos de precursores correlacionados
+justifican aplicar PCA para reducir dimensionalidad.
 
 
