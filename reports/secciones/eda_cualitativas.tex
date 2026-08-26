@@ -1,0 +1,239 @@
+\subsection{Variables cualitativas}
+\label{sec:eda-cualitativas}
+
+El análisis descriptivo de las variables categóricas se reporta en dos bloques
+separados por unidad de análisis. Las variables \texttt{periodo} y
+\texttt{llovio} solo existen a resolución horaria; las indicadoras de
+excedencia derivan del MDA8 y por lo tanto solo existen a resolución diaria
+(\cref{sec:preparacion-datos}). Mezclarlas en una sola tabla replicaría cada
+valor diario veinticuatro veces y alteraría toda proporción calculada sobre el
+conjunto. Las bases son $n = 574{,}343$ registros hora-estación y
+$n = 23{,}931$ registros día-estación.
+
+\subsubsection{Distribución de frecuencia}
+
+\Cref{tab:freq-horaria} reúne las variables de resolución horaria. Los
+porcentajes se calculan sobre dos bases: el total de registros y el total de
+registros con dato válido. La distinción solo altera a \texttt{llovio}, única
+variable horaria con faltantes.
+
+\begin{table*}[t]
+  \centering
+  \caption{Frecuencia absoluta y relativa de las variables cualitativas a
+    resolución hora-estación ($n = 574{,}343$).}
+  \label{tab:freq-horaria}
+  \begin{tabular}{llrrr}
+    \toprule
+    Variable & Nivel & Frecuencia & \% del total & \% de válidos \\
+    \midrule
+    \multirow{4}{*}{\texttt{temporada}}
+      & Invierno   & 147,623 & 25.70 & 25.70 \\
+      & Primavera  & 161,184 & 28.06 & 28.06 \\
+      & Verano     & 138,864 & 24.18 & 24.18 \\
+      & Otoño      & 126,672 & 22.06 & 22.06 \\
+    \midrule
+    \multirow{4}{*}{\texttt{periodo}}
+      & Madrugada  & 143,585 & 25.00 & 25.00 \\
+      & Mañana     & 143,586 & 25.00 & 25.00 \\
+      & Tarde      & 143,586 & 25.00 & 25.00 \\
+      & Noche      & 143,586 & 25.00 & 25.00 \\
+    \midrule
+    \multirow{4}{*}{\texttt{tipo\_dia}}
+      & Laborable  & 390,239 & 67.95 & 67.95 \\
+      & Sábado     &  79,392 & 13.82 & 13.82 \\
+      & Domingo    &  79,728 & 13.88 & 13.88 \\
+      & Festivo    &  24,984 &  4.35 &  4.35 \\
+    \midrule
+    \multirow{2}{*}{\texttt{fin\_de\_semana}}
+      & No (0)     & 409,943 & 71.38 & 71.38 \\
+      & Sí (1)     & 164,400 & 28.62 & 28.62 \\
+    \midrule
+    \multirow{3}{*}{\texttt{llovio}}
+      & No (0)     & 549,104 & 95.61 & 98.57 \\
+      & Sí (1)     &   7,988 &  1.39 &  1.43 \\
+      & Sin dato   &  17,251 &  3.00 & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+El desbalance de \texttt{temporada} no refleja ningún fenómeno atmosférico: la
+serie termina el 30 de junio de 2025, de modo que el último semestre aporta
+invierno y primavera pero no verano ni otoño. Interpretarlo como
+estacionalidad sería un artefacto de la ventana de observación.
+
+La distribución de \texttt{periodo} es uniforme por construcción y no
+constituye un hallazgo. El binning divide las 24 horas en cuatro bloques de
+seis, y la rejilla horaria quedó completa tras la limpieza, de modo que las
+cuatro frecuencias son idénticas salvo por un registro. La diferencia de una
+unidad en \texttt{madrugada} proviene de la hora faltante al cierre de la
+serie, no de un desbalance de muestreo.
+
+\Cref{tab:freq-diaria} presenta el bloque diario. Las tres indicadoras de
+excedencia comparten los mismos 1,402 registros sin dato, correspondientes a
+los días-estación cuyo MDA8 no alcanzó el criterio de completitud de 18 de 24
+ventanas móviles válidas. La indicadora \texttt{excede\_1h} no los comparte
+porque se calcula sobre el máximo horario, que no exige completitud de
+ventana.
+
+\begin{table*}[t]
+  \centering
+  \caption{Frecuencia absoluta y relativa de las indicadoras de excedencia a
+    resolución día-estación ($n = 23{,}931$; válidos $= 22{,}529$ para las
+    indicadoras de MDA8).}
+  \label{tab:freq-diaria}
+  \begin{tabular}{llrrr}
+    \toprule
+    Variable & Nivel & Frecuencia & \% del total & \% de válidos \\
+    \midrule
+    \multirow{3}{*}{\texttt{excede\_anio\_1} (65 ppb)}
+      & No excede & 20,129 & 84.11 & 89.35 \\
+      & Excede    &  2,400 & 10.03 & 10.65 \\
+      & Sin dato  &  1,402 &  5.86 & --- \\
+    \midrule
+    \multirow{3}{*}{\texttt{excede\_anio\_3} (60 ppb)}
+      & No excede & 18,915 & 79.04 & 83.96 \\
+      & Excede    &  3,614 & 15.10 & 16.04 \\
+      & Sin dato  &  1,402 &  5.86 & --- \\
+    \midrule
+    \multirow{3}{*}{\texttt{excede\_anio\_5} (51 ppb)}
+      & No excede & 15,612 & 65.24 & 69.30 \\
+      & Excede    &  6,917 & 28.90 & 30.70 \\
+      & Sin dato  &  1,402 &  5.86 & --- \\
+    \midrule
+    \multirow{2}{*}{\texttt{excede\_1h} (90 ppb)}
+      & No excede & 22,019 & 92.01 & 92.01 \\
+      & Excede    &  1,912 &  7.99 &  7.99 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsubsection{La estación de monitoreo}
+
+\texttt{estacion} es la única categórica que interviene en la zonificación
+estadística de etapas posteriores, por lo que su frecuencia se reporta junto
+con la cobertura temporal que la origina. Catorce de las quince estaciones
+registran 39,408 observaciones cada una, el 6.86\,\% del total, cifra que
+corresponde exactamente a la rejilla horaria completa del periodo
+2021-01-01 a 2025-06-30. La estación \texttt{NO3} registra 22,631
+observaciones, el 3.94\,\%, porque inicia operación el 1 de diciembre de 2022.
+
+La lectura correcta de esa diferencia es de cobertura, no de calidad: dentro de
+su propia ventana de operación \texttt{NO3} también tiene rejilla completa, y
+su porcentaje de horas con \ce{O3} medido es 93.3\,\%, dentro del rango del
+resto de la red (88.8\,\% en \texttt{SE2} a 99.1\,\% en \texttt{SO2}). La
+frecuencia absoluta de \texttt{estacion} mide, por lo tanto, tiempo de
+operación y no volumen de información útil; \cref{fig:eda-cual-estacion}
+presenta ambas magnitudes en paralelo para evitar esa confusión, y
+\cref{fig:eda-cual-cobertura} muestra las ventanas de operación.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{eda_cual_estacion.pdf}
+  \caption{Frecuencia absoluta por estación y completitud de \ce{O3} en la
+    misma escala. La menor frecuencia de \texttt{NO3} corresponde a su ventana
+    de operación, no a una tasa de faltantes superior.}
+  \label{fig:eda-cual-estacion}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{eda_cual_cobertura.pdf}
+  \caption{Ventana de operación de cada estación dentro del periodo de
+    estudio.}
+  \label{fig:eda-cual-cobertura}
+\end{figure*}
+
+\subsubsection{Mediana en escala ordinal}
+
+\texttt{periodo} es la única variable ordinal del conjunto. Su orden natural es
+el del ciclo diario, madrugada $<$ mañana $<$ tarde $<$ noche, y ese es el
+orden que se adopta para el cálculo. El ciclo no se cierra sobre sí mismo: la
+mediana ordinal carece de análogo circular equivalente a la codificación
+seno-coseno empleada para \texttt{hora} y \texttt{mes}
+(\cref{sec:transformaciones}), de modo que forzar la circularidad produciría un
+estadístico sin definición estándar. La mediana se define como el valor en la
+posición $\lceil n/2 \rceil$ de la secuencia ordenada; no se promedian
+categorías adyacentes.
+
+Sobre la rejilla horaria completa la mediana es \texttt{tarde}, pero el
+resultado no es informativo: con cuatro niveles equifrecuentes la posición
+central cae sobre la primera observación de \texttt{tarde}, a un solo registro
+de la frontera con \texttt{mañana}. El valor lo decide la construcción del
+binning, no el comportamiento de los datos.
+
+Sobre las 549,119 observaciones con \ce{O3} medido la mediana también es
+\texttt{tarde}, y en este caso sí con margen: las frecuencias dejan de ser
+uniformes (24.91\,\%, 24.80\,\%, 25.17\,\% y 25.13\,\%) porque los faltantes se
+concentran en las horas nocturnas, y la mitad inferior acumula 49.71\,\% antes
+de \texttt{tarde}. Se reporta esta segunda cifra como la estadísticamente
+sustantiva, declarando explícitamente su base de cálculo.
+
+Para \texttt{temporada} no se calcula mediana. Su orden es igualmente cíclico
+y, a diferencia de \texttt{periodo}, carece de un punto de corte natural que
+justifique linealizarlo; se trata como nominal pura.
+
+\subsubsection{Visualización}
+
+\Cref{fig:eda-cual-nominales} presenta las tres variables de cuatro niveles
+mediante diagramas de barras. El diagrama de pastel se reserva para las
+variables binarias, donde el número de sectores permite leer la proporción sin
+recurrir a la escala del eje.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{eda_cual_nominales.pdf}
+  \caption{Distribución relativa de \texttt{temporada}, \texttt{periodo} y
+    \texttt{tipo\_dia}. La línea punteada marca el 25\,\% que \texttt{periodo}
+    alcanza por construcción.}
+  \label{fig:eda-cual-nominales}
+\end{figure*}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.62\columnwidth]{eda_cual_llovio.pdf}
+  \caption{Distribución de \texttt{llovio}, con la categoría sin dato
+    representada de forma explícita.}
+  \label{fig:eda-cual-llovio}
+\end{figure}
+
+\Cref{fig:eda-cual-excedencias} visualiza el balance de clases de las tres
+indicadoras de MDA8. La representación es pertinente porque la magnitud
+relevante es la proporción y no el conteo: al umbral vigente de 65 ppb las
+excedencias son el 10.65\,\% de los días-estación válidos, de modo que un
+clasificador que prediga siempre la clase mayoritaria alcanza 89.35\,\% de
+aciertos sin capturar el fenómeno. La exactitud queda descartada como métrica
+de evaluación en la etapa de clasificación, en favor de sensibilidad,
+especificidad y área bajo la curva ROC. El umbral de 51 ppb, con 30.70\,\% de
+excedencias, ofrece un balance sustancialmente mejor y se propone como
+escenario principal de modelado.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{eda_cual_excedencias.pdf}
+  \caption{Balance de clases de las indicadoras de excedencia del MDA8 para los
+    tres umbrales de cumplimiento gradual de la NOM-020-SSA1-2021
+    (\cref{tab:nom-limites}).}
+  \label{fig:eda-cual-excedencias}
+\end{figure*}
+
+\subsubsection{Nota sobre \texttt{llovio} y \texttt{tipo\_dia}}
+
+Dos variables de esta sección difieren de su definición previa y el cambio se
+documenta aquí por afectar las cifras reportadas.
+
+\texttt{llovio} se construye como la dicotomización de \texttt{RAINF}
+conservando los faltantes. La versión anterior asignaba el valor 0 a las horas
+sin medición de precipitación, lo que trasladaba 17,251 registros a la
+categoría ``no llovió'' e inflaba esa clase en tres puntos porcentuales. La
+distinción entre ausencia de lluvia y ausencia de medición es necesaria para
+que el porcentaje de horas con precipitación sea interpretable.
+
+\texttt{tipo\_dia} sustituye a \texttt{fin\_de\_semana} como descriptor del
+calendario. La binaria original agrupa sábado y domingo pese a que sus patrones
+de actividad vehicular difieren, y no distingue los días de descanso
+obligatorio, la Semana Santa ni el periodo navideño, que presentan tráfico
+anómalo. Se identifican 71 días festivos dentro del periodo de estudio, el
+4.35\,\% de los registros. \texttt{fin\_de\_semana} se conserva en el conjunto
+por retrocompatibilidad y se reporta en \cref{tab:freq-horaria}, pero
+\texttt{tipo\_dia} es la variable pertinente para el análisis de la respuesta
+del ozono a la variación semanal de precursores.
