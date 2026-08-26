@@ -11,8 +11,8 @@ Los cuartiles y límites IQR de \texttt{O3}, \texttt{CO}, \texttt{NO2},
 \texttt{NOX}, \texttt{PM10}, \texttt{PM2.5}, \texttt{TOUT}, \texttt{PRS} y
 \texttt{WSR} se reusan del criterio de outliers de la limpieza de datos
 (\texttt{docs/log\_limpieza.md}), no se recalculan con otro criterio. Para
-\texttt{O3\_8h}, \texttt{viento\_u} y \texttt{viento\_v} --- que no formaron
-parte de ese criterio --- se calculan aquí con el mismo método de $1.5\times\textbf{IQR}$.
+\texttt{O3\_8h}, \texttt{viento\_u} y \texttt{viento\_v}, que no formaron
+parte de ese criterio, se calculan aquí con el mismo método de $1.5\times\textbf{IQR}$.
 \texttt{RAINF} y \texttt{WDR} quedan fuera: \texttt{WDR} es circular y
 \texttt{RAINF} está inflada de ceros, así que su IQR no es interpretable como
 límite de outliers (\cref{sec:dic:meteorologicos}).
@@ -41,4 +41,45 @@ límite de outliers (\cref{sec:dic:meteorologicos}).
     \bottomrule
   \end{tabular}
 \end{table*}
+
+\subsubsection{Visualizaciones cuantitativas}
+
+El boxplot combinado \ref{fig:boxplot-originales} de las variables en una sola escala se usó para justificar su escalamiento.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{boxplot_variables_originales.png}
+  \caption{Comparación de escalas de las variables antes de transformación y escalamiento.}
+  \label{fig:boxplot-originales}
+\end{figure}
+
+Aqui se hace una rejilla de boxplots individuales, uno por variable en sus unidades originales, que es lo que permite leer Q1/Q3/mediana/bigotes de cada una (\ref{fig:boxplot-originales}), (\ref{fig:boxplot-mda8-estacion}).
+
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{boxplots_medidas.pdf}
+    \caption{Diagrama de boxplots de cada variable}
+    \label{fig:boxplot-medidas}
+\end{figure}
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{boxplot_mda8_por_estacion.pdf}
+    \caption{Boxplot de \texttt{MDA8} por estacion}
+    \label{fig:boxplot-mda8-estacion}
+\end{figure}
+
+Se sigue el mismo criterio de las transformaciones $|\text{sesgo(x)}| < 0.5$. \texttt{RAINF} se excluye del gráfico por la misma razón de la sección de cuartiles: está inflada de ceros, su densidad estandarizada es una espiga angosta que domina el eje y aplasta el resto de las curvas a una línea punta. Para comparar la forma de las 13 variables en un solo gráfico, cada una se estandariza por z-score (\ref{fig:densidades-estd}) $\frac{(x-\bar{x})}{s}$ solo para este eje, no es la transformación Box-Cox de \ref{sec:transformaciones}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{densidad_medidas_superpuesta.pdf}
+    \caption{Gráfico de densidad superpuesta de las variables estandarizadas}
+    \label{fig:densidades-estd}
+\end{figure}
+
+
 
