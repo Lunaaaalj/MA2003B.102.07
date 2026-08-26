@@ -91,7 +91,7 @@ round(matriz_cor, 2)
 ```{r}
 library(ggcorrplot)
 
-ggcorrplot(
+mapa_calor <- ggcorrplot(
     matriz_cor,
     method = "square",
     type = "lower",
@@ -101,6 +101,9 @@ ggcorrplot(
     colors = c("dodgerblue3", "lavender", "deeppink"),
     title = "Mapa de calor de correlaciones"
 )
+
+mapa_calor
+ggsave("../reports/figuras/mapa_calor_correlacion.pdf", plot = mapa_calor, width = 8, height = 7)
 ```
 
 ```{r}
