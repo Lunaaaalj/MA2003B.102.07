@@ -1,4 +1,23 @@
-
+---
+title: "Tendencias y correlación"
+subtitle: "Issue #37 — MA2003B, equipo 7"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      # Sin esto, las tablas y los prints anchos se salen del margen: fvextra
+      # parte los renglones largos de los bloques verbatim en vez de recortarlos.
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+---
 
 ```{r}
 library(nanoparquet)
@@ -10,32 +29,38 @@ library(dplyr)
 
 # 12 variables
 variables <- data %>%
-  select(O3, CO, NO2, NOX, PM10, PM2.5, TOUT, PRS, WSR,
-         viento_u, viento_v, O3_8h)
+    select(
+        O3, CO, NO2, NOX, PM10, PM2.5, TOUT, PRS, WSR,
+        viento_u, viento_v, O3_8h
+    )
 
 # Moda
 moda <- function(x) {
-  x <- x[!is.na(x)]
-  valores <- unique(x)
-  valores[which.max(tabulate(match(x, valores)))]
+    x <- x[!is.na(x)]
+    valores <- unique(x)
+    valores[which.max(tabulate(match(x, valores)))]
 }
 
 # Tabla consolidada
 tabla_resumen <- data.frame(
-  Variable = names(variables),
-  Promedio = sapply(variables, mean, na.rm = TRUE),
-  Mediana = sapply(variables, median, na.rm = TRUE),
-  Moda = "No aplica",
-  Rango = sapply(variables, function(x) diff(range(x, na.rm = TRUE))),
-  Varianza = sapply(variables, var, na.rm = TRUE),
-  Desv_Estandar = sapply(variables, sd, na.rm = TRUE)
+    Variable = names(variables),
+    Promedio = sapply(variables, mean, na.rm = TRUE),
+    Mediana = sapply(variables, median, na.rm = TRUE),
+    Moda = "No aplica",
+    Rango = sapply(variables, function(x) diff(range(x, na.rm = TRUE))),
+    Varianza = sapply(variables, var, na.rm = TRUE),
+    Desv_Estandar = sapply(variables, sd, na.rm = TRUE)
 )
 
 # Resultados redondeados
-tabla_resumen[, c("Promedio", "Mediana", "Rango",
-                  "Varianza", "Desv_Estandar")] <-
-  round(tabla_resumen[, c("Promedio", "Mediana", "Rango",
-                          "Varianza", "Desv_Estandar")], 3)
+tabla_resumen[, c(
+    "Promedio", "Mediana", "Rango",
+    "Varianza", "Desv_Estandar"
+)] <-
+    round(tabla_resumen[, c(
+        "Promedio", "Mediana", "Rango",
+        "Varianza", "Desv_Estandar"
+    )], 3)
 
 tabla_resumen
 ```
@@ -49,14 +74,16 @@ library(ggplot2)
 
 # 12 variables cuantitativas
 variables <- data %>%
-  select(O3, CO, NO2, NOX, PM10, PM2.5, TOUT, PRS, WSR,
-         viento_u, viento_v, O3_8h)
+    select(
+        O3, CO, NO2, NOX, PM10, PM2.5, TOUT, PRS, WSR,
+        viento_u, viento_v, O3_8h
+    )
 
 # Matriz de correlación de Pearson
 matriz_cor <- cor(
-  variables,
-  use = "pairwise.complete.obs",
-  method = "pearson"
+    variables,
+    use = "pairwise.complete.obs",
+    method = "pearson"
 )
 
 round(matriz_cor, 2)
@@ -65,14 +92,14 @@ round(matriz_cor, 2)
 library(ggcorrplot)
 
 ggcorrplot(
-  matriz_cor,
-  method = "square",
-  type = "lower",
-  lab = TRUE,
-  lab_size = 3,
-  hc.order = TRUE,
-  colors = c("dodgerblue3", "lavender", "deeppink"),
-  title = "Mapa de calor de correlaciones"
+    matriz_cor,
+    method = "square",
+    type = "lower",
+    lab = TRUE,
+    lab_size = 3,
+    hc.order = TRUE,
+    colors = c("dodgerblue3", "lavender", "deeppink"),
+    title = "Mapa de calor de correlaciones"
 )
 ```
 
@@ -80,14 +107,15 @@ ggcorrplot(
 pares_cor <- as.data.frame(as.table(matriz_cor))
 
 pares_cor <- pares_cor %>%
-  filter(Var1 != Var2) %>%
-  mutate(
-    par = paste(pmin(as.character(Var1), as.character(Var2)),
-                pmax(as.character(Var1), as.character(Var2)),
-                sep = " - ")
-  ) %>%
-  distinct(par, .keep_all = TRUE) %>%
-  arrange(desc(abs(Freq)))
+    filter(Var1 != Var2) %>%
+    mutate(
+        par = paste(pmin(as.character(Var1), as.character(Var2)),
+            pmax(as.character(Var1), as.character(Var2)),
+            sep = " - "
+        )
+    ) %>%
+    distinct(par, .keep_all = TRUE) %>%
+    arrange(desc(abs(Freq)))
 
 pares_cor
 ```
