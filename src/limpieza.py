@@ -43,10 +43,10 @@ ANIOS = [2021, 2022, 2023, 2024, 2025]  # 2020 descartado: O3 ausente en 7 de 13
 OBJETIVO = "O3"
 
 # Precursores y proxies de COV documentados en la revisión de literatura (#12)
-CONTAMINANTES = ["CO", "NO2", "NOX", "PM10", "PM2.5"]
+CONTAMINANTES = ["CO", "NO", "NO2", "NOX", "SO2", "PM10", "PM2.5"]
 
 # Meteorología con mecanismo documentado sobre la formación de O3
-METEOROLOGICAS = ["TOUT", "RAINF", "PRS", "WSR", "WDR"]
+METEOROLOGICAS = ["TOUT", "RH", "SR", "RAINF", "PRS", "WSR", "WDR"]
 
 
 VARIABLES = [OBJETIVO, *CONTAMINANTES, *METEOROLOGICAS]
@@ -410,7 +410,7 @@ def derivar(df: pd.DataFrame, log: Log) -> tuple[pd.DataFrame, pd.DataFrame]:
 #   WDR es circular — su cuartil no tiene sentido (el "límite inferior" da -98°).
 #   RAINF es de cero inflado (98 % de ceros) — su IQR vale 0, de modo que toda
 #   lluvia registrada quedaría marcada como atípica.
-SIN_IQR = ["WDR", "RAINF"]
+SIN_IQR = ["WDR", "RAINF", "SR"]
 
 
 def analizar_outliers(df: pd.DataFrame, log: Log) -> pd.DataFrame:
