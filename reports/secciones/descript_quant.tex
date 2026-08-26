@@ -1,0 +1,145 @@
+\section{Análisis descriptivo}
+\subsection{Variables cuantitativas}
+
+\subsubsection{Medidas de tendencia central}
+
+Las 12 variables se calculan sobre la escala transformada (Box-Cox + z-score,
+\cref{sec:transformaciones}): promedio $\approx 0$ y varianza/desviación
+estándar $\approx 1$ para todas por construcción, así que la mediana y el
+rango son las cifras informativas de \cref{tab:tendencia-central}. La moda
+clásica no aplica a variables continuas (los valores casi nunca se repiten
+exactamente); se reporta como ``no aplica'' en vez de forzar un cálculo sin
+sentido estadístico.
+
+\begin{table*}[t]
+  \centering
+  \caption{Tendencia central y dispersión de las 12 variables cuantitativas,
+    sobre la escala transformada.}
+  \label{tab:tendencia-central}
+  \begin{tabular}{lrrlrrr}
+    \toprule
+    Variable & Promedio & Mediana & Moda & Rango & Varianza & Desv. est. \\
+    \midrule
+    \texttt{O3}        & 0.000 & 0.035  & No aplica & 7.797  & 1.000 & 1.000 \\
+    \texttt{CO}        & 0.000 & 0.037  & No aplica & 8.342  & 1.000 & 1.000 \\
+    \texttt{NO2}       & 0.000 & $-0.029$ & No aplica & 7.652  & 1.000 & 1.000 \\
+    \texttt{NOX}       & 0.000 & $-0.052$ & No aplica & 9.119  & 1.000 & 1.000 \\
+    \texttt{PM10}      & 0.000 & 0.003  & No aplica & 10.895 & 1.000 & 1.000 \\
+    \texttt{PM2.5}     & 0.000 & 0.016  & No aplica & 10.844 & 1.000 & 1.000 \\
+    \texttt{TOUT}      & 0.000 & 0.040  & No aplica & 6.980  & 1.000 & 1.000 \\
+    \texttt{PRS}       & 0.000 & $-0.071$ & No aplica & 10.648 & 1.000 & 1.000 \\
+    \texttt{WSR}       & 0.000 & 0.045  & No aplica & 11.499 & 1.000 & 1.000 \\
+    \texttt{viento\_u} & 0.000 & $-0.010$ & No aplica & 44.140 & 1.000 & 1.000 \\
+    \texttt{viento\_v} & 0.000 & $-0.013$ & No aplica & 48.533 & 1.000 & 1.000 \\
+    \texttt{O3\_8h}    & 0.000 & 0.004  & No aplica & 7.534  & 1.000 & 1.000 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsubsection{Cuartiles y límites IQR}
+
+Los cuartiles y límites IQR de \texttt{O3}, \texttt{CO}, \texttt{NO2},
+\texttt{NOX}, \texttt{PM10}, \texttt{PM2.5}, \texttt{TOUT}, \texttt{PRS} y
+\texttt{WSR} se reusan del criterio de outliers de la limpieza de datos
+(\texttt{docs/log\_limpieza.md}), no se recalculan con otro criterio. Para
+\texttt{O3\_8h}, \texttt{viento\_u} y \texttt{viento\_v}, que no formaron
+parte de ese criterio, se calculan aquí con el mismo método de $1.5\times\textbf{IQR}$.
+\texttt{RAINF} y \texttt{WDR} quedan fuera: \texttt{WDR} es circular y
+\texttt{RAINF} está inflada de ceros, así que su IQR no es interpretable como
+límite de outliers (\cref{sec:dic:meteorologicos}).
+
+\begin{table*}[t]
+  \centering
+  \caption{Cuartiles y límites IQR (criterio 1.5×IQR) de las variables
+    cuantitativas en alcance, en sus unidades originales.}
+  \label{tab:cuartiles-iqr}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Variable & Q1 & Q3 & IQR & Límite inf. & Límite sup. \\
+    \midrule
+    \texttt{O3}        & 13.00  & 37.00  & 24.00 & $-23.00$ & 73.00  \\
+    \texttt{CO}        & 0.71   & 1.83   & 1.11  & $-0.96$  & 3.50   \\
+    \texttt{NO2}       & 6.90   & 19.70  & 12.80 & $-12.30$ & 38.90  \\
+    \texttt{NOX}       & 10.95  & 30.70  & 19.75 & $-18.68$ & 60.33  \\
+    \texttt{PM10}      & 35.00  & 74.00  & 39.00 & $-23.50$ & 132.50 \\
+    \texttt{PM2.5}     & 10.00  & 26.74  & 16.74 & $-15.11$ & 51.85  \\
+    \texttt{TOUT}      & 18.49  & 28.39  & 9.90  & 3.64     & 43.24  \\
+    \texttt{PRS}       & 709.70 & 721.70 & 12.00 & 691.70   & 739.70 \\
+    \texttt{WSR}       & 4.70   & 11.60  & 6.90  & $-5.65$  & 21.95  \\
+    \texttt{O3\_8h}    & 15.44  & 35.75  & 20.31 & $-15.03$ & 66.22  \\
+    \texttt{viento\_u} & $-8.56$ & 0.21  & 8.77  & $-21.73$ & 13.37  \\
+    \texttt{viento\_v} & $-3.38$ & 3.98  & 7.36  & $-14.41$ & 15.01  \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsubsection{Visualizaciones cuantitativas}
+
+El boxplot combinado de las variables en una sola escala (\cref{fig:boxplot-originales}) se usó para justificar su escalamiento.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{boxplot_variables_originales.png}
+  \caption{Comparación de escalas de las variables antes de transformación y escalamiento.}
+  \label{fig:boxplot-originales}
+\end{figure}
+
+Aquí se hace una rejilla de boxplots individuales, uno por variable en sus unidades originales, que es lo que permite leer Q1/Q3/mediana/bigotes de cada una (\cref{fig:boxplot-medidas}), con O3 y MDA8 desagregados además por estación (\cref{fig:boxplot-o3-estacion,fig:boxplot-mda8-estacion}).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{boxplots_medidas.pdf}
+    \caption{Diagrama de boxplots de cada variable}
+    \label{fig:boxplot-medidas}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{boxplot_o3_por_estacion.pdf}
+    \caption{Boxplot de \texttt{O3} por estación}
+    \label{fig:boxplot-o3-estacion}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{boxplot_mda8_por_estacion.pdf}
+    \caption{Boxplot de \texttt{MDA8} por estación}
+    \label{fig:boxplot-mda8-estacion}
+\end{figure}
+
+Se sigue el mismo criterio de las transformaciones $|\text{sesgo(x)}| < 0.5$. \texttt{RAINF} se excluye del gráfico por la misma razón de la sección de cuartiles: está inflada de ceros, su densidad estandarizada es una espiga angosta que domina el eje y aplasta el resto de las curvas a una línea plana. Para comparar la forma de las 13 variables en un solo gráfico, cada una se estandariza por z-score $\frac{(x-\bar{x})}{s}$ solo para este eje, no es la transformación Box-Cox de \cref{sec:transformaciones} (\cref{fig:densidades-estd}).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{densidad_medidas_superpuesta.pdf}
+    \caption{Gráfico de densidad superpuesta de las variables estandarizadas}
+    \label{fig:densidades-estd}
+\end{figure}
+
+\subsubsection{Correlación}
+
+La correlación de Pearson entre las 12 variables se calcula sobre la escala
+transformada (\cref{sec:transformaciones}), no la cruda, ya que ahí se mostró
+que la escala original subestima la relación real. \Cref{fig:mapa-calor}
+resume la matriz completa.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{mapa_calor_correlacion.pdf}
+    \caption{Mapa de calor de correlación de Pearson entre las 12 variables
+      cuantitativas, escala transformada.}
+    \label{fig:mapa-calor}
+\end{figure}
+
+Pares más fuertes: \texttt{NO2}--\texttt{NOX} ($r=0.89$), multicolinealidad
+esperada entre precursores del mismo ciclo de reacción; \texttt{O3}--
+\texttt{O3\_8h} ($r=0.69$), por construcción (el segundo deriva del primero);
+\texttt{PM10}--\texttt{PM2.5} ($r=0.62$), material particulado de origen
+común; \texttt{O3}--\texttt{TOUT} ($r=0.51$) y \texttt{O3}--\texttt{WSR}
+($r=0.43$), consistentes con el mecanismo fotoquímico de formación de ozono;
+\texttt{viento\_u}--\texttt{WSR} ($r=-0.45$) y \texttt{O3}--\texttt{NOX}
+($r=-0.43$), esta última refleja el consumo de \ce{O3} por titulación con
+\ce{NO} cerca de fuentes de tráfico. Los grupos de precursores correlacionados
+justifican aplicar PCA para reducir dimensionalidad.
+
+

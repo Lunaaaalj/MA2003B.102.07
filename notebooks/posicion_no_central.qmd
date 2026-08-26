@@ -1,0 +1,213 @@
+---
+title: "Posicion no central y forma"
+subtitle: "Issue #37 — MA2003B, equipo 7"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      # Sin esto, las tablas y los prints anchos se salen del margen: fvextra
+      # parte los renglones largos de los bloques verbatim en vez de recortarlos.
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+---
+
+```{r}
+library(nanoparquet)
+sth <- read_parquet("../data/processed/sima_transformado_horario.parquet")
+head(sth)
+```
+
+## Cuartiles y límites IQR
+
+Para `O3`, `CO`, `NO2`, `NOX`, `PM10`, `PM2.5`, `TOUT`, `PRS` y `WSR` los cuartiles y
+límites IQR **no se recalculan aquí**: se reusan los que ya produjo el criterio de
+outliers de la #13 (`docs/log_limpieza.md`, sección 7), guardados en
+`data/processed/resumen_outliers.csv`. Ese archivo solo publica `limite_inf` y
+`limite_sup` (los límites de 1.5×IQR usados para marcar outliers), así que Q1, Q3 e
+IQR se recuperan de ellos por álgebra —no por un nuevo cálculo sobre los datos crudos—,
+despejando el mismo criterio de 1.5×IQR que ya se aplicó:
+
+$$
+\text{limite\_inf} = Q_1 - 1.5\cdot\text{IQR}, \qquad
+\text{limite\_sup} = Q_3 + 1.5\cdot\text{IQR}
+\;\;\Rightarrow\;\;
+\text{IQR} = \frac{\text{limite\_sup}-\text{limite\_inf}}{4}
+$$
+
+`RAINF` y `WDR` quedan fuera de esta tabla por la misma razón documentada en la #13:
+`WDR` es circular (un cuartil sobre grados no tiene sentido) y `RAINF` está inflada de
+ceros (su IQR es 0 y marcaría como atípica toda la lluvia registrada).
+
+```{r}
+resumen_outliers <- read.csv("../data/processed/resumen_outliers.csv")
+
+cuartiles_iqr <- within(resumen_outliers, {
+    iqr <- (limite_sup - limite_inf) / 4
+    q1 <- round(limite_inf + 1.5 * iqr, 2)
+    q3 <- round(limite_sup - 1.5 * iqr, 2)
+    iqr <- round(iqr, 2)
+})[, c("variable", "q1", "q3", "iqr", "limite_inf", "limite_sup")]
+
+cuartiles_iqr
+```
+
+Agregando los `O3_8h` y `viento_u`, `viento_v`. `sth` (el parquet cargado arriba) ya
+está transformado (Box-Cox + z-score, #14): su sesgo es ~0 por construcción y calcular
+un IQR sobre esa escala no describiría la variable real, además de duplicar en otra
+forma la tabla de sesgos que ya vive en `transformaciones.tex`. Por eso estas tres
+variables —y todo lo que sigue en boxplots e histogramas— se leen del dataset horario
+**limpio, sin transformar** (`sima_limpio_horario.csv`), igual que el criterio IQR de
+`resumen_outliers.csv` que se reusó arriba también es sobre esa escala.
+
+```{r}
+sh <- data.table::fread(
+    "../data/processed/sima_limpio_horario.csv",
+    select = c(
+        "estacion", "O3", "CO", "NO2", "NOX", "PM10", "PM2.5",
+        "TOUT", "RAINF", "PRS", "WSR", "viento_u", "viento_v", "O3_8h"
+    )
+)
+
+calcular_iqr <- function(x) {
+    q <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE)
+    iqr <- q[[2]] - q[[1]]
+    data.frame(
+        q1 = round(q[[1]], 2),
+        q3 = round(q[[2]], 2),
+        iqr = round(iqr, 2),
+        limite_inf = round(q[[1]] - 1.5 * iqr, 2),
+        limite_sup = round(q[[2]] + 1.5 * iqr, 2)
+    )
+}
+```
+
+```{r}
+nuevas <- do.call(rbind, lapply(c("O3_8h", "viento_u", "viento_v"), function(v) {
+    cbind(variable = v, calcular_iqr(sh[[v]]))
+}))
+head(nuevas)
+```
+
+## Boxplots
+
+El boxplot combinado de todas las variables en una sola escala ya existe en la sección
+de transformaciones (`reports/figuras/boxplot_variables_originales.png`) y ahí se usa
+para justificar el escalamiento, no para leer cuartiles por variable — con `PRS` en
+~700 y `viento_u`/`viento_v` en un rango de -5 a 5, una sola escala aplana el resto de
+las cajas. Aquí se hace una rejilla de boxplots individuales, uno por variable en sus
+unidades originales, que es lo que permite leer Q1/Q3/mediana/bigotes de cada una.
+
+```{r}
+diario <- read.csv("../data/processed/sima_limpio_diario.csv")
+
+medidas <- c(
+    "O3", "CO", "NO2", "NOX", "PM10", "PM2.5", "TOUT", "PRS", "WSR", "O3_8h",
+    "viento_u", "viento_v"
+)
+valores <- c(as.list(sh[, ..medidas]), list(RAINF = sh$RAINF, MDA8 = diario$MDA8))
+```
+
+```{r}
+#| fig-format: pdf
+pdf("../reports/figuras/boxplots_medidas.pdf", width = 10, height = 9)
+par(mfrow = c(4, 4), mar = c(2, 4, 2, 1))
+for (v in names(valores)) {
+    boxplot(valores[[v]], main = v, ylab = v)
+}
+dev.off()
+
+par(mfrow = c(4, 4), mar = c(2, 4, 2, 1))
+for (v in names(valores)) {
+    boxplot(valores[[v]], main = v, ylab = v)
+}
+```
+
+### O3 y MDA8 por estación
+
+```{r}
+#| fig-format: pdf
+pdf("../reports/figuras/boxplot_o3_por_estacion.pdf", width = 9, height = 5)
+boxplot(O3 ~ estacion, data = sh, main = "O3 por estación", xlab = "Estación", ylab = "O3 (ppb)", las = 2)
+dev.off()
+
+boxplot(O3 ~ estacion, data = sh, main = "O3 por estación", xlab = "Estación", ylab = "O3 (ppb)", las = 2)
+```
+
+```{r}
+#| fig-format: pdf
+pdf("../reports/figuras/boxplot_mda8_por_estacion.pdf", width = 9, height = 5)
+boxplot(MDA8 ~ estacion, data = diario, main = "MDA8 por estación", xlab = "Estación", ylab = "MDA8 (ppb)", las = 2)
+dev.off()
+
+boxplot(MDA8 ~ estacion, data = diario, main = "MDA8 por estación", xlab = "Estación", ylab = "MDA8 (ppb)", las = 2)
+```
+
+## Histogramas con densidad superpuesta
+
+Mismo criterio de la #14 para marcar simetría: $|\text{sesgo}(x)|<0.5$. La rejilla de
+14 paneles en escala original no se puede leer bien para `viento_u`/`viento_v`: unos
+cuantos valores extremos estiran el eje x hasta ±150 mientras que el grueso de la masa
+vive entre -20 y 20, así que cada panel individual queda como una espiga aplastada.
+
+`RAINF` se excluye de este gráfico por la misma razón que en la sección de cuartiles:
+está inflada de ceros, así que su densidad estandarizada es una espiga angosta que
+domina el eje y aplasta el resto de las curvas a una línea plana.
+
+Para comparar la forma (no la escala) de las 13 variables restantes en un solo
+gráfico, cada una
+se estandariza a z-score ($\,(x-\bar{x})/s\,$) **solo para este eje**, no es la
+transformación Box-Cox de la #14 — al ser una transformación lineal, estandarizar no
+cambia el sesgo de la variable, solo la pone en una escala comparable. Esto es distinto
+de `reports/figuras/densidad_variables_escaladas.pdf` (transformaciones.qmd), que
+muestra las densidades **después** de Box-Cox, cuando el sesgo ya se corrigió a ~0; aquí
+se ve la asimetría real, sin corregir, superpuesta.
+
+```{r}
+#| fig-format: pdf
+library(moments)
+
+estandarizar <- function(x) {
+    x <- na.omit(x)
+    (x - mean(x)) / sd(x)
+}
+
+valores_sup <- valores[names(valores) != "RAINF"]
+
+sesgos <- sapply(valores_sup, function(x) skewness(na.omit(x)))
+densidades <- lapply(valores_sup, function(x) density(estandarizar(x)))
+paleta <- rainbow(length(densidades))
+etiquetas <- sprintf("%s (sesgo=%.2f)", names(valores_sup), sesgos)
+
+# Las colas largas de PM2.5/CO/viento estiran el z-score hasta ±47; con ese rango
+# todas las curvas se aplastan en una espiga sobre 0. Se recorta el eje x solo para
+# que la forma del cuerpo de cada distribucion sea legible -el sesgo de la leyenda
+# ya viene de density() sobre los datos completos, sin recortar.
+xr <- c(-5, 10)
+yr <- range(sapply(densidades, function(d) range(d$y[d$x >= xr[1] & d$x <= xr[2]])))
+
+graficar_densidades_superpuestas <- function() {
+    plot(densidades[[1]],
+        main = "Densidad de las medidas horarias, MDA8 y viento (estandarizadas)",
+        xlab = "z-score (solo para comparar formas; eje recortado, ver nota arriba)",
+        col = paleta[1], xlim = xr, ylim = yr, lwd = 2
+    )
+    for (i in seq_along(densidades)[-1]) lines(densidades[[i]], col = paleta[i], lwd = 2)
+    legend("topright", legend = etiquetas, col = paleta, lty = 1, lwd = 2, cex = 0.55, ncol = 2)
+}
+
+graficar_densidades_superpuestas()
+
+pdf("../reports/figuras/densidad_medidas_superpuesta.pdf", width = 9, height = 7)
+graficar_densidades_superpuestas()
+dev.off()
+```
+
+
