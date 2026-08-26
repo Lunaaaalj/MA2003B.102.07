@@ -1,0 +1,94 @@
+
+
+```{r}
+library(nanoparquet)
+data <- read_parquet("../data/processed/sima_transformado_horario.parquet")
+head(data)
+```
+```{r}
+library(dplyr)
+
+# 12 variables
+variables <- data %>%
+  select(O3, CO, NO2, NOX, PM10, PM2.5, TOUT, PRS, WSR,
+         viento_u, viento_v, O3_8h)
+
+# Moda
+moda <- function(x) {
+  x <- x[!is.na(x)]
+  valores <- unique(x)
+  valores[which.max(tabulate(match(x, valores)))]
+}
+
+# Tabla consolidada
+tabla_resumen <- data.frame(
+  Variable = names(variables),
+  Promedio = sapply(variables, mean, na.rm = TRUE),
+  Mediana = sapply(variables, median, na.rm = TRUE),
+  Moda = "No aplica",
+  Rango = sapply(variables, function(x) diff(range(x, na.rm = TRUE))),
+  Varianza = sapply(variables, var, na.rm = TRUE),
+  Desv_Estandar = sapply(variables, sd, na.rm = TRUE)
+)
+
+# Resultados redondeados
+tabla_resumen[, c("Promedio", "Mediana", "Rango",
+                  "Varianza", "Desv_Estandar")] <-
+  round(tabla_resumen[, c("Promedio", "Mediana", "Rango",
+                          "Varianza", "Desv_Estandar")], 3)
+
+tabla_resumen
+```
+Las variables analizadas ya fueron previamente estandariadas, por lo que presentan medias cercanas a 0, varianzas cercanas a 1 y desviaciones estándar cercanas a 1. Por esta razón, las diferencias entre variables se aprecian principalmente en medidas como la mediana, moda y rango.
+
+Ya que las 12 variables analizadas son continuas, no se calculó la moda clásica, ya que los valores pueden no repetirse exactamente. Se reportan como "No aplica".
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+# 12 variables cuantitativas
+variables <- data %>%
+  select(O3, CO, NO2, NOX, PM10, PM2.5, TOUT, PRS, WSR,
+         viento_u, viento_v, O3_8h)
+
+# Matriz de correlación de Pearson
+matriz_cor <- cor(
+  variables,
+  use = "pairwise.complete.obs",
+  method = "pearson"
+)
+
+round(matriz_cor, 2)
+```
+```{r}
+library(ggcorrplot)
+
+ggcorrplot(
+  matriz_cor,
+  method = "square",
+  type = "lower",
+  lab = TRUE,
+  lab_size = 3,
+  hc.order = TRUE,
+  colors = c("dodgerblue3", "lavender", "deeppink"),
+  title = "Mapa de calor de correlaciones"
+)
+```
+
+```{r}
+pares_cor <- as.data.frame(as.table(matriz_cor))
+
+pares_cor <- pares_cor %>%
+  filter(Var1 != Var2) %>%
+  mutate(
+    par = paste(pmin(as.character(Var1), as.character(Var2)),
+                pmax(as.character(Var1), as.character(Var2)),
+                sep = " - ")
+  ) %>%
+  distinct(par, .keep_all = TRUE) %>%
+  arrange(desc(abs(Freq)))
+
+pares_cor
+```
+El mapa de calor muestra una correlación positiva alta entre NO2 y NOX, lo que indica posible multicolinealidad entre estos dos También destacan las relaciones entre O3 y O3_8h, PM10 y PM2.5 y O3 y TOUT. Por otro lado, O3 presenta una relación negativa moderada con NOX. Estas correlaciones muestran que existen grupos de variables relacionadas, lo que justifica aplicar técnicas como PCA para reducir dimensionalidad y estudiar su estructura conjunta.
