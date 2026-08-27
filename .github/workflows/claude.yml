@@ -41,6 +41,13 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
+          # Sin esto la action entra en "agent mode" (lo hace en cuanto se
+          # define un prompt propio): corre el prompt pero no crea el
+          # comentario de seguimiento ni le da a Claude la herramienta para
+          # escribir en la PR. El job queda verde y no aparece nada.
+          # track_progress lo regresa a "tag mode" conservando el prompt.
+          track_progress: true
+
           prompt: |
             REPO: ${{ github.repository }}
 
