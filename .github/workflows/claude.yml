@@ -76,4 +76,4 @@ jobs:
           # Limite de turnos: evita corridas largas accidentales que quemen
           # la cuota de la suscripcion ligada al token.
           claude_args: |
-            --max-turns 30
+            --max-turns 50
