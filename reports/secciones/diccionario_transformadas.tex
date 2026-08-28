@@ -1,0 +1,94 @@
+\documentclass{article}
+\usepackage{booktabs}
+\begin{document}
+
+\section{Diccionario de datos transformados}\label{sec:diccionario}
+Actualizacion de los datos, siendo el resultado de la transformacion de estos.
+
+\subsection{Dimension del conjunto de datos transformados}
+Al limpiar los datos hemos reducido nuestra cantidad de filas y columnas, contando ahora con 574,343 filas y 30 columnas. 
+\begin{table*}[t]
+  \centering
+  \caption{Variables Cuantitativas}
+  \label{tab:dic-horario-cuantitativas}
+  \small
+  \begin{tabular}{lp{6cm}l}
+    \toprule
+    Variable & Descripcion \\
+    \midrule
+    \texttt{fecha}     & Marca temporal horaria de la observacion \\
+    \texttt{anio}      & Anio calendario                          \\
+    \texttt{O3}        & Ozono, estandarizado                    \\
+    \texttt{CO}        & Monoxido de carbono, estandarizado      \\
+    \texttt{NO2}       & Dioxido de nitrogeno, estandarizado      \\
+    \texttt{NOX}       & Oxidos de nitrogeno, estandarizado       \\
+    \texttt{PM10}      & Particulas $<10\,\mu$m, estandarizado    \\
+    \texttt{PM2.5}     & Particulas $<2.5\,\mu$m, estandarizado    \\
+    \texttt{TOUT}      & Temperatura ambiente, estandarizada      \\
+    \texttt{PRS}       & Presion atmosferica, estandarizada        \\
+    \texttt{WSR}       & Velocidad del viento, estandarizada      \\
+    \texttt{viento\_u} & Componente u del viento (escala fisica)   \\
+    \texttt{viento\_v} & Componente v del viento (escala fisica)   \\
+    \texttt{hora}      & Hora del dia de la observacion           \\
+    \texttt{mes}       & Mes calendario de la observacion          \\
+    \texttt{O3\_8h}    & Media movil de 8 horas de O3, estandarizada  \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+  \centering
+  \caption{Variables Cualitativas}
+  \label{tab:dic-horario-cualitativas}
+  \small
+  \begin{tabular}{lp{6cm}l}
+    \toprule
+    Variable & Descripcion & Tipo \\
+    \midrule
+    \texttt{estacion}       & Estacion de monitoreo SIMA                     & nominal \\
+    \texttt{dia\_semana}    & Dia de la semana de la observacion             & ordinal \\
+    \texttt{fin\_de\_semana} & Indicadora de sabado/domingo                  & binaria \\
+    \texttt{temporada}      & Temporada del anio                             & nominal \\
+    \texttt{outlier\_O3}    & Indicadora de outlier detectado en O3          & binaria \\
+    \texttt{outlier\_CO}    & Indicadora de outlier detectado en CO          & binaria \\
+    \texttt{outlier\_NO2}   & Indicadora de outlier detectado en NO2         & binaria \\
+    \texttt{outlier\_NOX}   & Indicadora de outlier detectado en NOX         & binaria \\
+    \texttt{outlier\_PM10}  & Indicadora de outlier detectado en PM10        & binaria \\
+    \texttt{outlier\_PM2.5} & Indicadora de outlier detectado en PM2.5       & binaria \\
+    \texttt{outlier\_TOUT}  & Indicadora de outlier detectado en TOUT        & binaria \\
+    \texttt{outlier\_PRS}   & Indicadora de outlier detectado en PRS         & binaria \\
+    \texttt{outlier\_WSR}   & Indicadora de outlier detectado en WSR         & binaria \\
+    \texttt{llovio}         & Indicadora de precipitacion en la hora         & binaria \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\begin{table}[t]
+  \centering
+  \caption{Sesgo y curtosis (exceso, referencia normal $=0$) de las
+    variables numericas continuas del dataset horario transformado. Las
+    variables estandarizadas conservan el sesgo/curtosis de la variable
+    original, ya que estandarizar es una transformacion lineal.}
+  \label{tab:sesgo-curtosis-horario}
+  \small
+  \begin{tabular}{lrr}
+    \toprule
+    Variable & Sesgo & Curtosis (exceso) \\
+    \midrule
+    \texttt{O3}       & $-0.068$ & $-0.360$ \\
+    \texttt{CO}       & $0.019$  & $-0.462$ \\
+    \texttt{NO2}      & $0.029$  & $-0.058$ \\
+    \texttt{NOX}      & $-0.026$ & $0.726$  \\
+    \texttt{PM10}     & $-0.065$ & $1.236$  \\
+    \texttt{PM2.5}    & $0.078$  & $0.113$  \\
+    \texttt{TOUT}     & $-0.043$ & $-0.331$ \\
+    \texttt{PRS}      & $0.001$  & $-0.079$ \\
+    \texttt{WSR}      & $0.120$  & $1.841$  \\
+    \texttt{viento\_u} & $0.784$  & $37.487$ \\
+    \texttt{viento\_v} & $0.650$  & $38.660$ \\
+    \texttt{O3\_8h}   & $0.016$  & $-0.217$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{document}
