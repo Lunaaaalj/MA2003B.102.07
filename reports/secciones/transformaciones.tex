@@ -1,8 +1,20 @@
 \subsection{Transformaciones de datos}\label{sec:transformaciones}
 
-Posterior a un análisis de los rangos de los datos y su normalidad, se identificó que los datos cuantitativos tenían un sesgo excesivo y escalas y unidades diferentes que sin tratamiento entorpecería el análisis pro siguiente. Se tomaron un conjunto de decisiones para formar la base de datos final.
+El análisis de rangos y normalidad muestra que las variables cuantitativas
+presentan sesgo marcado y escalas heterogéneas, que sin tratamiento previo
+distorsionarían el análisis multivariado subsecuente. A continuación se
+documentan las decisiones de transformación que producen el conjunto de datos
+final.
 
-Se seleccionaron todas las variables cuantitativas disponibles, exceptuando aquellas que son cualitativas y binarias. Tambien se noto el caso de \texttt{RAINF} variable la cual mide la precipitacion por $mm/h$, esta variable presento un sesgo de 238.45, el cual es significativamente alto comparado con los sesgos de las otras variables, los cuales se encontraban en los rangos de -1 a 5. Esta discrepancia es debido a que la frecuencia de dias sin lluvia es mayor a los dias con lluvia, causando que la variable tenga una frecuencia desproporcionada de ceros, se clasifico como una \textbf{variable inflada de ceros}. Esta requiere un tratamiento especial al de las otras variables. Se decidió generar una variable derivada binaria \texttt{llovio} que exprese 
+El procedimiento abarca todas las variables cuantitativas disponibles; las
+cualitativas y binarias quedan fuera. \texttt{RAINF}, que mide la
+precipitación en $mm/h$, presenta un sesgo de 238.46, muy por encima del rango
+de $-1$ a 5 en que se sitúan las demás variables. La causa es la frecuencia
+desproporcionada de ceros, consecuencia de que los días sin lluvia superan
+ampliamente a los días con lluvia: la variable se clasifica como
+\textbf{variable inflada de ceros} y requiere un tratamiento distinto al del
+resto. En su lugar se deriva la variable binaria \texttt{llovio}, definida
+como
 
 \begin{align}
      \texttt{llovio}=\begin{cases}
@@ -11,21 +23,22 @@ Se seleccionaron todas las variables cuantitativas disponibles, exceptuando aque
     \end{cases}
 \end{align}
 
-en caso de requerirla.
-
-El principal supuesto que se hizo para decidir si una variable seria transformada o no es:
+El criterio que determina si una variable se transforma es
 
 \begin{align}
     |\text{skewness}(x_i)|<0.5\,\forall\, x_i\in X\;\;i=1\,,2\,\dots,n
 \end{align}
 
-Al ejecutar la transformacion, se aplico un desplazamiento a Box-Cox con el objetivo de que sea usable para las variables que tienen observaciones menores a cero.
+La transformación de Box-Cox exige observaciones positivas, por lo que se
+aplica un desplazamiento previo a las variables que registran valores no
+positivos:
 
 \begin{align}
     \forall i\in X\;\forall j\in x_i\;x_{ij} \leq0 \implies x_i = x_i - \min{x} + 1
 \end{align}
 
-Los sesgos post-transformación resultan en la tabla siguiente:
+Los sesgos antes y después de la transformación se reportan en
+\cref{tab:sesgos-transformacion}.
 
 \begin{table}[h]
   \centering
