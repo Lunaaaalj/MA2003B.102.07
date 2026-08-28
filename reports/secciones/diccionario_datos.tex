@@ -54,7 +54,7 @@ anios.
 Los ocho contaminantes criterio son numericos continuos y se resumen en
 \cref{tab:dic-contaminantes}. El rango de operacion que se reporta abarca desde
 el anio mas restrictivo hasta el mas permisivo del periodo, porque el limite
-cambia anio con anio (\cref{sec:dic:centinela}). Segun \texttt{Etiquetas.xlsx},
+cambia anio con anio (\cref{sec:dic:rangos}). Segun \texttt{Etiquetas.xlsx},
 O$_3$, SO$_2$ y NO$_2$ pueden pasarse a ppm dividiendo entre 1000.
 
 \subsection{Parametros meteorologicos}\label{sec:dic:meteorologicos}
@@ -79,42 +79,76 @@ ellos no pueden tratarse como variables continuas ordinarias:
 
 \subsection{Catalogo de estaciones}\label{sec:dic:estaciones}
 
-\Cref{tab:dic-estaciones} lista las 15 estaciones y su cobertura calculada
-sobre el consolidado. Dos estaciones no estan documentadas en el catalogo del
-SIMA y ademas entraron tarde a la red: NE3 aparece a partir de 2021 y NO3
-hasta diciembre de 2022, de modo que cualquier analisis que exija el panel
-completo debe excluirlas o recortarse al periodo comun.
+\Cref{tab:dic-estaciones} lista las 15 estaciones con la descripcion de
+\texttt{Etiquetas.xlsx} y la cobertura calculada sobre el consolidado. Dos
+estaciones no estan documentadas en el catalogo del SIMA y ademas entraron
+tarde a la red: NE3 aparece a partir de 2021 y NO3 hasta diciembre de 2022, de
+modo que cualquier analisis que exija el panel completo debe excluirlas o
+recortarse al periodo comun.
+
+\subsection{Banderas de calidad}\label{sec:dic:banderas}
+
+El SIMA documenta en \texttt{Etiquetas.xlsx} un sistema de banderas que marca
+el motivo por el que una hora se invalida (\cref{tab:dic-banderas}). Estas
+banderas \textbf{no vienen en los archivos \texttt{BD *.xlsx}}: los libros
+entregados solo traen el valor numerico o la celda vacia. Los datos ya llegan
+filtrados; cada celda vacia es una hora que el SIMA invalido por alguna de esas
+causas, pero el motivo no es recuperable.
+
+La consecuencia metodologica es directa: los faltantes de este conjunto
+\textbf{no son aleatorios} (no son MCAR). Se concentran donde hubo calibracion,
+falla o condicion anomala, lo que los acerca a un mecanismo MAR. Eso condiciona
+que imputacion resulta defendible y debe declararse como supuesto.
 
 \subsection{Faltantes}\label{sec:dic:faltantes}
 
 \Cref{tab:dic-faltantes} da el porcentaje de nulos por variable, que va del
 3.66\,\% de \texttt{SR} al 25.23\,\% de \texttt{PM2.5}. Ese promedio esconde lo
 importante: el faltante no esta repartido de forma pareja entre estaciones ni
-entre anios. Para el ozono, 2020 es practicamente inservible: varias
-estaciones (NTE, SUR, SE2, NE, NO) superan el 98\,\% de faltante ese anio; de
-2022 en adelante el faltante de O$_3$ baja a entre 1\,\% y 8\,\% en casi toda
-la red.
+entre anios.
 
-Los faltantes de este conjunto \textbf{no son aleatorios} (no son MCAR): el
-SIMA invalida horas por calibracion, falla o condicion anomala antes de
-entregar los archivos, y esas horas quedan como celda vacia sin que el motivo
-sea recuperable. Esto acerca el mecanismo a MAR, lo que condiciona que
-imputacion resulta defendible y debe declararse como supuesto.
+Para el ozono, \textbf{2020 es practicamente inservible}
+(\cref{tab:dic-o3-faltante}): NTE, SUR y SE2 tienen el 100\,\% de ozono
+faltante ese anio, NE el 99.9\,\%, NO el 98.4\,\%, NTE2 el 93.3\,\% y NE2 el
+89.1\,\%. De 2022 en adelante el faltante de O$_3$ baja a entre 1\,\% y 8\,\%
+en casi toda la red; la excepcion es NO3, con 30.3\,\% en 2025.
 
 \subsection{Valores centinela y fisicamente imposibles}\label{sec:dic:centinela}
 
-Ademas de los faltantes explicitos, el consolidado contiene valores que no
-pueden tomarse como mediciones: el codigo $-9999$ del \emph{datalogger} (26
-celdas entre NOX, RAINF, RH, SR, TOUT, WSR y WDR), porcentajes de humedad
-relativa mayores a 100\,\%, y lecturas fuera del rango fisico del sensor (por
-ejemplo, TOUT $>50^{\circ}$C o WSR $>100$ km/h). Estos valores se convierten a
-\texttt{NaN} antes de cualquier calculo, usando como filtro duro el
-\textbf{rango de fabricante} de cada sensor (\cref{tab:dic-fabricante}), que es
-fisico y estable. El rango de operacion anual que declara el SIMA no se usa
-para este filtro porque es inconsistente entre anios (en 2022, por ejemplo,
-declara para \texttt{PRS} un minimo mas alto que en 2021 y 2023, lo que
-borraria datos validos); se trata en cambio como senial de sospecha a
-revisar, no como regla de borrado automatico.
+\Cref{tab:dic-anomalias} reune los valores que no pueden tomarse como
+mediciones. El caso mas claro es $-9999$, el codigo de faltante del
+\emph{datalogger}: 26 celdas repartidas entre NOX, RAINF, RH, SR, TOUT, WSR y
+WDR bastan para desplazar medias y correlaciones, asi que deben convertirse a
+\texttt{NaN} antes de cualquier calculo.
+
+\subsection{Los rangos de operacion no son estables entre anios}\label{sec:dic:rangos}
+
+El documento de rangos del SIMA define limites distintos para cada anio, y
+algunos son mas estrictos que los datos reales. El caso critico es
+\texttt{PRS}: el rango declarado para 2022 es 700--740 mmHg y con ese criterio
+6\,305 registros de ese anio (cerca del 4.8\,\%) quedarian fuera, cuando en
+2021, 2023, 2024 y 2025 el mismo tipo de lectura si es valida porque el limite
+inferior baja a 687--690. Aplicar el documento literalmente borraria datos
+legitimos.
+
+Ocurre lo mismo con \texttt{TOUT}, cuyo minimo declarado es $0^{\circ}$C en
+2020 y 2023 pero $-6.5^{\circ}$C en 2021: en Monterrey hay heladas reales, asi
+que el limite de $0^{\circ}$C es un error de captura del documento y no una
+regla fisica.
+
+El criterio que se adopta es usar el \textbf{rango de fabricante}
+(\cref{tab:dic-fabricante}), que si es fisico y estable, como filtro duro para
+eliminar imposibles, y tratar el rango de operacion anual como senial de
+sospecha a revisar, no como regla de borrado automatico.
+
+\subsection{Rejilla temporal incompleta}\label{sec:dic:rejilla}
+
+Ninguna estacion tiene la serie horaria completa: faltan entre 3 (CE) y 16
+(SUR) marcas de tiempo respecto a la rejilla horaria continua de su periodo. Se
+trata de huecos de hora, no de filas vacias: la fila simplemente no existe. Por
+eso cualquier interpolacion temporal exige reindexar antes contra una rejilla
+horaria completa; de lo contrario el metodo asumira que dos observaciones
+contiguas estan separadas por una hora cuando no lo estan.
 
 % -----------------------------------------------------------------------------
 %  Tablas
@@ -165,34 +199,67 @@ revisar, no como regla de borrado automatico.
   \end{tabular}
 \end{table*}
 
-\begin{table}[t]
+\begin{table*}[t]
   \centering
-  \caption{Catalogo de estaciones de monitoreo y su cobertura, calculada
-    sobre el consolidado.}
+  \caption{Catalogo de estaciones de monitoreo. La descripcion viene de
+    \texttt{Etiquetas.xlsx}; la cobertura y las horas se calcularon sobre el
+    consolidado.}
   \label{tab:dic-estaciones}
   \small
-  \begin{tabular}{llr}
+  \begin{tabular}{lllllr}
     \toprule
-    Clave & Cobertura & Horas \\
+    Clave & Nombre & Sitio & Municipio & Cobertura & Horas \\
     \midrule
-    \texttt{CE}   & 2020--2025                & 52\,605 \\
-    \texttt{NE}   & 2020--2025                & 52\,595 \\
-    \texttt{NE2}  & 2020--2025                & 52\,593 \\
-    \texttt{NE3}  & \textbf{2021--2025}       & 43\,817 \\
-    \texttt{NO}   & 2020--2025                & 52\,597 \\
-    \texttt{NO2}  & 2020--2025                & 52\,594 \\
-    \texttt{NO3}  & \textbf{dic.\ 2022--2025} & 27\,045 \\
-    \texttt{NTE}  & 2020--2025                & 52\,595 \\
-    \texttt{NTE2} & 2020--2025                & 52\,593 \\
-    \texttt{SE}   & 2020--2025                & 52\,599 \\
-    \texttt{SE2}  & 2020--2025                & 52\,595 \\
-    \texttt{SE3}  & 2020--2025                & 52\,593 \\
-    \texttt{SO}   & 2020--2025                & 52\,597 \\
-    \texttt{SO2}  & 2020--2025                & 52\,593 \\
-    \texttt{SUR}  & 2020--2025                & 52\,592 \\
+    \texttt{CE}   & Centro                & Obispado       & Monterrey                & 2020--2025                & 52\,605 \\
+    \texttt{NE}   & Noreste               & San Nicolas    & San Nicolas de los Garza & 2020--2025                & 52\,595 \\
+    \texttt{NE2}  & Noreste 2             & Apodaca        & Apodaca                  & 2020--2025                & 52\,593 \\
+    \texttt{NE3}  & \emph{No documentada} & ---            & ---                      & \textbf{2021--2025}       & 43\,817 \\
+    \texttt{NO}   & Noroeste              & San Bernabe    & Monterrey                & 2020--2025                & 52\,597 \\
+    \texttt{NO2}  & Noroeste 2            & Garcia         & Garcia                   & 2020--2025                & 52\,594 \\
+    \texttt{NO3}  & \emph{No documentada} & ---            & ---                      & \textbf{dic.\ 2022--2025} & 27\,045 \\
+    \texttt{NTE}  & Norte                 & Escobedo       & Escobedo                 & 2020--2025                & 52\,595 \\
+    \texttt{NTE2} & Norte 2               & Universidad    & (no indicado)            & 2020--2025                & 52\,593 \\
+    \texttt{SE}   & Sureste               & La Pastora     & Guadalupe                & 2020--2025                & 52\,599 \\
+    \texttt{SE2}  & Sureste 2             & Juarez         & Juarez                   & 2020--2025                & 52\,595 \\
+    \texttt{SE3}  & Sureste 3             & Cadereyta      & (no indicado)            & 2020--2025                & 52\,593 \\
+    \texttt{SO}   & Suroeste              & Santa Catarina & Santa Catarina           & 2020--2025                & 52\,597 \\
+    \texttt{SO2}  & Suroeste 2            & San Pedro      & San Pedro Garza Garcia   & 2020--2025                & 52\,593 \\
+    \texttt{SUR}  & Sur                   & Pueblo Serena  & (no indicado)            & 2020--2025                & 52\,592 \\
     \bottomrule
   \end{tabular}
-\end{table}
+\end{table*}
+
+\begin{table*}[t]
+  \centering
+  \caption{Banderas de calidad documentadas en \texttt{Etiquetas.xlsx}. No
+    aparecen en los libros \texttt{BD *.xlsx}, de modo que el motivo de
+    invalidacion no es recuperable a partir de los datos entregados.}
+  \label{tab:dic-banderas}
+  \small
+  \begin{tabular}{llcc}
+    \toprule
+    Bandera & Causa & Marca de hora valida & Marca de hora invalida \\
+    \midrule
+    \texttt{P} / \texttt{p} & Falla electrica                                    & \texttt{P} & \texttt{p} \\
+    \texttt{C} / \texttt{c} & Calibracion                                        & \texttt{C} & \texttt{c} \\
+    \texttt{D} / \texttt{d} & Apagado                                            & \texttt{D} & \texttt{d} \\
+    \texttt{B} / \texttt{b} & Malas condiciones                                  & \texttt{B} & \texttt{b} \\
+    \texttt{m}              & Positivo sobre el rango                            & ---        & \texttt{m} \\
+    \texttt{l}              & Negativo sobre el rango o ajuste de radiacion solar& ---        & \texttt{l} \\
+    \texttt{z}              & Ceros y negativos                                  & ---        & \texttt{z} \\
+    \texttt{o}              & PM10 mayor a $900\,\mu$g/m$^3$                     & ---        & \texttt{o} \\
+    \texttt{s}              & Valores repetidos o iguales consecutivos           & ---        & \texttt{s} \\
+    \texttt{r}              & Comparativo PM10 contra PM2.5                      & ---        & \texttt{r} \\
+    \texttt{e}              & Eliminar datos NO y NOx                            & ---        & \texttt{e} \\
+    \texttt{a}              & Eliminar PM $<5\,\mu$g/m$^3$ y CO $<0.05$ ppm      & ---        & \texttt{a} \\
+    \texttt{f}              & Valor $3\times$ mayor que el anterior (PM10)       & ---        & \texttt{f} \\
+    \texttt{h}              & Salto $>10^{\circ}$C o $>10$ mmHg respecto a la hora previa & --- & \texttt{h} \\
+    \texttt{n}              & Falla de comunicacion                              & ---        & \texttt{n} \\
+    \texttt{x}              & Valor que paso los protocolos pero no debe estar   & ---        & \texttt{x} \\
+    \texttt{u}              & Sin documentar                                     & \multicolumn{2}{c}{Sin documentar} \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
 
 \begin{table}[t]
   \centering
@@ -214,6 +281,76 @@ revisar, no como regla de borrado automatico.
     \bottomrule
   \end{tabular}
 \end{table}
+
+\begin{table}[t]
+  \centering
+  \caption{Porcentaje de O$_3$ faltante por estacion y anio. El guion indica
+    que la estacion todavia no operaba.}
+  \label{tab:dic-o3-faltante}
+  \small
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    Estacion & 2020 & 2021 & 2022 & 2023 & 2024 & 2025 \\
+    \midrule
+    \texttt{CE}   & 16.5  & 12.2 & 3.6 & 4.1  & 4.2  & 3.4  \\
+    \texttt{NE}   & 99.9  & 16.0 & 3.8 & 5.0  & 3.7  & 10.1 \\
+    \texttt{NE2}  & 89.1  & 18.6 & 3.3 & 7.8  & 7.0  & 6.0  \\
+    \texttt{NE3}  & ---   & 4.9  & 4.4 & 4.2  & 5.2  & 7.6  \\
+    \texttt{NO}   & 98.4  & 20.3 & 6.2 & 6.0  & 11.0 & 7.4  \\
+    \texttt{NO2}  & 20.3  & 5.9  & 2.4 & 2.7  & 3.8  & 4.7  \\
+    \texttt{NO3}  & ---   & ---  & 5.1 & 16.5 & 3.5  & 30.3 \\
+    \texttt{NTE}  & 100.0 & 18.5 & 4.3 & 7.3  & 4.0  & 4.2  \\
+    \texttt{NTE2} & 93.3  & 9.5  & 2.5 & 2.9  & 5.9  & 4.6  \\
+    \texttt{SE}   & 7.3   & 5.6  & 2.7 & 2.8  & 2.8  & 3.0  \\
+    \texttt{SE2}  & 100.0 & 39.3 & 5.5 & 1.6  & 12.0 & 10.0 \\
+    \texttt{SE3}  & 28.5  & 5.9  & 1.8 & 4.7  & 1.4  & 0.5  \\
+    \texttt{SO}   & 31.0  & 7.0  & 5.4 & 4.3  & 5.9  & 4.7  \\
+    \texttt{SO2}  & 3.0   & 2.5  & 2.6 & 1.9  & 1.4  & 1.4  \\
+    \texttt{SUR}  & 100.0 & 16.4 & 2.6 & 2.8  & 0.9  & 0.9  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table*}[t]
+  \centering
+  \caption{Valores centinela y fisicamente imposibles detectados en el
+    consolidado.}
+  \label{tab:dic-anomalias}
+  \small
+  \begin{tabular}{p{3cm}p{2.6cm}rp{7cm}}
+    \toprule
+    Anomalia & Variables afectadas & $n$ & Interpretacion \\
+    \midrule
+    $-9999$
+      & NOX, RAINF, RH, SR, TOUT, WSR, WDR & 26
+      & Codigo de faltante del \emph{datalogger}, \textbf{no un dato}. Debe volverse \texttt{NaN} antes de cualquier calculo. \\
+    \addlinespace
+    $\mathrm{RH} > 100$\,\% & RH & 285
+      & Imposible por definicion; se observan maximos de 714\,\% y 725\,\%. \\
+    \addlinespace
+    $\mathrm{TOUT} > 50^{\circ}$C & TOUT & 3
+      & Fuera del rango del sensor ($-50$ a $50^{\circ}$C); el maximo observado es $785^{\circ}$C. \\
+    \addlinespace
+    \texttt{SR} en escala equivocada & SR & $\approx 30$
+      & Valores de 64, 501 y 604 frente a un maximo fisico de 1.4 kW/m$^2$: son lecturas en W/m$^2$ mezcladas (dividir entre 1000). \\
+    \addlinespace
+    \texttt{SR} entre 1.5 y 7.8 & SR & $\approx 730$
+      & Exceden el rango de fabricante y se concentran en NTE (493) y SO (172), lo que sugiere falla o descalibracion del sensor y no un evento meteorologico. \\
+    \addlinespace
+    $\mathrm{WSR} > 100$ km/h & WSR & 418
+      & Supera cualquier viento registrado en la ZMM; 306 de ellos ocurren en 2021. \\
+    \addlinespace
+    $\mathrm{PRS} = 0$ o $\mathrm{PRS} < 500$ & PRS & 2
+      & Una presion atmosferica nula es imposible. \\
+    \addlinespace
+    $\mathrm{PM10} \geq 999$, $\mathrm{PM2.5} = 999$ & PM10, PM2.5 & 6
+      & Valores tope (999, 1000, 1001) caracteristicos de saturacion o centinela, no concentraciones reales. \\
+    \addlinespace
+    $\mathrm{CO} > 18$ ppm & CO & 24
+      & Excede el rango de operacion de todos los anios; el maximo es 37 ppm. \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
 
 \begin{table}[t]
   \centering
@@ -239,4 +376,3 @@ revisar, no como regla de borrado automatico.
 \end{table}
 
 
-Este es un test
