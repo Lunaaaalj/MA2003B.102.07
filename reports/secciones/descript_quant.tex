@@ -4,37 +4,38 @@
 \subsubsection{Medidas de tendencia central}
 
 Las 12 variables se calculan sobre la escala transformada (Box-Cox + z-score,
-\cref{sec:transformaciones}): promedio $\approx 0$ y varianza/desviación
-estándar $\approx 1$ para todas por construcción, así que la mediana y el
-rango son las cifras informativas de \cref{tab:tendencia-central}. La moda
-clásica no aplica a variables continuas (los valores casi nunca se repiten
-exactamente); se reporta como ``no aplica'' en vez de forzar un cálculo sin
-sentido estadístico.
+\cref{sec:transformaciones}). Por construcción el promedio es 0 y la varianza y
+la desviación estándar son 1 en las 12, de modo que esas tres columnas no se
+tabulan. La moda clásica tampoco aplica a variables continuas, cuyos valores
+casi nunca se repiten exactamente. \Cref{tab:tendencia-central} reporta las dos
+cifras que sí varían entre variables.
 
-\begin{table*}[t]
+\begin{table}[t]
   \centering
-  \caption{Tendencia central y dispersión de las 12 variables cuantitativas,
-    sobre la escala transformada.}
+  \caption{Mediana y rango de las 12 variables cuantitativas, sobre la escala
+    transformada. Promedio, varianza y desviación estándar se omiten por ser
+    0, 1 y 1 por construcción.}
   \label{tab:tendencia-central}
-  \begin{tabular}{lrrlrrr}
+  \small
+  \begin{tabular}{lrr}
     \toprule
-    Variable & Promedio & Mediana & Moda & Rango & Varianza & Desv. est. \\
+    Variable          &   Mediana &  Rango \\
     \midrule
-    \texttt{O3}        & 0.000 & 0.035  & No aplica & 7.797  & 1.000 & 1.000 \\
-    \texttt{CO}        & 0.000 & 0.037  & No aplica & 8.342  & 1.000 & 1.000 \\
-    \texttt{NO2}       & 0.000 & $-0.029$ & No aplica & 7.652  & 1.000 & 1.000 \\
-    \texttt{NOX}       & 0.000 & $-0.052$ & No aplica & 9.119  & 1.000 & 1.000 \\
-    \texttt{PM10}      & 0.000 & 0.003  & No aplica & 10.895 & 1.000 & 1.000 \\
-    \texttt{PM2.5}     & 0.000 & 0.016  & No aplica & 10.844 & 1.000 & 1.000 \\
-    \texttt{TOUT}      & 0.000 & 0.040  & No aplica & 6.980  & 1.000 & 1.000 \\
-    \texttt{PRS}       & 0.000 & $-0.071$ & No aplica & 10.648 & 1.000 & 1.000 \\
-    \texttt{WSR}       & 0.000 & 0.045  & No aplica & 11.499 & 1.000 & 1.000 \\
-    \texttt{viento\_u} & 0.000 & $-0.010$ & No aplica & 44.140 & 1.000 & 1.000 \\
-    \texttt{viento\_v} & 0.000 & $-0.013$ & No aplica & 48.533 & 1.000 & 1.000 \\
-    \texttt{O3\_8h}    & 0.000 & 0.004  & No aplica & 7.534  & 1.000 & 1.000 \\
+    \texttt{O3}       &     0.035 &  7.797 \\
+    \texttt{CO}       &     0.037 &  8.342 \\
+    \texttt{NO2}      &  $-0.029$ &  7.652 \\
+    \texttt{NOX}      &  $-0.052$ &  9.119 \\
+    \texttt{PM10}     &     0.003 & 10.895 \\
+    \texttt{PM2.5}    &     0.016 & 10.844 \\
+    \texttt{TOUT}     &     0.040 &  6.980 \\
+    \texttt{PRS}      &  $-0.071$ & 10.648 \\
+    \texttt{WSR}      &     0.045 & 11.499 \\
+    \texttt{viento\_u}&  $-0.010$ & 44.140 \\
+    \texttt{viento\_v}&  $-0.013$ & 48.533 \\
+    \texttt{O3\_8h}   &     0.004 &  7.534 \\
     \bottomrule
   \end{tabular}
-\end{table*}
+\end{table}
 
 \subsubsection{Cuartiles y límites IQR}
 
@@ -48,30 +49,32 @@ parte de ese criterio, se calculan aquí con el mismo método de $1.5\times\text
 \texttt{RAINF} está inflada de ceros, así que su IQR no es interpretable como
 límite de outliers (\cref{sec:dic:meteorologicos}).
 
-\begin{table*}[t]
+\begin{table}[t]
   \centering
-  \caption{Cuartiles y límites IQR (criterio 1.5×IQR) de las variables
-    cuantitativas en alcance, en sus unidades originales.}
+  \caption{Cuartiles y límites de outlier (criterio $1.5\times$IQR) de las
+    variables cuantitativas en alcance, en sus unidades originales. El IQR se
+    omite por ser $Q_3-Q_1$.}
   \label{tab:cuartiles-iqr}
-  \begin{tabular}{lrrrrr}
+  \small
+  \begin{tabular}{lrrrr}
     \toprule
-    Variable & Q1 & Q3 & IQR & Límite inf. & Límite sup. \\
+    Variable & Q1 & Q3 & Lím. inf. & Lím. sup. \\
     \midrule
-    \texttt{O3}        & 13.00  & 37.00  & 24.00 & $-23.00$ & 73.00  \\
-    \texttt{CO}        & 0.71   & 1.83   & 1.11  & $-0.96$  & 3.50   \\
-    \texttt{NO2}       & 6.90   & 19.70  & 12.80 & $-12.30$ & 38.90  \\
-    \texttt{NOX}       & 10.95  & 30.70  & 19.75 & $-18.68$ & 60.33  \\
-    \texttt{PM10}      & 35.00  & 74.00  & 39.00 & $-23.50$ & 132.50 \\
-    \texttt{PM2.5}     & 10.00  & 26.74  & 16.74 & $-15.11$ & 51.85  \\
-    \texttt{TOUT}      & 18.49  & 28.39  & 9.90  & 3.64     & 43.24  \\
-    \texttt{PRS}       & 709.70 & 721.70 & 12.00 & 691.70   & 739.70 \\
-    \texttt{WSR}       & 4.70   & 11.60  & 6.90  & $-5.65$  & 21.95  \\
-    \texttt{O3\_8h}    & 15.44  & 35.75  & 20.31 & $-15.03$ & 66.22  \\
-    \texttt{viento\_u} & $-8.56$ & 0.21  & 8.77  & $-21.73$ & 13.37  \\
-    \texttt{viento\_v} & $-3.38$ & 3.98  & 7.36  & $-14.41$ & 15.01  \\
+    \texttt{O3}       &    13.00 &    37.00 &  $-23.00$ &    73.00 \\
+    \texttt{CO}       &     0.71 &     1.83 &   $-0.96$ &     3.50 \\
+    \texttt{NO2}      &     6.90 &    19.70 &  $-12.30$ &    38.90 \\
+    \texttt{NOX}      &    10.95 &    30.70 &  $-18.68$ &    60.33 \\
+    \texttt{PM10}     &    35.00 &    74.00 &  $-23.50$ &   132.50 \\
+    \texttt{PM2.5}    &    10.00 &    26.74 &  $-15.11$ &    51.85 \\
+    \texttt{TOUT}     &    18.49 &    28.39 &      3.64 &    43.24 \\
+    \texttt{PRS}      &   709.70 &   721.70 &    691.70 &   739.70 \\
+    \texttt{WSR}      &     4.70 &    11.60 &   $-5.65$ &    21.95 \\
+    \texttt{O3\_8h}   &    15.44 &    35.75 &  $-15.03$ &    66.22 \\
+    \texttt{viento\_u}&  $-8.56$ &     0.21 &  $-21.73$ &    13.37 \\
+    \texttt{viento\_v}&  $-3.38$ &     3.98 &  $-14.41$ &    15.01 \\
     \bottomrule
   \end{tabular}
-\end{table*}
+\end{table}
 
 \subsubsection{Visualizaciones cuantitativas}
 

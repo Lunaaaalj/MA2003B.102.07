@@ -222,33 +222,40 @@ GRIS, AZUL, ROJO, CLARO = "#8c8c8c", "#3b6ea5", "#b5443a", "#d9d9d9"
 #| fig-cap: "Frecuencia por estación y completitud de O₃ en paralelo."
 c = cov.sort_values("n")
 col = [ROJO if e == "NO3" else AZUL for e in c.index]
-fig, ax = plt.subplots(1, 2, figsize=(7.5, 4), gridspec_kw={"width_ratios": [2, 1]})
+# A una columna del reporte (~3.4 in). Los dos paneles siguen lado a lado
+# porque comparten el eje y de estaciones; apilarlos repetiria las 15 etiquetas.
+# La nota al pie que llevaba la figura se elimina: el caption del .tex ya dice
+# lo mismo sobre NO3.
+fig, ax = plt.subplots(1, 2, figsize=(3.4, 3.1), gridspec_kw={"width_ratios": [2, 1]})
 ax[0].barh(c.index, c.n, color=col)
 for i, v in enumerate(c.n):
-    ax[0].text(v + 500, i, f"{v:,}", va="center", fontsize=7.5)
-ax[0].set_xlim(0, 46000); ax[0].set_xlabel("Registros hora-estación")
-ax[0].set_title("Frecuencia absoluta por estación", loc="left", fontsize=10)
+    ax[0].text(v + 900, i, f"{v:,}", va="center", fontsize=5.5)
+ax[0].set_xlim(0, 52000); ax[0].set_xlabel("Registros hora-estación", fontsize=7)
+ax[0].set_title("Frecuencia absoluta", loc="left", fontsize=8.5)
+ax[0].tick_params(labelsize=6.5)
 ax[1].barh(c.index, c.pct_o3_medido, color=col); ax[1].set_xlim(0, 100)
-ax[1].set_xlabel("% de horas con O$_3$ medido"); ax[1].set_yticklabels([])
-ax[1].set_title("Completitud de O$_3$", loc="left", fontsize=10)
-fig.text(0.01, 0.01, "NO3 (rojo) inicia operación el 2022-12-01; su menor "
-         "frecuencia es cobertura temporal, no pérdida de datos.",
-         fontsize=7, color="#555")
-fig.tight_layout(rect=[0, 0.035, 1, 1])
+ax[1].set_xlabel("% horas con O$_3$", fontsize=7); ax[1].set_yticklabels([])
+ax[1].set_title("Completitud O$_3$", loc="left", fontsize=8.5)
+ax[1].tick_params(labelsize=6.5)
+for a in ax:
+    for lado in ("top", "right"):
+        a.spines[lado].set_visible(False)
+fig.tight_layout(pad=.3)
 fig.savefig(FIGS / "eda_cual_estacion.pdf"); plt.show()
 ```
 
 ```{python}
 #| label: fig-cobertura
 #| fig-cap: "Ventana de operación de cada estación."
-fig, ax = plt.subplots(figsize=(7.5, 3.2))
+fig, ax = plt.subplots(figsize=(3.4, 2.9))   # a una columna del reporte
 cv = cov.sort_index(ascending=False)
 for i, (e, r) in enumerate(cv.iterrows()):
     ax.barh(i, (r.fin - r.ini).days, left=r.ini, height=.6,
             color=ROJO if e == "NO3" else AZUL)
-ax.set_yticks(range(len(cv))); ax.set_yticklabels(cv.index)
-ax.set_title("Ventana de operación por estación (2021-01-01 a 2025-06-30)",
-             loc="left", fontsize=10)
+ax.set_yticks(range(len(cv))); ax.set_yticklabels(cv.index, fontsize=6.5)
+ax.tick_params(axis="x", labelsize=6.5)
+ax.set_title("Ventana de operación (2021-01-01 a 2025-06-30)",
+             loc="left", fontsize=8.5)
 fig.tight_layout(); fig.savefig(FIGS / "eda_cual_cobertura.pdf"); plt.show()
 ```
 
@@ -258,7 +265,7 @@ fig.tight_layout(); fig.savefig(FIGS / "eda_cual_cobertura.pdf"); plt.show()
 # Tres paneles apilados y barras horizontales: la figura va a una columna del
 # reporte (~3.4 in), no a doble columna. Apilada, la etiqueta de cada nivel cabe
 # en el eje y sin rotar, que es lo que permite bajar el tamano de letra.
-fig, axs = plt.subplots(3, 1, figsize=(3.4, 4.3))
+fig, axs = plt.subplots(3, 1, figsize=(3.4, 3.5))
 paneles = [(H.temporada, ["invierno","primavera","verano","otoño"], "Temporada"),
            (H.periodo,   ORDEN_PERIODO,                             "Periodo del día"),
            (H.tipo_dia,  ["laborable","sabado","domingo","festivo"],"Tipo de día")]
@@ -299,7 +306,7 @@ fig.tight_layout(); fig.savefig(FIGS / "eda_cual_llovio.pdf"); plt.show()
 # en fila a ~3.4 in de ancho quedarian de 1.1 in y sin espacio para los
 # porcentajes; en 2x2 el diametro se conserva y la celda libre aloja la leyenda,
 # que asi deja de repetirse tres veces.
-fig, axs = plt.subplots(2, 2, figsize=(3.4, 3.5))
+fig, axs = plt.subplots(2, 2, figsize=(3.4, 3.0))
 axs = axs.ravel()
 for a, (c_, u) in zip(axs, [("excede_anio_1", 65), ("excede_anio_3", 60),
                             ("excede_anio_5", 51)]):

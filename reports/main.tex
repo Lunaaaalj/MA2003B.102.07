@@ -69,6 +69,7 @@
 % de la ULTIMA pagina para que ese sobrante no se vea como espacio en blanco.
 \usepackage{flushend}
 
+
 % El reporte tiene muchas tablas grandes (sobre todo en el diccionario de
 % datos); el espaciado por defecto de LaTeX alrededor de flotantes y listas
 % deja demasiado blanco. Se aprieta aqui para que el documento se vea mas
@@ -116,6 +117,13 @@
 % Para citas numericas [1], cambien authoryear por numeric-comp.
 \usepackage[backend=biber,style=apa,sorting=nyt,maxbibnames=99]{biblatex}
 \addbibresource{references.bib}
+% La bibliografia se compone un punto mas chica que el cuerpo, convencion
+% habitual en revistas: son datos de consulta, no prosa que se lea seguida.
+% Con las URLs largas de las fuentes normativas esto ahorra ~10 renglones,
+% que es lo que hacia que se derramara a una pagina extra.
+\renewcommand*{\bibfont}{\small}
+\setlength{\bibitemsep}{0pt}      %% sin aire extra entre entradas
+\setlength{\bibhang}{1em}
 
 % --- Referencias cruzadas (SIEMPRE hasta el final) ---------------------------
 \usepackage[colorlinks=true, linkcolor=blue,citecolor=blue]{hyperref}
