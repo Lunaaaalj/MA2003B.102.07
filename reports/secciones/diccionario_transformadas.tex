@@ -1,50 +1,55 @@
 \section{Diccionario de datos transformados}\label{sec:diccionario-transformado}
-Actualizacion de los datos, siendo el resultado de la transformacion de estos.
+Esta sección documenta el conjunto de datos resultante de las transformaciones
+de \cref{sec:transformaciones}, que es la entrada del análisis descriptivo.
 
-\subsection{Dimension del conjunto de datos transformados}
-Al limpiar los datos hemos reducido nuestra cantidad de filas y columnas, contando ahora con 574,343 filas y 30 columnas. 
-\begin{table*}[t]
+\subsection{Dimensión del conjunto de datos transformados}
+El conjunto transformado a resolución horaria tiene 574,343 filas y 30
+columnas, una por observación hora-estación.
+
+\begin{table}[t]
   \centering
-  \caption{Variables Cuantitativas}
+  \caption{Variables cuantitativas del conjunto transformado a resolución
+    horaria.}
   \label{tab:dic-horario-cuantitativas}
   \small
-  \begin{tabular}{lp{6cm}}
+  \begin{tabular}{lp{5.4cm}}
     \toprule
-    Variable & Descripcion \\
+    Variable & Descripción \\
     \midrule
-    \texttt{fecha}     & Marca temporal horaria de la observacion \\
-    \texttt{anio}      & Anio calendario                          \\
+    \texttt{fecha}     & Marca temporal horaria de la observación \\
+    \texttt{anio}      & Año calendario                          \\
     \texttt{O3}        & Ozono, estandarizado                    \\
-    \texttt{CO}        & Monoxido de carbono, estandarizado      \\
-    \texttt{NO2}       & Dioxido de nitrogeno, estandarizado      \\
-    \texttt{NOX}       & Oxidos de nitrogeno, estandarizado       \\
-    \texttt{PM10}      & Particulas $<10\,\mu$m, estandarizado    \\
-    \texttt{PM2.5}     & Particulas $<2.5\,\mu$m, estandarizado    \\
+    \texttt{CO}        & Monóxido de carbono, estandarizado      \\
+    \texttt{NO2}       & Dióxido de nitrogeno, estandarizado      \\
+    \texttt{NOX}       & Óxidos de nitrogeno, estandarizado       \\
+    \texttt{PM10}      & Partículas $<10\,\mu$m, estandarizado    \\
+    \texttt{PM2.5}     & Partículas $<2.5\,\mu$m, estandarizado    \\
     \texttt{TOUT}      & Temperatura ambiente, estandarizada      \\
-    \texttt{PRS}       & Presion atmosferica, estandarizada        \\
+    \texttt{PRS}       & Presión atmosferica, estandarizada        \\
     \texttt{WSR}       & Velocidad del viento, estandarizada      \\
-    \texttt{viento\_u} & Componente u del viento (escala fisica)   \\
-    \texttt{viento\_v} & Componente v del viento (escala fisica)   \\
-    \texttt{hora}      & Hora del dia de la observacion           \\
-    \texttt{mes}       & Mes calendario de la observacion          \\
-    \texttt{O3\_8h}    & Media movil de 8 horas de O3, estandarizada  \\
+    \texttt{viento\_u} & Componente u del viento (escala física)   \\
+    \texttt{viento\_v} & Componente v del viento (escala física)   \\
+    \texttt{hora}      & Hora del día de la observación           \\
+    \texttt{mes}       & Mes calendario de la observación          \\
+    \texttt{O3\_8h}    & Media móvil de 8 horas de O3, estandarizada  \\
     \bottomrule
   \end{tabular}
-\end{table*}
+\end{table}
 
-\begin{table*}[t]
+\begin{table}[t]
   \centering
-  \caption{Variables Cualitativas}
+  \caption{Variables cualitativas del conjunto transformado a resolución
+    horaria.}
   \label{tab:dic-horario-cualitativas}
   \small
-  \begin{tabular}{lp{6cm}l}
+  \begin{tabular}{lp{4.3cm}l}
     \toprule
-    Variable & Descripcion & Tipo \\
+    Variable & Descripción & Tipo \\
     \midrule
-    \texttt{estacion}       & Estacion de monitoreo SIMA                     & nominal \\
-    \texttt{dia\_semana}    & Dia de la semana de la observacion             & ordinal \\
-    \texttt{fin\_de\_semana} & Indicadora de sabado/domingo                  & binaria \\
-    \texttt{temporada}      & Temporada del anio                             & nominal \\
+    \texttt{estacion}       & Estación de monitoreo SIMA                     & nominal \\
+    \texttt{dia\_semana}    & Día de la semana de la observación             & ordinal \\
+    \texttt{fin\_de\_semana} & Indicadora de sábado/domingo                  & binaria \\
+    \texttt{temporada}      & Temporada del año                             & nominal \\
     \texttt{outlier\_O3}    & Indicadora de outlier detectado en O3          & binaria \\
     \texttt{outlier\_CO}    & Indicadora de outlier detectado en CO          & binaria \\
     \texttt{outlier\_NO2}   & Indicadora de outlier detectado en NO2         & binaria \\
@@ -54,17 +59,17 @@ Al limpiar los datos hemos reducido nuestra cantidad de filas y columnas, contan
     \texttt{outlier\_TOUT}  & Indicadora de outlier detectado en TOUT        & binaria \\
     \texttt{outlier\_PRS}   & Indicadora de outlier detectado en PRS         & binaria \\
     \texttt{outlier\_WSR}   & Indicadora de outlier detectado en WSR         & binaria \\
-    \texttt{llovio}         & Indicadora de precipitacion en la hora         & binaria \\
+    \texttt{llovio}         & Indicadora de precipitación en la hora         & binaria \\
     \bottomrule
   \end{tabular}
-\end{table*}
+\end{table}
 
 \begin{table}[t]
   \centering
   \caption{Sesgo y curtosis (exceso, referencia normal $=0$) de las
-    variables numericas continuas del dataset horario transformado. Las
+    variables numéricas continuas del dataset horario transformado. Las
     variables estandarizadas conservan el sesgo/curtosis de la variable
-    original, ya que estandarizar es una transformacion lineal.}
+    original, ya que estandarizar es una transformación lineal.}
   \label{tab:sesgo-curtosis-horario}
   \small
   \begin{tabular}{lrr}
