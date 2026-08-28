@@ -13,48 +13,50 @@ $n = 23{,}931$ registros día-estación.
 \subsubsection{Distribución de frecuencia}
 
 \Cref{tab:freq-horaria} reúne las variables de resolución horaria. Los
-porcentajes se calculan sobre dos bases: el total de registros y el total de
-registros con dato válido. La distinción solo altera a \texttt{llovio}, única
-variable horaria con faltantes.
+porcentajes se calculan sobre los registros con dato válido. La base solo
+difiere del total en \texttt{llovio}, única variable horaria con faltantes: sus
+17,251 registros sin medición son el 3.00\,\% del total.
 
-\begin{table*}[t]
+\begin{table}[t]
   \centering
   \caption{Frecuencia absoluta y relativa de las variables cualitativas a
-    resolución hora-estación ($n = 574{,}343$).}
+    resolución hora-estación ($n = 574{,}343$). Los porcentajes son sobre
+    registros con dato válido.}
   \label{tab:freq-horaria}
-  \begin{tabular}{llrrr}
+  \small
+  \begin{tabular}{llrr}
     \toprule
-    Variable & Nivel & Frecuencia & \% del total & \% de válidos \\
+    Variable & Nivel & Frecuencia & \% \\
     \midrule
     \multirow{4}{*}{\texttt{temporada}}
-      & Invierno   & 147,623 & 25.70 & 25.70 \\
-      & Primavera  & 161,184 & 28.06 & 28.06 \\
-      & Verano     & 138,864 & 24.18 & 24.18 \\
-      & Otoño      & 126,672 & 22.06 & 22.06 \\
+                                  & Invierno  &   147,623 &  25.70 \\
+                                  & Primavera &   161,184 &  28.06 \\
+                                  & Verano    &   138,864 &  24.18 \\
+                                  & Otoño     &   126,672 &  22.06 \\
     \midrule
     \multirow{4}{*}{\texttt{periodo}}
-      & Madrugada  & 143,585 & 25.00 & 25.00 \\
-      & Mañana     & 143,586 & 25.00 & 25.00 \\
-      & Tarde      & 143,586 & 25.00 & 25.00 \\
-      & Noche      & 143,586 & 25.00 & 25.00 \\
+                                  & Madrugada &   143,585 &  25.00 \\
+                                  & Mañana    &   143,586 &  25.00 \\
+                                  & Tarde     &   143,586 &  25.00 \\
+                                  & Noche     &   143,586 &  25.00 \\
     \midrule
     \multirow{4}{*}{\texttt{tipo\_dia}}
-      & Laborable  & 390,239 & 67.95 & 67.95 \\
-      & Sábado     &  79,392 & 13.82 & 13.82 \\
-      & Domingo    &  79,728 & 13.88 & 13.88 \\
-      & Festivo    &  24,984 &  4.35 &  4.35 \\
+                                  & Laborable &   390,239 &  67.95 \\
+                                  & Sábado    &    79,392 &  13.82 \\
+                                  & Domingo   &    79,728 &  13.88 \\
+                                  & Festivo   &    24,984 &   4.35 \\
     \midrule
     \multirow{2}{*}{\texttt{fin\_de\_semana}}
-      & No (0)     & 409,943 & 71.38 & 71.38 \\
-      & Sí (1)     & 164,400 & 28.62 & 28.62 \\
+                                  & No (0)    &   409,943 &  71.38 \\
+                                  & Sí (1)    &   164,400 &  28.62 \\
     \midrule
     \multirow{3}{*}{\texttt{llovio}}
-      & No (0)     & 549,104 & 95.61 & 98.57 \\
-      & Sí (1)     &   7,988 &  1.39 &  1.43 \\
-      & Sin dato   &  17,251 &  3.00 & --- \\
+                                  & No (0)    &   549,104 &  98.57 \\
+                                  & Sí (1)    &     7,988 &   1.43 \\
+                                  & Sin dato  &    17,251 &    --- \\
     \bottomrule
   \end{tabular}
-\end{table*}
+\end{table}
 
 El desbalance de \texttt{temporada} no refleja ningún fenómeno atmosférico: la
 serie termina el 30 de junio de 2025, de modo que el último semestre aporta
@@ -68,44 +70,45 @@ cuatro frecuencias son idénticas salvo por un registro. La diferencia de una
 unidad en \texttt{madrugada} proviene de la hora faltante al cierre de la
 serie, no de un desbalance de muestreo.
 
-\Cref{tab:freq-diaria} presenta el bloque diario. Las tres indicadoras de
-excedencia comparten los mismos 1,402 registros sin dato, correspondientes a
+\Cref{tab:freq-diaria} presenta el bloque diario. Los porcentajes son sobre registros con dato válido. Las tres indicadoras de
+excedencia comparten los mismos 1,402 registros sin dato, el 5.86\,\% del total, correspondientes a
 los días-estación cuyo MDA8 no alcanzó el criterio de completitud de 18 de 24
 ventanas móviles válidas. La indicadora \texttt{excede\_1h} no los comparte
 porque se calcula sobre el máximo horario, que no exige completitud de
 ventana.
 
-\begin{table*}[t]
+\begin{table}[t]
   \centering
   \caption{Frecuencia absoluta y relativa de las indicadoras de excedencia a
     resolución día-estación ($n = 23{,}931$; válidos $= 22{,}529$ para las
     indicadoras de MDA8).}
   \label{tab:freq-diaria}
-  \begin{tabular}{llrrr}
+  \small
+  \begin{tabular}{llrr}
     \toprule
-    Variable & Nivel & Frecuencia & \% del total & \% de válidos \\
+    Variable & Nivel & Frecuencia & \% \\
     \midrule
     \multirow{3}{*}{\texttt{excede\_anio\_1} (65 ppb)}
-      & No excede & 20,129 & 84.11 & 89.35 \\
-      & Excede    &  2,400 & 10.03 & 10.65 \\
-      & Sin dato  &  1,402 &  5.86 & --- \\
+                                        & No excede &  20,129 &  89.35 \\
+                                        & Excede    &   2,400 &  10.65 \\
+                                        & Sin dato  &   1,402 &    --- \\
     \midrule
     \multirow{3}{*}{\texttt{excede\_anio\_3} (60 ppb)}
-      & No excede & 18,915 & 79.04 & 83.96 \\
-      & Excede    &  3,614 & 15.10 & 16.04 \\
-      & Sin dato  &  1,402 &  5.86 & --- \\
+                                        & No excede &  18,915 &  83.96 \\
+                                        & Excede    &   3,614 &  16.04 \\
+                                        & Sin dato  &   1,402 &    --- \\
     \midrule
     \multirow{3}{*}{\texttt{excede\_anio\_5} (51 ppb)}
-      & No excede & 15,612 & 65.24 & 69.30 \\
-      & Excede    &  6,917 & 28.90 & 30.70 \\
-      & Sin dato  &  1,402 &  5.86 & --- \\
+                                        & No excede &  15,612 &  69.30 \\
+                                        & Excede    &   6,917 &  30.70 \\
+                                        & Sin dato  &   1,402 &    --- \\
     \midrule
     \multirow{2}{*}{\texttt{excede\_1h} (90 ppb)}
-      & No excede & 22,019 & 92.01 & 92.01 \\
-      & Excede    &  1,912 &  7.99 &  7.99 \\
+                                        & No excede &  22,019 &  92.01 \\
+                                        & Excede    &   1,912 &   7.99 \\
     \bottomrule
   \end{tabular}
-\end{table*}
+\end{table}
 
 \subsubsection{La estación de monitoreo}
 
@@ -126,22 +129,22 @@ operación y no volumen de información útil; \cref{fig:eda-cual-estacion}
 presenta ambas magnitudes en paralelo para evitar esa confusión, y
 \cref{fig:eda-cual-cobertura} muestra las ventanas de operación.
 
-\begin{figure*}[t]
+\begin{figure}[t]
   \centering
-  \includegraphics[width=\textwidth]{eda_cual_estacion.pdf}
+  \includegraphics[width=\linewidth]{eda_cual_estacion.pdf}
   \caption{Frecuencia absoluta por estación y completitud de \ce{O3} en la
     misma escala. La menor frecuencia de \texttt{NO3} corresponde a su ventana
     de operación, no a una tasa de faltantes superior.}
   \label{fig:eda-cual-estacion}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[t]
+\begin{figure}[t]
   \centering
-  \includegraphics[width=\textwidth]{eda_cual_cobertura.pdf}
+  \includegraphics[width=\linewidth]{eda_cual_cobertura.pdf}
   \caption{Ventana de operación de cada estación dentro del periodo de
     estudio.}
   \label{fig:eda-cual-cobertura}
-\end{figure*}
+\end{figure}
 
 \subsubsection{Mediana en escala ordinal}
 
@@ -179,14 +182,14 @@ mediante diagramas de barras. El diagrama de pastel se reserva para las
 variables binarias, donde el número de sectores permite leer la proporción sin
 recurrir a la escala del eje.
 
-\begin{figure*}[t]
+\begin{figure}[t]
   \centering
-  \includegraphics[width=\textwidth]{eda_cual_nominales.pdf}
+  \includegraphics[width=\linewidth]{eda_cual_nominales.pdf}
   \caption{Distribución relativa de \texttt{temporada}, \texttt{periodo} y
     \texttt{tipo\_dia}. La línea punteada marca el 25\,\% que \texttt{periodo}
     alcanza por construcción.}
   \label{fig:eda-cual-nominales}
-\end{figure*}
+\end{figure}
 
 \begin{figure}[t]
   \centering
@@ -207,14 +210,14 @@ especificidad y área bajo la curva ROC. El umbral de 51 ppb, con 30.70\,\% de
 excedencias, ofrece un balance sustancialmente mejor y se propone como
 escenario principal de modelado.
 
-\begin{figure*}[t]
+\begin{figure}[t]
   \centering
-  \includegraphics[width=\textwidth]{eda_cual_excedencias.pdf}
+  \includegraphics[width=\linewidth]{eda_cual_excedencias.pdf}
   \caption{Balance de clases de las indicadoras de excedencia del MDA8 para los
     tres umbrales de cumplimiento gradual de la NOM-020-SSA1-2021
     (\cref{tab:nom-limites}).}
   \label{fig:eda-cual-excedencias}
-\end{figure*}
+\end{figure}
 
 \subsubsection{Nota sobre \texttt{llovio} y \texttt{tipo\_dia}}
 

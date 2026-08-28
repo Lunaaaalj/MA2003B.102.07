@@ -1,5 +1,7 @@
-% Subseccion pensada para ir dentro de la seccion Introducción. Si debe ir
-% como seccion propia, cambia \subsection por \section.
+% Esta seccion aloja tambien a secciones/objetivo_tecnicas.tex (issue #39),
+% que continua con \subsection y se \input inmediatamente despues en main.tex.
+% Se fusionaron para no tener dos secciones de "objetivo" con encabezado y
+% parrafo de enlace propios.
 %
 % Fusiona lo que antes eran dos subsecciones (objetivo.tex e
 % investigacion_obj.tex): ambas justificaban por que estudiar el ozono
@@ -9,6 +11,9 @@
 % generico de "crecimiento industrial y vehicular" que repetia, sin datos, lo
 % que el parrafo de la tendencia 1993-2014 ya dice con cifras.
 
+\section{Objetivo del análisis y técnicas estadísticas}
+\label{sec:objetivo-tecnicas}
+
 \subsection{Objeto de investigación}
 \label{sec:objetivo}
 
@@ -16,13 +21,11 @@ El ozono \ce{O3} es una substancia elemental compuesta por tres átomos de oxíg
 
 A diferencia del ozono estratosférico, el ozono troposférico es el principal ingrediente del \textit{smog} y se forma por transformaciones químicas entre los óxidos de nitrógeno \ce{NOx} y los compuestos orgánicos volátiles (COV) con el calor y la luz solar. En el área metropolitana de Monterrey, sin embargo, los niveles más altos no coinciden necesariamente con los meses más cálidos: durante el invierno se registran concentraciones más elevadas de \ce{O3}, un comportamiento que motiva el análisis de las variables meteorológicas.
 
-Áreas metropolitanas y urbanas de Nuevo León con elevada actividad industrial han
-presentado niveles de \ce{O3} y \ce{PM10} en su atmósfera que, en diversas
-ocasiones, han llegado a superar los límites permisibles establecidos por las
-normas oficiales mexicanas correspondientes: la NOM-020-SSA1-2021 para ozono
-\parencite{nom020ssa1} y la NOM-025-SSA1-2014 para partículas \ce{PM10} y
-\ce{PM_{2.5}} \parencite{nom025ssa1}. Estas tendencias de contaminación del aire se
-han comenzado a documentar desde hace más de 30 años, con distintas herramientas
+Áreas metropolitanas de Nuevo León con elevada actividad industrial han
+presentado niveles de \ce{O3} y \ce{PM10} que superan los límites de la
+NOM-020-SSA1-2021 \parencite{nom020ssa1} y la NOM-025-SSA1-2014
+\parencite{nom025ssa1}. Estas tendencias se documentan desde hace más de
+30 años, con distintas herramientas
 de detección que permiten medir tanto las concentraciones de ozono (mediante
 fotometría ultravioleta) como las de sus precursores, los óxidos de nitrógeno
 \ce{NO} y \ce{NO2} (agrupados como \ce{NO_x}, medidos por quimioluminiscencia),
