@@ -79,6 +79,35 @@
 \setlength{\abovecaptionskip}{4pt}
 \setlength{\belowcaptionskip}{2pt}
 
+% Parametros de colocacion de flotantes. Los defaults de LaTeX son
+% conservadores y en este reporte se quedan cortos: la etapa 2 aporta 24
+% flotantes contra unas 5 paginas de prosa, y como cada uno solo puede
+% aparecer en o despues del punto donde se cita, la cola se desbordaba al
+% final del documento (seis figuras quedaban DESPUES de la bibliografia).
+%
+% Lo que estorbaba, en concreto:
+%   \textfraction 0.2 -> exigia que al menos 20%% de cada pagina fuera texto
+%   \topnumber    2   -> maximo dos flotantes en la zona superior
+%   \floatpagefraction 0.5 -> una pagina solo de flotantes tenia que ir medio
+%                             llena, si no LaTeX prefiere seguir difiriendolos
+%
+% Esto NO recorta contenido ni cambia el tamano de letra: solo autoriza a
+% LaTeX a empaquetar los flotantes mas densamente. Bajo el documento de 13 a
+% 12 paginas y dejo la bibliografia al final, que es donde debe estar.
+% Si en algun momento el reporte se ve demasiado saturado de figuras por
+% pagina, estos son los diales que hay que aflojar (subir \textfraction,
+% bajar \topnumber).
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.55}
+\renewcommand{\dbltopfraction}{0.92}      %% idem para flotantes de ancho completo
+\renewcommand{\dblfloatpagefraction}{0.55}
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+\setcounter{dbltopnumber}{3}
+
 \usepackage{enumitem}
 \setlist{noitemsep, topsep=3pt, partopsep=0pt}
 
