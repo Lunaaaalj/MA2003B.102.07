@@ -255,22 +255,29 @@ fig.tight_layout(); fig.savefig(FIGS / "eda_cual_cobertura.pdf"); plt.show()
 ```{python}
 #| label: fig-nominales
 #| fig-cap: "Distribución relativa de temporada, periodo y tipo_dia."
-fig, axs = plt.subplots(1, 3, figsize=(7.5, 3))
+# Tres paneles apilados y barras horizontales: la figura va a una columna del
+# reporte (~3.4 in), no a doble columna. Apilada, la etiqueta de cada nivel cabe
+# en el eje y sin rotar, que es lo que permite bajar el tamano de letra.
+fig, axs = plt.subplots(3, 1, figsize=(3.4, 4.3))
 paneles = [(H.temporada, ["invierno","primavera","verano","otoño"], "Temporada"),
            (H.periodo,   ORDEN_PERIODO,                             "Periodo del día"),
            (H.tipo_dia,  ["laborable","sabado","domingo","festivo"],"Tipo de día")]
 for a, (s, orden, tit) in zip(axs, paneles):
     p = s.value_counts().reindex(orden) / len(s) * 100
-    a.bar(range(len(orden)), p, color=AZUL, width=.65)
-    a.set_xticks(range(len(orden)))
-    a.set_xticklabels([o.capitalize() for o in orden], rotation=30,
-                      ha="right", fontsize=8)
+    y = range(len(orden))
+    a.barh(y, p, color=AZUL, height=.62)
+    a.set_yticks(y)
+    a.set_yticklabels([o.capitalize() for o in orden], fontsize=7.5)
+    a.invert_yaxis()
     for i, x in enumerate(p):
-        a.text(i, x + .6, f"{x:.1f}", ha="center", fontsize=7.5)
-    a.set_ylim(0, max(p) * 1.18); a.set_title(tit, loc="left", fontsize=10)
-axs[0].set_ylabel("% de registros hora-estación")
-axs[1].axhline(25, ls="--", lw=.8, color=GRIS)
-fig.tight_layout(); fig.savefig(FIGS / "eda_cual_nominales.pdf"); plt.show()
+        a.text(x + max(p) * .015, i, f"{x:.1f}", va="center", fontsize=7)
+    a.set_xlim(0, max(p) * 1.22); a.tick_params(axis="x", labelsize=7)
+    a.set_title(tit, loc="left", fontsize=9)
+    for lado in ("top", "right"):
+        a.spines[lado].set_visible(False)
+axs[2].set_xlabel("% de registros hora-estación", fontsize=7.5)
+axs[1].axvline(25, ls="--", lw=.8, color=GRIS)
+fig.tight_layout(pad=.4); fig.savefig(FIGS / "eda_cual_nominales.pdf"); plt.show()
 ```
 
 ```{python}
@@ -288,18 +295,26 @@ fig.tight_layout(); fig.savefig(FIGS / "eda_cual_llovio.pdf"); plt.show()
 ```{python}
 #| label: fig-excedencias
 #| fig-cap: "Balance de clases del MDA8 en los tres umbrales de la NOM-020."
-fig, axs = plt.subplots(1, 3, figsize=(7.5, 3))
+# Rejilla 2x2 en vez de 1x3: la figura va a una columna del reporte. Tres pays
+# en fila a ~3.4 in de ancho quedarian de 1.1 in y sin espacio para los
+# porcentajes; en 2x2 el diametro se conserva y la celda libre aloja la leyenda,
+# que asi deja de repetirse tres veces.
+fig, axs = plt.subplots(2, 2, figsize=(3.4, 3.5))
+axs = axs.ravel()
 for a, (c_, u) in zip(axs, [("excede_anio_1", 65), ("excede_anio_3", 60),
                             ("excede_anio_5", 51)]):
     s = D[c_]
-    a.pie([(s == 0).sum(), (s == 1).sum()], labels=["No excede", "Excede"],
+    cunas, _, _ = a.pie([(s == 0).sum(), (s == 1).sum()],
           colors=[CLARO, ROJO], startangle=90, autopct=lambda p: f"{p:.2f}%",
-          textprops={"fontsize": 8}, wedgeprops={"edgecolor":"white","linewidth":.8})
-    a.set_title(f"{c_}  ({u} ppb)", fontsize=9.5)
-fig.suptitle("Balance de clases del MDA8 "
+          textprops={"fontsize": 6.5}, wedgeprops={"edgecolor":"white","linewidth":.8})
+    a.set_title(f"{u} ppb", fontsize=8.5)
+axs[3].axis("off")
+axs[3].legend(cunas, ["No excede", "Excede"], loc="center", fontsize=7.5,
+              frameon=False)
+fig.suptitle("Balance de clases del MDA8\n"
              f"(n = {int(D.excede_anio_1.notna().sum()):,} día-estación válidos)",
-             fontsize=10, y=1.02)
-fig.tight_layout()
+             fontsize=8.5)
+fig.tight_layout(pad=.3)
 fig.savefig(FIGS / "eda_cual_excedencias.pdf", bbox_inches="tight"); plt.show()
 ```
 
