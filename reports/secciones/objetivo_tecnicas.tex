@@ -12,88 +12,69 @@
 \section{Objetivo del análisis y técnicas estadísticas}
 \label{sec:objetivo-tecnicas}
 
-La \cref{sec:objetivo} explica por qué se estudia el ozono troposférico. En
-esta sección se establece qué se busca obtener mediante el análisis
-multivariado, qué técnicas permiten hacerlo y qué variables necesita cada
-técnica.
+La \cref{sec:objetivo} explica por qué se estudia el ozono troposférico. Esta
+sección establece el objetivo del análisis multivariado, las técnicas que lo
+responden y las variables que necesita cada una.
 
 \subsection{Objetivo}
 \label{sec:obj:objetivo}
 
-\textbf{Objetivo principal.} El objetivo principal es identificar el régimen
-de formación de ozono en el que opera cada una de las 15 estaciones del Área
-Metropolitana de Monterrey, ya sea limitado por \ce{NO_x} o por COV. A partir
-de esta identificación, se busca agrupar las estaciones de acuerdo con su
-régimen y con la forma en que este cambia por temporada.
+\textbf{Objetivo principal.} Identificar si cada una de las 15 estaciones del
+Área Metropolitana de Monterrey opera bajo un régimen de formación de ozono
+limitado por \ce{NO_x} o por COV, y agruparlas según su régimen y variación
+por temporada.
 
-El régimen no puede observarse directamente. Por esta razón, se infiere
-mediante el contraste del MDA8 entre tipos de día. Este contraste funciona
-como un experimento cuasi-natural: durante el fin de semana disminuye el
-tráfico y, con ello, las emisiones de \ce{NO_x}, sin que exista una
-intervención del analista \parencite{marr2002}. El razonamiento es el
-siguiente. Si el ozono aumenta cuando disminuye el \ce{NO_x}, el régimen está
-limitado por COV; si el ozono disminuye, está limitado por \ce{NO_x}
-\parencite{sillman1999}. El contraste se calcula tanto sobre el MDA8 como
-sobre la razón \ce{O_x} $=$ \ce{O3} $+$ \ce{NO2}. Esta razón permite separar
-la producción fotoquímica neta de la titulación local por \ce{NO}, reacción
-descrita en \cref{sec:preparacion-datos}, y hace comparables las estaciones de
-tráfico con las periféricas.
+Como el régimen no se observa directamente, se infiere mediante el contraste
+del MDA8 entre tipos de día. Este funciona como un experimento
+cuasi-natural: durante el fin de semana disminuyen el tráfico y las emisiones
+de \ce{NO_x}, sin intervención del analista \parencite{marr2002}. Si el ozono
+aumenta cuando disminuye el \ce{NO_x}, el régimen está limitado por COV; si
+disminuye, está limitado por \ce{NO_x} \parencite{sillman1999}. El contraste
+también se calcula sobre la razón \ce{O_x} $=$ \ce{O3} $+$ \ce{NO2}, que
+separa la producción fotoquímica neta de la titulación local por \ce{NO}
+descrita en \cref{sec:preparacion-datos} y permite comparar estaciones de
+tráfico y periféricas.
 
-\textit{Criterio de logro:} se considerará que existe una agrupación útil
-cuando se obtenga una partición en dos o más conglomerados con una silueta
-media $\geq 0.50$. A partir de este valor, la estructura se considera
-razonable. Si la silueta queda entre 0.25 y 0.50, el resultado se reportará
-como una estructura débil. Si es menor que 0.25, se declarará ausencia de
-estructura y el resultado se interpretará como un régimen de transición
-homogéneo en la zona metropolitana
+\textit{Criterio de logro:} una partición en dos o más conglomerados se
+considerará razonable con una silueta media $\geq 0.50$, débil entre 0.25 y
+0.50, y ausente por debajo de 0.25. En el último caso se interpretará un
+régimen de transición homogéneo en la zona metropolitana
 \parencite{rousseeuw1987, kaufman1990}.
 
-\textbf{Objetivo secundario.} El objetivo secundario es clasificar cada
-registro día-estación como excedencia o no excedencia del MDA8, usando el
-umbral de 51 ppb y los precursores y variables meteorológicas registrados
-durante el mismo día.
+\textbf{Objetivo secundario.} Clasificar cada registro día-estación como
+excedencia o no excedencia del MDA8 en el umbral de 51 ppb, a partir de los
+precursores y variables meteorológicas del mismo día.
 
-\textit{Criterio de logro:} el modelo deberá obtener un área bajo la curva
-ROC $\geq 0.75$ sobre una partición de validación. La sensibilidad y la
-especificidad se reportarán por separado. No se utilizará la exactitud como
-métrica principal porque el balance de clases puede producir una lectura
-engañosa. Al aplicar el umbral vigente de 65 ppb, las excedencias representan
-10.65\,\% de los días-estación válidos. Por lo tanto, un clasificador
-constante alcanzaría 89.35\,\% de exactitud sin identificar el fenómeno
-(\cref{sec:eda-cualitativas}). Para reducir este problema, el escenario
-principal de modelado utiliza el umbral de 51 ppb, con 30.70\,\% de
-excedencias \parencite{saito2015}.
+\textit{Criterio de logro:} área bajo la curva ROC $\geq 0.75$ en una
+partición de validación, con sensibilidad y especificidad reportadas por
+separado. No se utilizará la exactitud: con el umbral vigente de 65 ppb, las
+excedencias representan 10.65\,\% de los días-estación válidos y un
+clasificador constante alcanzaría 89.35\,\% de exactitud sin identificar el
+fenómeno
+(\cref{sec:eda-cualitativas}). Por esta razón, el escenario principal utiliza
+51 ppb, con 30.70\,\% de excedencias \parencite{saito2015}.
 
 \subsection{Ajuste respecto al objetivo de la Etapa 1}
 \label{sec:obj:cambio}
 
-En la Etapa 1 se propuso agrupar las estaciones de acuerdo con su perfil de
-ozono. El agrupamiento se conserva como objetivo principal, pero ahora se
-define con precisión qué característica se utilizará para formar los grupos.
-También se incorpora la clasificación de excedencias como objetivo
-secundario. Este ajuste se apoya en tres hallazgos del análisis descriptivo.
+La Etapa 1 propuso agrupar las estaciones según su perfil de ozono. El
+objetivo se conserva, pero se precisa el criterio de agrupamiento y se añade
+la clasificación de excedencias a partir de tres hallazgos descriptivos.
 
-El primer hallazgo es que el nivel medio de ozono separa poco a las
-estaciones. Aunque el análisis de varianza del MDA8 por estación fue
-significativo, la estación solo explica 5.3\,\% de la varianza total. Esto
-significa que agrupar a partir de niveles medios produciría conglomerados con
-poca separación. En cambio, el contraste entre tipos de día y la razón
-\ce{O_x} describen un proceso y no únicamente un nivel de concentración. Por
-esta razón, no dependen de que las estaciones presenten promedios distintos.
+Primero, aunque el análisis de varianza del MDA8 fue significativo, la
+estación solo explica 5.3\,\% de la varianza total; agrupar por niveles medios
+produciría poca separación. El contraste por tipo de día y la razón
+\ce{O_x}, en cambio, describen un proceso que no depende de promedios
+distintos entre estaciones.
 
-El segundo hallazgo se relaciona con las variables que ya fueron construidas
-durante la preparación de los datos. En esta etapa se obtuvieron el MDA8, las
-indicadoras de excedencia y la variable \texttt{tipo\_dia}
-(\cref{sec:preparacion-datos,sec:eda-cualitativas}). Estas variables tienen
-una función directa dentro de un problema de clasificación. Incluir el
-objetivo secundario permite utilizarlas en el análisis en lugar de dejarlas
-fuera del modelado.
+Segundo, la preparación de datos produjo el MDA8, las indicadoras de
+excedencia y \texttt{tipo\_dia}
+(\cref{sec:preparacion-datos,sec:eda-cualitativas}). La clasificación les da
+una función dentro del modelado.
 
-El tercer hallazgo es que el umbral define si el problema puede modelarse con
-un balance de clases razonable. Con 65 ppb se obtiene 10.65\,\% de positivos,
-mientras que con 51 ppb se obtiene 30.70\,\%
-(\cref{fig:eda-cual-excedencias}). Además, 51 ppb corresponde a la meta de
-cumplimiento gradual a 5 años establecida por la NOM-020-SSA1-2021
+Tercero, el balance de clases mejora al pasar del umbral de 65 ppb al de
+51 ppb (\cref{fig:eda-cual-excedencias}). Este último también corresponde a
+la meta de cumplimiento gradual a 5 años de la NOM-020-SSA1-2021
 (\cref{tab:nom-limites}).
 
 \subsection{Técnicas estadísticas}
@@ -101,8 +82,7 @@ cumplimiento gradual a 5 años establecida por la NOM-020-SSA1-2021
 
 \begin{table*}[t]
   \centering
-  \caption{Técnicas seleccionadas, pregunta que responde cada una y evidencia
-    del análisis descriptivo que respalda su elección.}
+  \caption{Técnicas, preguntas que responden y justificación de su elección.}
   \label{tab:tecnicas}
   \footnotesize
   \begin{tabular}{p{3.1cm} p{5.0cm} p{7.4cm}}
@@ -110,81 +90,64 @@ cumplimiento gradual a 5 años establecida por la NOM-020-SSA1-2021
     Técnica & Qué responde & Justificación \\
     \midrule
     Contraste por tipo de día
-      & Signo de la respuesta del ozono ante la reducción de \ce{NO_x}; define
-        el régimen por estación y temporada
-      & \texttt{tipo\_dia} distingue entre día laborable, sábado, domingo y
-        festivo. Se identificaron 71 días de asueto
-        (\cref{sec:eda-cualitativas}); unir sábado y domingo reduciría la
-        claridad del contraste \\
+      & Régimen por estación y temporada según la respuesta del ozono a la
+        reducción de \ce{NO_x}
+      & \texttt{tipo\_dia} distingue día laborable, sábado, domingo y festivo;
+        se identificaron 71 días de asueto (\cref{sec:eda-cualitativas}).
+        Unir sábado y domingo reduciría la claridad del contraste \\
     \addlinespace[2pt]
     Componentes principales
       & Reducción de los precursores correlacionados a ejes independientes
       & \ce{NO2}--\ce{NO_x} presenta $r = 0.89$ y
-        \ce{PM10}--\ce{PM2.5} presenta $r = 0.62$
-        (\cref{fig:mapa-calor}). La multicolinealidad entre precursores del
-        mismo ciclo impide tratarlos como coordenadas independientes \\
+        \ce{PM10}--\ce{PM2.5}, $r = 0.62$ (\cref{fig:mapa-calor}); la
+        multicolinealidad impide tratarlos como coordenadas independientes \\
     \addlinespace[2pt]
     Conglomerados
       & Agrupamiento de las 15 estaciones según su régimen
-      & Responde al objetivo principal y opera sobre las componentes retenidas,
-        una vez que se encuentran en una escala comparable
+      & Opera sobre las componentes retenidas en una escala comparable
         (\cref{sec:transformaciones}) \\
     \addlinespace[2pt]
     Discriminante lineal
-      & Separación entre días con excedencia y días sin excedencia
-      & La transformación Box-Cox dejó los sesgos dentro de la banda
-        $|\text{sesgo}| < 0.5$ (\cref{tab:sesgos-transformacion}). Esto aproxima
-        el supuesto de normalidad requerido por la técnica \\
+      & Separación entre días con y sin excedencia
+      & Box-Cox dejó los sesgos en $|\text{sesgo}| < 0.5$
+        (\cref{tab:sesgos-transformacion}), aproximando el supuesto de
+        normalidad \\
     \addlinespace[2pt]
     Regresión logística
       & Probabilidad de excedencia y aporte de cada predictor
-      & Sirve como alternativa sin los supuestos de normalidad y
-        homocedasticidad, y permite contrastar los resultados del
-        discriminante \\
+      & Alternativa sin supuestos de normalidad y homocedasticidad para
+        contrastar el discriminante \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
-Las técnicas se organizan en dos bloques, uno para cada objetivo. La
-\cref{tab:tecnicas} resume qué pregunta responde cada técnica y qué resultado
-del análisis descriptivo justifica su uso.
+Para el objetivo principal, el contraste por tipo de día se calcula por
+estación y temporada sobre el MDA8 y \ce{O_x}. Sus coordenadas se reducen
+mediante componentes principales \parencite{jolliffe2002} y las componentes
+retenidas se agrupan. El número de conglomerados se determina con el método
+del codo y se valida con la silueta \parencite{rousseeuw1987}.
 
-Para el objetivo principal, primero se calcula el contraste por tipo de día
-para cada estación y temporada, tanto sobre el MDA8 como sobre \ce{O_x}. El
-resultado de estos contrastes forma las coordenadas del agrupamiento. Después
-se aplica análisis de componentes principales para eliminar la redundancia
-entre precursores \parencite{jolliffe2002}. Finalmente, las componentes
-retenidas se utilizan en el análisis de conglomerados. El número de grupos se
-determina mediante el método del codo y se valida con la silueta
-\parencite{rousseeuw1987}.
+Ambas técnicas requieren la estandarización de
+\cref{sec:transformaciones}. En unidades originales, la presión, con valores
+cercanos a 710, dominaría las distancias frente al \ce{CO}, cuyos valores son
+menores que 10.
 
-Tanto los componentes principales como los conglomerados dependen de
-distancias y escalas comparables. Por esta razón, se utiliza la
-estandarización descrita en la \cref{sec:transformaciones}. Si se conservaran
-las unidades originales, la presión, con valores cercanos a 710, dominaría
-las distancias frente al \ce{CO}, cuyos valores son menores que 10.
-
-Para el objetivo secundario se ajustan un análisis discriminante lineal y una
-regresión logística con el mismo conjunto de predictores. El análisis
-discriminante supone normalidad multivariada y matrices de covarianza iguales
-entre clases. La regresión logística no requiere estos supuestos
-\parencite{hosmer2013}. La comparación permite observar cuánto
-cambia el desempeño cuando se imponen las condiciones del discriminante. Los
-dos modelos se evalúan mediante el área bajo la curva ROC y no mediante
-exactitud, debido al desbalance señalado anteriormente
-\parencite{saito2015}.
+Para el objetivo secundario se comparan un análisis discriminante lineal, que
+supone normalidad multivariada y covarianzas iguales entre clases, y una
+regresión logística, que no requiere estos supuestos
+\parencite{hosmer2013}. Ambos se evalúan mediante el área bajo la curva ROC,
+no con exactitud, debido al desbalance señalado \parencite{saito2015}.
 
 \subsection{Variables y sus características}
 \label{sec:obj:variables}
 
-Las definiciones, unidades y porcentajes de faltantes ya se encuentran en el
-diccionario de datos (\cref{sec:diccionario}). Para evitar repetir esa
-información, la \cref{tab:variables-tecnica} se concentra en el papel que
-cumple cada grupo de variables dentro de los dos objetivos.
+Las definiciones, unidades y faltantes se encuentran en el diccionario de
+datos (\cref{sec:diccionario}); la \cref{tab:variables-tecnica} presenta el
+papel de cada grupo en los dos objetivos.
 
 \begin{table*}[t]
   \centering
-  \caption{Papel de cada grupo de variables en los dos objetivos del análisis.}
+  \caption{Papel de cada grupo de variables por objetivo.}
   \label{tab:variables-tecnica}
   \footnotesize
   \begin{tabular}{p{4.4cm} p{5.6cm} p{5.4cm}}
@@ -192,65 +155,47 @@ cumple cada grupo de variables dentro de los dos objetivos.
     Grupo & Objetivo principal & Objetivo secundario \\
     \midrule
     \ce{O3}, MDA8, \ce{O_x} & Construyen el contraste & \ce{O3} y MDA8 definen
-      la clase; no se incorporan como predictores \\
+      la clase; no son predictores \\
     \addlinespace[2pt]
-    \ce{NO}, \ce{NO2}, \ce{NO_x}, \ce{CO} & Cuantifican el cambio de
-      precursores entre tipos de día & Funcionan como predictores después de
-      la reducción por componentes \\
+    \ce{NO}, \ce{NO2}, \ce{NO_x}, \ce{CO} & Cambio de precursores entre tipos
+      de día & Predictores, después de la reducción por componentes \\
     \addlinespace[2pt]
-    \ce{PM10}, \ce{PM2.5}, \ce{SO2} & Representan la modulación de la
-      fotólisis por aerosol & Funcionan como predictores \\
+    \ce{PM10}, \ce{PM2.5}, \ce{SO2} & Modulación de la fotólisis por aerosol
+      & Predictores \\
     \addlinespace[2pt]
     \texttt{TOUT}, \texttt{RH}, \texttt{SR}, \texttt{PRS}, \texttt{WSR},
-      \texttt{viento\_u}, \texttt{viento\_v}, \texttt{llovio} & Controlan el
-      confusor meteorológico & Funcionan como predictores \\
+      \texttt{viento\_u}, \texttt{viento\_v}, \texttt{llovio} & Control
+      meteorológico & Predictores \\
     \addlinespace[2pt]
     \texttt{temporada}, \texttt{periodo}, \texttt{tipo\_dia}, codificación
-      cíclica de hora y mes & Permiten estratificar el contraste &
-      Funcionan como predictores categóricos \\
+      cíclica de hora y mes & Estratificación & Predictores categóricos \\
     \addlinespace[2pt]
-    \texttt{estacion} & Define la unidad de análisis & Funciona como predictor
-      categórico \\
+    \texttt{estacion} & Unidad de análisis & Predictor categórico \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
-La razón \ce{O_x} no está incluida directamente en el conjunto de datos. Se
-construye al sumar \ce{O3} y \ce{NO2} en el nivel horario, antes de realizar
-la agregación diaria. La radiación solar, la humedad relativa, el \ce{NO} y
-el \ce{SO2} fueron incorporados al conjunto limpio después del análisis
-descriptivo. Por esta razón, sus estadísticos no aparecen en la
-\cref{sec:preparacion-datos}. Aun así, la radiación solar debe conservarse,
-porque permite distinguir si la atenuación fotolítica por aerosol se debe al
-aerosol o a una diferencia en la disponibilidad de luz.
+La razón \ce{O_x} se construye como la suma horaria de \ce{O3} y \ce{NO2}
+antes de la agregación diaria. La radiación solar, la humedad relativa, el
+\ce{NO} y el \ce{SO2} se incorporaron después del análisis descriptivo, por
+lo que sus estadísticos no aparecen en \cref{sec:preparacion-datos}. La
+radiación solar se conserva para distinguir la atenuación fotolítica por
+aerosol de una diferencia en la disponibilidad de luz.
 
-\paragraph{La estación de monitoreo.} La variable \texttt{estacion} cumple
-una función distinta en cada objetivo. En el objetivo principal representa
-la unidad de análisis: cada estación es un caso y el resultado es su
-asignación a un conglomerado. En el objetivo secundario funciona como un
-predictor categórico de 15 niveles. Su aporte esperado es acotado porque la
-estación explica 5.3\,\% de la varianza del MDA8. Sin embargo, se conserva
-porque esta fracción es significativa y porque el interés del estudio también
-es espacial.
-
-La cantidad de registros por estación debe interpretarse como tiempo de
-operación y no como calidad o volumen efectivo de información. Por ejemplo,
-\texttt{NO3} comenzó a operar en diciembre de 2022 y, por esta razón, aporta
-menos registros. Esto no significa que sus mediciones tengan menor calidad
+\paragraph{La estación de monitoreo.} En el objetivo principal,
+\texttt{estacion} es la unidad de análisis; en el secundario, un predictor
+categórico de 15 niveles. Se conserva porque su aporte es significativo y el
+estudio tiene interés espacial (\cref{sec:obj:cambio}). La menor cantidad de
+registros de \texttt{NO3}, en operación desde diciembre de 2022, refleja
+tiempo de operación y no menor calidad
 (\cref{fig:eda-cual-estacion}).
 
-\paragraph{Codificación de las variables categóricas.} El análisis
-discriminante y la regresión logística resuelven un sistema lineal. Por esta
-razón, las variables categóricas requieren una codificación indicadora con
-$k-1$ niveles: 14 columnas para \texttt{estacion}, tres para
-\texttt{temporada} y tres para \texttt{tipo\_dia}. En cada variable se deberá
-definir explícitamente una categoría de referencia. Incluir los $k$ niveles
-generaría colinealidad perfecta con el término independiente, condición ya
-advertida en la limpieza de datos.
-
-Las componentes principales y los conglomerados no reciben estas variables
-indicadoras. Estas técnicas operan sobre covarianzas y distancias entre
-variables continuas, por lo que agregar columnas binarias aumentaría de forma
-artificial la varianza explicada. La codificación se generará durante la
-etapa de modelado, una vez seleccionada la técnica. Por lo tanto, no forma
-parte del conjunto de datos entregado.
+\paragraph{Codificación de las variables categóricas.} El discriminante y la
+regresión logística requieren $k-1$ indicadoras: 14 para
+\texttt{estacion}, tres para \texttt{temporada} y tres para
+\texttt{tipo\_dia}, con una categoría de referencia explícita. Incluir los
+$k$ niveles generaría colinealidad perfecta con el término independiente,
+condición ya advertida en la limpieza de datos. Las componentes principales
+y los conglomerados excluyen estas indicadoras porque las columnas binarias
+aumentarían artificialmente la varianza explicada. La codificación se
+generará durante el modelado y no forma parte del conjunto entregado.
