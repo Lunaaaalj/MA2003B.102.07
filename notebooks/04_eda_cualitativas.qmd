@@ -32,10 +32,16 @@ Las figuras se escriben en `reports/figuras/` y las cifras alimentan
 Tres variables en alcance no venían construidas y se generan aquí.
 
 ```{python}
-import pandas as pd, numpy as np, matplotlib
-matplotlib.use("Agg")
+import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+# No fijar matplotlib.use("Agg") aquí: es un backend no interactivo, así que
+# plt.show() no emite nada, Quarto no captura ninguna figura y el PDF sale con
+# los captions vacíos ("Figura 1" sin gráfica). Los savefig() a reports/figuras/
+# sí funcionan con Agg, y por eso el problema pasó desapercibido: lo que se
+# rompe es el PDF de la notebook, que es lo que hace revisable la PR.
+# Con el backend inline del kernel, savefig() escribe el archivo igual y
+# show() además incrusta la figura en este documento.
 
 RAIZ = Path.cwd().parent
 PROC = RAIZ / "data" / "processed"
@@ -219,7 +225,7 @@ GRIS, AZUL, ROJO, CLARO = "#8c8c8c", "#3b6ea5", "#b5443a", "#d9d9d9"
 
 ```{python}
 #| label: fig-estacion
-#| fig-cap: "Frecuencia por estación y completitud de O₃ en paralelo."
+#| fig-cap: "Frecuencia por estación y completitud de $O_3$ en paralelo."
 c = cov.sort_values("n")
 col = [ROJO if e == "NO3" else AZUL for e in c.index]
 # A una columna del reporte (~3.4 in). Los dos paneles siguen lado a lado
