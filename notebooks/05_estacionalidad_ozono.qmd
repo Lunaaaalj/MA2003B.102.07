@@ -1,0 +1,404 @@
+---
+title: "Estacionalidad del ozono en el AMM"
+subtitle: "Bloque 0 del cambio de objetivo — MA2003B, equipo 7"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+jupyter: python3
+---
+
+Esta notebook responde una sola pregunta, y existe porque el reporte afirma algo
+que nunca se verificó contra nuestros propios datos. `secciones/objetivo.tex`
+dice, sin cita:
+
+> En el área metropolitana de Monterrey, sin embargo, los niveles más altos no
+> coinciden necesariamente con los meses más cálidos: durante el invierno se
+> registran concentraciones más elevadas de `O3`.
+
+Esa frase sostiene el encuadre de todo el trabajo. Antes de reescribir el
+objetivo hay que saber si es cierta. La pregunta se contesta con el dataset
+diario que ya produce `src/limpieza.py` (#13), sin datos nuevos.
+
+De paso se resuelven dos cosas que el modelado necesita decidir: si la
+agrupación de estaciones por zona tiene respaldo empírico, y qué composición
+estacional tiene la partición de validación elegida.
+
+Opera sobre `sima_limpio_diario.csv`, la salida diaria de la limpieza. Las
+figuras se escriben en `reports/figuras/`.
+
+## 0. Carga y variables de agrupación
+
+```{python}
+import pandas as pd, numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+# Sin matplotlib.use("Agg"): ese backend es no interactivo, así que plt.show()
+# no emite nada y Quarto no captura la figura. El PDF sale con el caption y sin
+# la gráfica. Con el backend inline del kernel, savefig() escribe el archivo
+# para reports/figuras/ y show() además incrusta la figura en este documento.
+
+RAIZ = Path.cwd().parent
+PROC = RAIZ / "data" / "processed"
+FIGS = RAIZ / "reports" / "figuras"
+FIGS.mkdir(parents=True, exist_ok=True)
+
+D = pd.read_csv(PROC / "sima_limpio_diario.csv", parse_dates=["fecha"])
+print(f"diario: {D.shape}")
+```
+
+`temporada` se reconstruye con el mismo corte de `src/limpieza.py:364`, para que
+sea la misma variable que el resto del proyecto y no una definición paralela.
+
+```{python}
+D["mes"], D["anio"] = D.fecha.dt.month, D.fecha.dt.year
+D["temporada"] = pd.cut(
+    D.mes, bins=[0, 2, 5, 8, 11, 12],
+    labels=["invierno", "primavera", "verano", "otoño", "invierno"], ordered=False)
+ORD = ["invierno", "primavera", "verano", "otoño"]
+```
+
+`zona` y la elevación vienen de `docs/Ubicación de las estaciones de monitoreo.docx`,
+que es el catálogo oficial del SIMA. La agrupación se fija **a priori sobre
+geografía**: derivarla del comportamiento del ozono y después usarla para
+explicar ozono sería circular.
+
+Estas dos constantes son provisionales aquí; su lugar definitivo es el módulo de
+agregación diaria, donde el modelado las va a consumir.
+
+```{python}
+ZONA = {**{k: "Noroeste" for k in ["NO", "NO2", "NO3"]},
+        **{k: "Suroeste" for k in ["SO", "SO2"]},
+        **{k: "Noreste"  for k in ["NE", "NE2", "NE3"]},
+        **{k: "Sureste"  for k in ["SE", "SE2", "SE3"]},
+        **{k: "Norte"    for k in ["NTE", "NTE2"]},
+        "CE": "Centro", "SUR": "Sur"}
+ELEV = {"SE3": 334, "NE3": 346, "SE2": 387, "NE2": 432, "NE": 474, "SE": 500,
+        "NTE": 503, "NTE2": 520, "SUR": 555, "CE": 562, "NO": 568, "NO3": 607,
+        "SO2": 636, "SO": 674, "NO2": 702}
+
+D["zona"] = D.estacion.map(ZONA)
+D["msnm"] = D.estacion.map(ELEV)
+assert D.zona.notna().all() and D.msnm.notna().all()
+```
+
+El análisis usa solo los días-estación con MDA8 válido, es decir los que pasaron
+el criterio de completitud de 18 de 24 ventanas móviles. Las indicadoras de
+excedencia son nulas exactamente en esas mismas filas, así que el filtro es
+común a todas las cifras de aquí en adelante.
+
+```{python}
+V = D[D.MDA8.notna()].copy()
+print(f"días-estación válidos: {len(V):,} de {len(D):,} "
+      f"({len(V)/len(D)*100:.2f} %)")
+```
+
+## 1. ¿El invierno tiene el ozono más alto?
+
+```{python}
+t = V.groupby("temporada", observed=True).agg(
+        n=("MDA8", "size"), media=("MDA8", "mean"), mediana=("MDA8", "median"),
+        p95=("MDA8", lambda s: s.quantile(.95)),
+        exc51=("excede_anio_5", "mean"), exc65=("excede_anio_1", "mean"))
+t[["exc51", "exc65"]] *= 100
+t = t.reindex(ORD).round(2)
+t
+```
+
+No. **El invierno es la temporada con el ozono más bajo de las cuatro**, en las
+tres medidas: media, mediana y percentil 95. La primavera es la más alta.
+
+El contraste es grande, no marginal: el MDA8 medio de primavera supera al de
+invierno en 12.6 ppb, y la tasa de excedencia del umbral de 51 ppb pasa de
+15.8 % en invierno a 45.7 % en primavera, casi el triple. Al umbral vigente de
+65 ppb la razón es todavía mayor, de 4.0 % a 17.6 %.
+
+El orden completo es primavera > verano > otoño > invierno, consistente con el
+mecanismo fotoquímico: el ozono troposférico se forma por reacción de sus
+precursores bajo radiación solar, de modo que el mínimo invernal es lo que cabe
+esperar y no una anomalía.
+
+## 2. Control del artefacto de ventana
+
+El resultado anterior podría deberse a la ventana de observación y no al
+fenómeno: la serie termina el 30 de junio de 2025, así que el periodo contiene
+cinco tramos enero–marzo pero solo cuatro noviembre–diciembre. El invierno está
+sobrerrepresentado y con una composición de años distinta a la del otoño.
+
+La forma de descartarlo es calcular la estacionalidad **dentro de cada año**, que
+elimina la mezcla desigual.
+
+```{python}
+piv = V.pivot_table(index="anio", columns="temporada", values="MDA8",
+                    aggfunc="mean", observed=True)[ORD]
+piv.round(2)
+```
+
+```{python}
+pex = V.pivot_table(index="anio", columns="temporada", values="excede_anio_5",
+                    aggfunc="mean", observed=True)[ORD] * 100
+pex.round(1)
+```
+
+El patrón se sostiene: **el invierno es la temporada más baja en los cinco años,
+sin una sola excepción.** La primavera es la más alta en cuatro de los cinco;
+2023 es el único año donde el verano la supera. El resultado no es un artefacto
+de la ventana.
+
+```{python}
+#| label: fig-estacionalidad
+#| fig-cap: "MDA8 medio por temporada, una serie por año. El invierno es el mínimo en los cinco años."
+plt.rcParams.update({"font.size": 9, "font.family": "serif",
+                     "axes.spines.top": False, "axes.spines.right": False,
+                     "figure.dpi": 150})
+GRIS, AZUL, ROJO, CLARO = "#8c8c8c", "#3b6ea5", "#b5443a", "#d9d9d9"
+
+# El año es una variable ORDENADA, no categórica: la rampa secuencial de un solo
+# tono (claro 2021 -> oscuro 2025) lo codifica correctamente. Cinco tonos
+# categóricos distintos sugerirían que los años no tienen orden entre sí.
+rampa = plt.get_cmap("Blues")(np.linspace(.40, .95, len(piv)))
+
+fig, ax = plt.subplots(figsize=(3.4, 2.5))
+x = np.arange(len(ORD))
+for (anio, fila), c in zip(piv.iterrows(), rampa):
+    ax.plot(x, fila.values, marker="o", ms=4, lw=1.6, color=c, label=str(anio))
+ax.set_xticks(x); ax.set_xticklabels([o.capitalize() for o in ORD], fontsize=8)
+ax.set_ylabel("MDA8 medio (ppb)", fontsize=8)
+ax.tick_params(axis="y", labelsize=8)
+ax.grid(axis="y", lw=.4, color=CLARO, zorder=0); ax.set_axisbelow(True)
+ax.legend(fontsize=6.5, ncol=5, frameon=False, loc="upper center",
+          bbox_to_anchor=(.5, 1.16), columnspacing=1., handlelength=1.2)
+fig.tight_layout(pad=.3)
+fig.savefig(FIGS / "estacionalidad_mda8_anio.pdf", bbox_inches="tight"); plt.show()
+```
+
+## 3. Desagregación por zona
+
+Falta descartar una versión más débil de la afirmación. El invierno podría no
+ser el máximo absoluto y aun así ser un **efecto relativo**: que en las
+estaciones del núcleo urbano, con más `NOx`, el ozono quede suprimido por
+titulación, y que en la periferia esa supresión sea menor bajo condiciones de
+estancamiento. Ese contraste no aparecería en el promedio metropolitano.
+
+```{python}
+pz = V.pivot_table(index="zona", columns="temporada", values="excede_anio_5",
+                   aggfunc="mean", observed=True)[ORD] * 100
+pz["global"] = V.groupby("zona", observed=True).excede_anio_5.mean() * 100
+pz = pz.sort_values("global", ascending=False)
+pz.round(1)
+```
+
+```{python}
+razon = (V.pivot_table(index="zona", columns="temporada", values="MDA8",
+                       aggfunc="mean", observed=True)
+          .pipe(lambda d: d["invierno"] / d["primavera"])
+          .sort_values().round(3))
+razon
+```
+
+La supresión invernal existe y **varía entre zonas**, pero nunca cambia de
+signo: la razón invierno/primavera del MDA8 medio va de 0.661 en el Suroeste a
+0.832 en el Noreste. En todas las zonas el invierno queda por debajo de la
+primavera. La afirmación tampoco se sostiene en su versión relativa.
+
+Lo que sí aparece es un ordenamiento espacial nítido y estable: el poniente
+—Noroeste y Suroeste— concentra las tasas de excedencia más altas (41.4 % y
+40.1 %) y el Noreste la más baja (19.0 %), un rango de más del doble.
+
+```{python}
+#| label: fig-zona-temporada
+#| fig-cap: "Tasa de excedencia del MDA8 a 51 ppb por zona y temporada (%)."
+m = pz[ORD].values
+fig, ax = plt.subplots(figsize=(3.4, 2.6))
+im = ax.imshow(m, cmap="Blues", aspect="auto", vmin=0, vmax=m.max())
+ax.set_xticks(range(len(ORD)))
+ax.set_xticklabels([o.capitalize() for o in ORD], fontsize=7.5)
+ax.set_yticks(range(len(pz))); ax.set_yticklabels(pz.index, fontsize=7.5)
+# Etiqueta directa en cada celda: el mapa de calor da la forma, el número da el
+# valor exacto sin obligar a leer una barra de color.
+for i in range(m.shape[0]):
+    for j in range(m.shape[1]):
+        ax.text(j, i, f"{m[i,j]:.0f}", ha="center", va="center", fontsize=7,
+                color="white" if m[i, j] > m.max() * .72 else "#333333")
+ax.set_title("% de días-estación que exceden 51 ppb", loc="left", fontsize=8.5)
+for lado in ("top", "right", "left", "bottom"):
+    ax.spines[lado].set_visible(False)
+ax.tick_params(length=0)
+fig.tight_layout(pad=.3)
+fig.savefig(FIGS / "excedencia_zona_temporada.pdf", bbox_inches="tight"); plt.show()
+```
+
+## 4. Elevación y ozono
+
+El ordenamiento poniente–oriente de la sección anterior coincide con la
+topografía del valle. El catálogo del SIMA da la elevación de cada estación, que
+va de 334 msnm en `SE3`, hacia la planicie, a 702 msnm en `NO2`, contra la
+Sierra Madre. Conviene medir esa relación explícitamente, porque es lo que
+justifica agrupar por zona en vez de por estación.
+
+```{python}
+est = V.groupby("estacion", observed=True).agg(
+        MDA8=("MDA8", "mean"), exc=("excede_anio_5", "mean"))
+est["msnm"] = est.index.map(ELEV)
+est["zona"] = est.index.map(ZONA)
+print(f"r(msnm, MDA8 medio)      = {est.msnm.corr(est.MDA8):.3f}")
+print(f"r(msnm, tasa excedencia) = {est.msnm.corr(est.exc):.3f}")
+```
+
+La correlación entre elevación y tasa de excedencia es 0.806 sobre las 15
+estaciones. Es una asociación fuerte para una variable puramente geográfica,
+fijada sin mirar los datos de ozono, y respalda la decisión de agrupar por zona:
+las zonas no son etiquetas arbitrarias, separan estaciones que efectivamente se
+comportan distinto.
+
+Conviene ser explícito sobre qué **no** demuestra: con $n = 15$ y estaciones
+vecinas correlacionadas entre sí, esto es una descripción, no una estimación del
+efecto de la altitud. Y la elevación no es la causa —covaría con distancia a las
+fuentes de `NOx`, con el patrón de vientos y con el uso de suelo—. Se reporta
+como evidencia de que la partición espacial tiene contenido, nada más.
+
+```{python}
+#| label: fig-elevacion
+#| fig-cap: "Elevación de la estación contra su tasa de excedencia del MDA8 a 51 ppb."
+fig, ax = plt.subplots(figsize=(3.4, 2.5))
+ax.scatter(est.msnm, est.exc * 100, s=26, color=AZUL, zorder=3,
+           edgecolor="white", linewidth=.6)
+# Etiquetas alternadas arriba/abajo recorriendo las estaciones en orden de
+# elevación: los pares que se encimaban (SE3-NE3, SE-NTE, SUR-CE, SO-NO2) son
+# vecinos en ese orden, así que alternar los separa sin colocarlas a mano.
+for k, (nombre, f) in enumerate(est.sort_values("msnm").iterrows()):
+    ax.annotate(nombre, (f.msnm, f.exc * 100), textcoords="offset points",
+                xytext=(4, 3) if k % 2 == 0 else (4, -9),
+                fontsize=6, color=GRIS)
+b, a = np.polyfit(est.msnm, est.exc * 100, 1)
+xs = np.array([est.msnm.min(), est.msnm.max()])
+ax.plot(xs, a + b * xs, lw=1, ls="--", color=ROJO, zorder=2)
+ax.set_xlabel("Elevación (msnm)", fontsize=8)
+ax.set_ylabel("% de días que exceden 51 ppb", fontsize=8)
+ax.tick_params(labelsize=8)
+# Holgura en los dos ejes: sin ella las etiquetas de las estaciones extremas
+# (SE3 a la izquierda, NE2 abajo) se recortan contra el marco.
+ax.margins(x=.09, y=.14)
+ax.grid(lw=.4, color=CLARO, zorder=0); ax.set_axisbelow(True)
+ax.set_title(f"r = {est.msnm.corr(est.exc):.3f}   (n = 15 estaciones)",
+             loc="left", fontsize=8.5)
+fig.tight_layout(pad=.3)
+fig.savefig(FIGS / "elevacion_vs_excedencia.pdf", bbox_inches="tight"); plt.show()
+```
+
+`NE2` es el caso que se aparta de la recta: a 432 msnm registra la tasa de
+excedencia más baja de la red, 10.0 %. Vale la pena tenerlo presente al leer los
+coeficientes de zona del modelo, porque queda dentro del Noreste y arrastra el
+promedio de esa zona hacia abajo.
+
+## 5. Composición estacional de la partición de validación
+
+El equipo decidió entrenar con 2021–2024 y validar con 2025. Como 2025 termina
+el 30 de junio, conviene cuantificar qué tan parecidos son los dos conjuntos
+antes de interpretar cualquier métrica de desempeño.
+
+```{python}
+V["particion"] = np.where(V.anio == 2025, "validación (2025)",
+                          "entrenamiento (2021-24)")
+comp = pd.crosstab(V.particion, V.temporada, normalize="index")[ORD] * 100
+comp.round(1)
+```
+
+```{python}
+V.groupby("particion").agg(n=("MDA8", "size"), MDA8_medio=("MDA8", "mean"),
+                           exc51_pct=("excede_anio_5", lambda s: s.mean() * 100)
+                          ).round(2)
+```
+
+Los dos conjuntos no son comparables en composición. El de entrenamiento está
+repartido casi por igual entre las cuatro temporadas (23.1 % a 26.0 %); el de
+validación es **52.3 % primavera, 32.2 % invierno, 15.5 % verano y 0 % otoño**.
+
+La consecuencia es cuantificable: la tasa base de excedencia es 29.31 % en
+entrenamiento y 41.50 % en validación, una diferencia de 12.2 puntos que no
+proviene del modelo sino del calendario. Como la primavera es la temporada de
+ozono más alto, la validación sobrerrepresenta justo los días fáciles de
+clasificar como excedencia.
+
+A modo de referencia, la misma cuenta con 2024 como año de validación:
+
+```{python}
+V["p2024"] = np.where(V.anio == 2024, "validación (2024)", "resto")
+(pd.crosstab(V.p2024, V.temporada, normalize="index")[ORD] * 100).round(1)
+```
+
+Un año completo reparte 24.3 / 25.5 / 25.1 / 25.1, prácticamente la misma
+composición que el entrenamiento.
+
+Esto no invalida la partición elegida, que se conserva. Sí obliga a dos cosas al
+reportar resultados: declarar la composición como limitación, y no comparar la
+métrica de validación contra la de entrenamiento como si midieran lo mismo. El
+AUC es menos sensible a la tasa base que la exactitud, lo que amortigua el
+problema pero no lo elimina.
+
+## 6. Conclusiones
+
+1. **La afirmación del reporte es falsa y hay que retirarla.** El invierno es la
+   temporada con menor ozono, en las tres medidas centrales, en los cinco años
+   por separado y en las siete zonas. No se sostiene ni como máximo absoluto ni
+   como efecto relativo.
+2. La estacionalidad real es primavera > verano > otoño > invierno, consistente
+   con la formación fotoquímica y con lo reportado para el AMM en la literatura
+   reciente.
+3. **La agrupación por zona tiene respaldo empírico**: las tasas de excedencia
+   van de 19.0 % en el Noreste a 41.4 % en el Noroeste, y la correlación entre
+   elevación y excedencia es 0.806 sobre las 15 estaciones.
+4. La partición de validación elegida tiene una composición estacional muy
+   distinta a la de entrenamiento y 12.2 puntos más de tasa base. Se conserva la
+   decisión y se declara la limitación.
+
+Para `secciones/objetivo.tex`: el párrafo que atribuye al invierno las
+concentraciones más altas se sustituye por la estacionalidad medida, citando
+esta notebook. El encuadre del trabajo no depende de esa frase —el objetivo es
+clasificar excedencias a partir de precursores y meteorología, y eso no cambia—,
+pero mantenerla dejaría el reporte contradiciendo sus propios datos.
+
+## 7. Criterios de aceptación
+
+```{python}
+#| echo: false
+chk = [
+  ("Las cuatro temporadas cubren los 12 meses",
+   D.temporada.notna().all()),
+  ("Toda estación tiene zona y elevación asignadas",
+   D.zona.notna().all() and D.msnm.notna().all()),
+  ("Las 15 estaciones caen en las 7 zonas del catálogo",
+   D.estacion.nunique() == 15 and D.zona.nunique() == 7),
+  ("El invierno es el mínimo de MDA8 en los cinco años",
+   (piv.idxmin(axis=1) == "invierno").all()),
+  ("El invierno es el mínimo de excedencia en las siete zonas",
+   (pz[ORD].idxmin(axis=1) == "invierno").all()),
+  ("Las excedencias son nulas exactamente donde el MDA8 es nulo",
+   D.MDA8.isna().equals(D.excede_anio_5.isna())),
+  (f"Total de días-estación válidos = 22,529 (obtenido {len(V):,})",
+   len(V) == 22529),
+]
+for nombre, ok in chk:
+    print(("OK   " if ok else "FALLA") + "  " + nombre)
+```
+
+## Uso de IA en esta notebook
+
+Se usó Claude Code para tres cosas: (1) extraer el catálogo de zonas y
+elevaciones del `.docx` de ubicaciones, que estaba en una tabla de Word y no en
+formato tabular; (2) escribir el código de agregación y las tres figuras; y
+(3) señalar que la partición de validación elegida quedaba desbalanceada por
+temporada, lo que motivó la sección 5. Todas las cifras se reprodujeron
+ejecutando la notebook contra los datos reales del equipo antes de escribir el
+texto, y la decisión de conservar 2025 como año de validación pese al
+desbalance se tomó en discusión del equipo, no se delegó.
