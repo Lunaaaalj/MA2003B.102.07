@@ -32,6 +32,7 @@ Las figuras se escriben en `reports/figuras/` y las cifras alimentan
 Tres variables en alcance no venían construidas y se generan aquí.
 
 ```{python}
+import sys
 import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -47,6 +48,10 @@ RAIZ = Path.cwd().parent
 PROC = RAIZ / "data" / "processed"
 FIGS = RAIZ / "reports" / "figuras"
 FIGS.mkdir(parents=True, exist_ok=True)
+
+# El cwd de Quarto es notebooks/, asi que la raiz del repo no esta en sys.path
+# y el import de src/ falla sin esta linea.
+sys.path.insert(0, str(RAIZ))
 
 H = pd.read_csv(PROC / "sima_limpio_horario.csv", parse_dates=["fecha"])
 D = pd.read_csv(PROC / "sima_limpio_diario.csv",  parse_dates=["fecha"])
@@ -68,39 +73,16 @@ H["periodo"] = pd.cut(H["hora"], bins=[-1, 5, 11, 17, 23], labels=ORDEN_PERIODO)
 ### `tipo_dia` y `festivo`
 
 `fin_de_semana` agrupa sábado y domingo pese a que su actividad vehicular
-difiere, y no separa los días de asueto. Se construye un `tipo_dia` de cuatro
+difiere, y no separa los días de asueto. `tipo_dia` los separa en cuatro
 niveles: días de descanso obligatorio de la LFT art. 74, jueves y viernes
 santo, y el periodo 24–31 de diciembre, que tienen patrón de tráfico anómalo y
 contaminarían cualquier contraste semanal si quedaran dentro de `laborable`.
 
+La construcción vive en `src/agregacion_diaria.py` (#51) y se importa: el
+modelado la necesita como predictor, así que dejó de ser código de notebook.
+
 ```{python}
-PASCUA = {2021: "2021-04-04", 2022: "2022-04-17", 2023: "2023-04-09",
-          2024: "2024-03-31", 2025: "2025-04-20"}
-
-def calendario_festivos(anios=range(2021, 2026)) -> set:
-    fest = set()
-    for y in anios:
-        fest |= {f"{y}-01-01", f"{y}-05-01", f"{y}-09-16", f"{y}-12-25"}
-        for mes, n in [(2, 1), (3, 3), (11, 3)]:      # 1er lun feb, 3er lun mar y nov
-            dias = pd.date_range(f"{y}-{mes:02d}-01", periods=31, freq="D")
-            lunes = [d for d in dias if d.month == mes and d.weekday() == 0]
-            fest.add(str(lunes[n - 1].date()))
-        p = pd.Timestamp(PASCUA[y])
-        fest |= {str((p - pd.Timedelta(days=k)).date()) for k in (3, 2)}
-        fest |= {str(d.date()) for d in pd.date_range(f"{y}-12-24", f"{y}-12-31")}
-    fest.add("2024-10-01")     # transmisión del Poder Ejecutivo federal
-    return {pd.Timestamp(f) for f in fest}
-
-FESTIVOS = calendario_festivos()
-
-def marcar_calendario(df: pd.DataFrame) -> pd.DataFrame:
-    dw = df["fecha"].dt.dayofweek
-    df["festivo"] = df["fecha"].dt.normalize().isin(FESTIVOS).astype(int)
-    df["tipo_dia"] = np.select([dw == 5, dw == 6], ["sabado", "domingo"], "laborable")
-    df.loc[df.festivo == 1, "tipo_dia"] = "festivo"
-    df["tipo_dia"] = pd.Categorical(
-        df.tipo_dia, categories=["laborable", "sabado", "domingo", "festivo"])
-    return df
+from src.agregacion_diaria import marcar_calendario
 
 H = marcar_calendario(H); D = marcar_calendario(D)
 ```
@@ -176,7 +158,7 @@ cov["completitud_rejilla"] = (cov.n / cov.horas_teoricas * 100).round(1)
 cov["pct_filas"] = (cov.n / cov.n.sum() * 100).round(2)
 cov["pct_o3_medido"] = H.groupby("estacion").O3.apply(
     lambda s: round(s.notna().mean() * 100, 1))
-print(cov.sort_values("n", ascending=False).to_string())
+print(cov.sort_values("n", ascending=False, kind="stable").to_string())
 ```
 
 ## 3. Mediana en escala ordinal
@@ -226,7 +208,7 @@ GRIS, AZUL, ROJO, CLARO = "#8c8c8c", "#3b6ea5", "#b5443a", "#d9d9d9"
 ```{python}
 #| label: fig-estacion
 #| fig-cap: "Frecuencia por estación y completitud de $O_3$ en paralelo."
-c = cov.sort_values("n")
+c = cov.sort_values("n", kind="stable")
 col = [ROJO if e == "NO3" else AZUL for e in c.index]
 # A una columna del reporte (~3.4 in). Los dos paneles siguen lado a lado
 # porque comparten el eje y de estaciones; apilarlos repetiria las 15 etiquetas.
