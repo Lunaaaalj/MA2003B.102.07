@@ -30,7 +30,7 @@ quarto render notebooks/01_verificacion_calidad.qmd   # -> docs/01_verificacion_
 
 El proyecto está preparado para **Python y R a la vez**. Elige según lo que pida la tarea; si no se especifica, mira qué lenguaje ya usan los archivos vecinos.
 
-**Python** — venv en `venv/`, dependencias en `requirements.txt` (pandas, numpy, matplotlib, openpyxl, pyarrow, pytest; **no** hay scipy/sklearn — si un análisis los necesita, instalarlos y actualizar `requirements.txt` con `pip freeze`).
+**Python** — venv en `venv/`, dependencias en `requirements.txt` (pandas, numpy, scipy, scikit-learn, matplotlib, openpyxl, pyarrow, pytest). Si un análisis necesita algo más, instalarlo y actualizar `requirements.txt` con `pip freeze` — ese archivo es el contrato del equipo.
 
 ```bash
 source venv/bin/activate
@@ -76,6 +76,7 @@ La documentación real de los datos (inconsistencias entre años, qué contiene 
 - Los seis `BD <año>.xlsx` **no comparten estructura**: 2024 trae las unidades pegadas al encabezado (`CO (ppm)`), 2025 renombró la fecha a `date` y metió una fila de unidades bajo el encabezado, y el número de estaciones va de 13 (2020) a 15 (2024-2025). `src/importar_datos.py` normaliza todo eso; no leas los Excel a mano.
 - Cada **hoja es una estación**, no hay columna de estación en el origen.
 - `data/processed/` **no se versiona**, salvo `sima_transformado_horario.parquet` (el dataset limpio y transformado final, issue #15, sí commiteado). El resto se regenera con `python src/importar_datos.py` (~5 min, el padrón es lo lento) → `src/limpieza.py` → `notebooks/transformaciones.qmd`.
+- La rama de modelado sale de la limpieza, no de la transformación: `src/agregacion_diaria.py` (#51) colapsa `sima_limpio_horario.csv` a **una fila por día-estación** y produce `sima_diario_modelado.parquet`, que es lo que consumen el PCA, la logística y el discriminante. Ahí viven también el catálogo de zonas (`ZONA`, `ELEV`) y el calendario (`marcar_calendario`), que las notebooks importan en vez de redefinir. Cada resumen diario y la regla de completitud están justificados en `docs/log_agregacion_diaria.md`.
 - Las marcas de tiempo son **hora local de pared sin zona horaria**. Al leerlas desde R hay que declarar `tzone <- "UTC"` (no convertir), o se corren 6 horas; `cargar_datos.R` ya lo hace.
 
 `data/raw/` contiene los Excel del SIMA (`BD 2020.xlsx` … `BD 2025.xlsx`, `Etiquetas.xlsx`, inventario y padrón). **Son inmutables**: no se editan ni se sobrescriben. Los datasets limpios van a `data/processed/`, los de terceros a `data/external/` (esta última no existe todavía; créala al necesitarla).
