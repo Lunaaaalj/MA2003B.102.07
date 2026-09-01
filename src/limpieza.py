@@ -105,7 +105,8 @@ MIN_VENTANAS_DIA = 18
 class Log:
     """Acumula el registro cuantificado de cada paso (requisito de #13 y #17)."""
 
-    def __init__(self) -> None:
+    def __init__(self, titulo: str = "Log de limpieza (issue #13)") -> None:
+        self.titulo = titulo
         self.pasos: list[tuple[str, str]] = []
 
     def add(self, paso: str, detalle: str) -> None:
@@ -113,7 +114,7 @@ class Log:
         print(f"[{paso}] {detalle}")
 
     def a_markdown(self) -> str:
-        lineas = ["# Log de limpieza (issue #13)", ""]
+        lineas = [f"# {self.titulo}", ""]
         actual = None
         for paso, detalle in self.pasos:
             if paso != actual:
