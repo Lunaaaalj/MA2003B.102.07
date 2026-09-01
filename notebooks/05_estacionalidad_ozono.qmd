@@ -40,6 +40,7 @@ figuras se escriben en `reports/figuras/`.
 ## 0. Carga y variables de agrupación
 
 ```{python}
+import sys
 import pandas as pd, numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -52,6 +53,10 @@ RAIZ = Path.cwd().parent
 PROC = RAIZ / "data" / "processed"
 FIGS = RAIZ / "reports" / "figuras"
 FIGS.mkdir(parents=True, exist_ok=True)
+
+# El cwd de Quarto es notebooks/, asi que la raiz del repo no esta en sys.path
+# y el import de src/ falla sin esta linea.
+sys.path.insert(0, str(RAIZ))
 
 D = pd.read_csv(PROC / "sima_limpio_diario.csv", parse_dates=["fecha"])
 print(f"diario: {D.shape}")
@@ -73,19 +78,11 @@ que es el catálogo oficial del SIMA. La agrupación se fija **a priori sobre
 geografía**: derivarla del comportamiento del ozono y después usarla para
 explicar ozono sería circular.
 
-Estas dos constantes son provisionales aquí; su lugar definitivo es el módulo de
-agregación diaria, donde el modelado las va a consumir.
+El catálogo vive en `src/agregacion_diaria.py` (#51) y se importa desde ahí; ya
+no se redefine en esta notebook.
 
 ```{python}
-ZONA = {**{k: "Noroeste" for k in ["NO", "NO2", "NO3"]},
-        **{k: "Suroeste" for k in ["SO", "SO2"]},
-        **{k: "Noreste"  for k in ["NE", "NE2", "NE3"]},
-        **{k: "Sureste"  for k in ["SE", "SE2", "SE3"]},
-        **{k: "Norte"    for k in ["NTE", "NTE2"]},
-        "CE": "Centro", "SUR": "Sur"}
-ELEV = {"SE3": 334, "NE3": 346, "SE2": 387, "NE2": 432, "NE": 474, "SE": 500,
-        "NTE": 503, "NTE2": 520, "SUR": 555, "CE": 562, "NO": 568, "NO3": 607,
-        "SO2": 636, "SO": 674, "NO2": 702}
+from src.agregacion_diaria import ZONA, ELEV
 
 D["zona"] = D.estacion.map(ZONA)
 D["msnm"] = D.estacion.map(ELEV)
