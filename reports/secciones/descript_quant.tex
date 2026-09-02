@@ -145,4 +145,90 @@ común; \texttt{O3}--\texttt{TOUT} ($r=0.51$) y \texttt{O3}--\texttt{WSR}
 \ce{NO} cerca de fuentes de tráfico. Los grupos de precursores correlacionados
 justifican aplicar PCA para reducir dimensionalidad.
 
+\subsubsection{Correlación a resolución diaria}
+\label{sec:correlacion-diaria}
+
+La correlación anterior (\cref{fig:mapa-calor}) se midió a resolución
+horaria. El análisis de componentes principales se corre sobre la tabla
+diaria y necesita su propia matriz: agregar a día cambia el tamaño de
+muestra y, típicamente, sube la correlación al cancelar ruido de medición.
+Se calcula sobre las 16 variables continuas del dataset diario transformado
+(\cref{sec:transformaciones}), en el subconjunto con las 16 simultáneamente
+completas ($n=14{,}719$ de 23,931 días-estación, 61.5\,\%). Es la misma regla
+de descarte listwise ya fijada para el modelado diario, necesaria además
+porque una matriz pairwise no está garantizada semidefinida positiva y los
+diagnósticos de esta subsección requieren que lo sea. \Cref{fig:mapa-calor-diario}
+resume la matriz completa; el triángulo superior se omite por redundancia.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{mapa_calor_correlacion_diario.pdf}
+    \caption{Mapa de calor de correlación de Pearson entre las 16 variables
+      continuas del dataset diario transformado, $n=14{,}719$ días-estación
+      completos.}
+    \label{fig:mapa-calor-diario}
+\end{figure}
+
+De los pares ya reportados a resolución horaria, tres tienen análogo directo
+en el conjunto diario (\cref{tab:corr-hora-dia}). \texttt{PM10}--
+\texttt{PM2.5} sube de forma clara y \texttt{viento\_u}--\texttt{WSR} sube en
+magnitud, consistente con que promediar cancela ruido de medición;
+\texttt{NO2}--\texttt{NOX} prácticamente no cambia (diferencia $<0.01$).
+
+\begin{table}[t]
+  \centering
+  \caption{Pares con análogo directo entre resolución horaria y diaria.}
+  \label{tab:corr-hora-dia}
+  \small
+  \begin{tabular}{lrrr}
+    \toprule
+    Par & $r$ horario & $r$ diario & $\Delta$ \\
+    \midrule
+    \texttt{NO2}--\texttt{NOX}       &     0.89 &     0.89 &     0.00 \\
+    \texttt{PM10}--\texttt{PM2.5}    &     0.62 &     0.69 &     0.07 \\
+    \texttt{viento\_u}--\texttt{WSR} & $-0.45$  & $-0.48$  & $-0.03$  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+El orden sí cambia: el par que dominaba a resolución horaria ya no es el
+primero. Lo desplazan \texttt{NO}--\texttt{NOX} ($r=0.95$) y
+\texttt{RH\_media}--\texttt{RH\_min\_diurna} ($r=0.89$), inexistentes en el
+mapa horario porque \texttt{NO} y \texttt{RH} no formaban parte de ese
+dataset. El primero es la redundancia definicional entre \texttt{NOX},
+\texttt{NO} y \texttt{NO2} (\texttt{NOX} $\approx$ \texttt{NO} +
+\texttt{NO2} por definición química) que la selección de variables dejó
+señalada sin resolver; el segundo es la misma variable resumida dos veces
+sobre ventanas distintas del día, no dos fenómenos independientes.
+\texttt{WSR\_media}--\texttt{WSR\_min} ($r=0.72$) es el mismo caso para
+viento. De los pares nuevos, solo \texttt{PM10}--\texttt{PM2.5} repite una
+relación entre contaminantes distintos; el resto es redundancia de
+construcción del propio resumen diario.
+
+Los diagnósticos previos al PCA (\cref{tab:diagnostico-pca}) confirman la
+multicolinealidad: el determinante es cercano a 0 y el número de condición
+es alto. La prueba de esfericidad de Bartlett rechaza que la matriz sea la
+identidad ($\chi^2(120)=157{,}831.6$, $p<0.001$), y el KMO total libra el
+umbral convencional de 0.6. A nivel variable, \texttt{RH\_media} (0.589) y
+\texttt{PRS\_media} (0.590) quedan justo debajo de ese umbral sin arrastrar
+el total por debajo del corte. Los cuatro diagnósticos justifican
+formalmente aplicar PCA sobre los predictores diarios.
+
+\begin{table}[t]
+  \centering
+  \caption{Diagnósticos previos al PCA sobre la matriz de correlación
+    diaria ($n=14{,}719$, 16 variables).}
+  \label{tab:diagnostico-pca}
+  \small
+  \begin{tabular}{lr}
+    \toprule
+    Diagnóstico          & Valor \\
+    \midrule
+    Determinante          & $2.19\times10^{-5}$ \\
+    Número de condición   & 324.3 \\
+    KMO total              & 0.661 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 

@@ -8,6 +8,7 @@ cycler==0.12.1
 debugpy==1.8.21
 et-xmlfile==2.0.0
 executing==2.2.1
+factor_analyzer==0.5.1
 fastjsonschema==2.22.2
 fonttools==4.63.0
 iniconfig==2.3.0

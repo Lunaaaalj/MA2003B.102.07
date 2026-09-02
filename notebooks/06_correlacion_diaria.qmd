@@ -1,0 +1,285 @@
+---
+title: "Tendencias y correlación (conjunto diario)"
+subtitle: "MA2003B, equipo 7"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+jupyter: python3
+---
+
+Opera sobre `sima_transformado_diario.parquet`, la salida de la agregación
+diaria (#51) y la transformación de #60. La unidad de análisis es el par
+día-estación, no la hora: los nombres de las columnas cambiaron respecto al
+conjunto horario porque cada variable se resumió sobre una ventana distinta
+(`docs/log_agregacion_diaria.md`). `TOUT` pasó a `TOUT_max`, los precursores a
+la ventana matutina `_06_09`, y el ozono al `MDA8`, que es la variable
+objetivo.
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+from pathlib import Path
+
+# No fijar matplotlib.use("Agg") aquí: es un backend no interactivo y Quarto
+# no capturaría ninguna figura.
+pd.set_option("display.width", 100)
+pd.set_option("display.max_columns", 20)
+
+RUTA = Path("../data/processed/sima_transformado_diario.parquet")
+FIGURAS = Path("../reports/figuras")
+
+datos = pd.read_parquet(RUTA)
+datos.shape
+```
+
+## Variables consideradas
+
+```{python}
+# 16 predictores agregados. Se excluyen O3_max_1h (r = 0.94 con MDA8: es la
+# misma variable objetivo medida de otra forma) y ventanas_validas (control de
+# calidad de la agregación, no un fenómeno atmosférico).
+predictores = [
+    "TOUT_max", "SR_acum", "PRS_media", "RH_media", "RH_min_diurna",
+    "WSR_media", "WSR_min", "viento_u_media", "viento_v_media",
+    "NO_06_09", "NO2_06_09", "NOX_06_09", "CO_06_09",
+    "PM10_media", "PM2.5_media", "SO2_media",
+]
+variables = predictores + ["MDA8"]
+
+# El descarte es listwise, igual que el de la regresión y el discriminante,
+# para que la matriz describa exactamente la muestra que los modelos verán.
+completos = datos[["estacion", "fecha"] + variables].dropna()
+
+print(f"{len(datos):,} filas totales -> {len(completos):,} casos completos "
+      f"({len(completos) / len(datos):.1%})")
+```
+
+## Medidas de resumen
+
+```{python}
+resumen = pd.DataFrame({
+    "escala": ["ppb" if v == "MDA8" else "estandarizada" for v in variables],
+    "promedio": completos[variables].mean(),
+    "mediana": completos[variables].median(),
+    "rango": completos[variables].max() - completos[variables].min(),
+    "varianza": completos[variables].var(),
+    "desv_estandar": completos[variables].std(),
+}).round(3)
+resumen.index.name = "variable"
+resumen
+```
+
+Los 16 predictores fueron transformados y escalados en
+`notebooks/transformaciones_diarias.qmd`, de ahí que presenten promedio cercano
+a 0 y desviación estándar cercana a 1. El `MDA8` conserva su escala original en
+ppb porque es la variable objetivo y sus umbrales normativos (NOM-020) solo
+tienen sentido en unidades físicas. La correlación de Pearson es invariante a
+cambios de escala lineales, de modo que la mezcla de escalas no afecta esta
+sección, pero sí obliga a reescalar antes del análisis de componentes
+principales.
+
+No se reporta la moda: las 17 variables son continuas y sus valores no se
+repiten de forma exacta.
+
+## Matriz de correlación
+
+```{python}
+matriz_cor = completos[variables].corr(method="pearson")
+matriz_cor.round(2)
+```
+
+```{python}
+#| fig-width: 9
+#| fig-height: 8
+
+# Reordenamiento jerárquico sobre la distancia 1 - r: agrupa visualmente los
+# bloques de variables correlacionadas.
+# Orden angular de eigenvectores (AOE): proyecta las variables sobre los dos
+# primeros componentes de la matriz de correlación y las ordena por su ángulo.
+# Agrupa los bloques correlacionados igual que un dendrograma, pero solo con
+# numpy. El corte se hace en el hueco angular mayor porque el orden es circular.
+valores, vectores = np.linalg.eigh(matriz_cor.to_numpy())
+principales = np.argsort(valores)[::-1][:2]
+coords = vectores[:, principales] * np.sqrt(valores[principales])
+angulos = np.arctan2(coords[:, 1], coords[:, 0])
+
+orden = np.argsort(angulos)
+huecos = np.diff(np.append(angulos[orden], angulos[orden][0] + 2 * np.pi))
+orden = np.roll(orden, -(int(np.argmax(huecos)) + 1))
+niveles = [variables[i] for i in orden]
+
+M = matriz_cor.loc[niveles, niveles].to_numpy().copy()
+M[np.triu_indices_from(M, k=1)] = np.nan  # solo triángulo inferior
+
+cmap = LinearSegmentedColormap.from_list("sima", ["#1874CD", "#E6E6FA", "#FF1493"])
+cmap.set_bad("white")
+
+k = len(niveles)
+fig, ax = plt.subplots(figsize=(9, 8))
+im = ax.imshow(M, cmap=cmap, vmin=-1, vmax=1)
+
+ax.set_xticks(range(k), niveles, rotation=45, ha="right", fontsize=8)
+ax.set_yticks(range(k), niveles, fontsize=8)
+for i in range(k):
+    for j in range(i + 1):
+        ax.text(j, i, f"{M[i, j]:.2f}", ha="center", va="center", fontsize=6)
+
+ax.set_xticks(np.arange(-0.5, k, 1), minor=True)
+ax.set_yticks(np.arange(-0.5, k, 1), minor=True)
+ax.grid(which="minor", color="white", linewidth=1)
+ax.tick_params(which="minor", length=0)
+for s in ax.spines.values():
+    s.set_visible(False)
+
+fig.colorbar(im, ax=ax, shrink=0.7, label="r de Pearson")
+ax.set_title(f"Correlación de Pearson, día-estación (n = {len(completos):,})")
+fig.tight_layout()
+fig.savefig(FIGURAS / "mapa_calor_correlacion_diaria.pdf")
+plt.show()
+```
+
+## Pares ordenados por magnitud
+
+```{python}
+triangulo = matriz_cor.where(
+    np.triu(np.ones(matriz_cor.shape), k=1).astype(bool)
+)
+pares = (
+    triangulo.stack().rename("r").reset_index()
+    .rename(columns={"level_0": "var1", "level_1": "var2"})
+)
+pares["r"] = pares["r"].round(3)
+pares = (
+    pares.reindex(pares["r"].abs().sort_values(ascending=False).index)
+    .reset_index(drop=True)
+)
+pares.head(20)
+```
+
+```{python}
+# Pares con colinealidad relevante para regresión y discriminante.
+pares[pares["r"].abs() > 0.7]
+```
+
+## Correlación con la variable objetivo
+
+```{python}
+cor_mda8 = (
+    matriz_cor["MDA8"].drop("MDA8").round(3)
+    .rename("r").reset_index().rename(columns={"index": "variable"})
+)
+cor_mda8 = (
+    cor_mda8.reindex(cor_mda8["r"].abs().sort_values(ascending=False).index)
+    .reset_index(drop=True)
+)
+cor_mda8
+```
+
+## Correlación intra-estación
+
+```{python}
+# La matriz anterior agrupa las estaciones y mezcla la variación temporal
+# dentro de cada sitio con las diferencias de nivel entre sitios. El promedio
+# de las correlaciones calculadas estación por estación aísla la primera.
+conteo = completos.groupby("estacion").size()
+sitios = conteo[conteo >= 100].index
+
+intra = (
+    completos[completos["estacion"].isin(sitios)]
+    .groupby("estacion")[variables].corr()["MDA8"].unstack()[predictores]
+)
+
+comparacion = pd.DataFrame({
+    "agrupada": matriz_cor.loc["MDA8", predictores].round(3),
+    "intra_estacion": intra.mean().round(3),
+})
+comparacion["diferencia"] = (
+    comparacion["intra_estacion"] - comparacion["agrupada"]
+).round(3)
+comparacion.index.name = "variable"
+comparacion = comparacion.reindex(
+    comparacion["agrupada"].abs().sort_values(ascending=False).index
+)
+
+print(f"{len(sitios)} de {datos['estacion'].nunique()} estaciones "
+      f"superan el umbral de 100 observaciones completas")
+comparacion
+```
+
+## Interpretación
+
+La estructura de correlación del conjunto diario se organiza en tres bloques.
+
+El primero es el de precursores. `NO_06_09`, `NO2_06_09` y `NOX_06_09` forman
+un grupo con correlaciones de 0.74 a 0.95 entre sí, lo cual es esperado porque
+NOx es por definición la suma de las otras dos especies. Ese bloque es
+colinealidad estructural, no un hallazgo empírico, y obliga a elegir un solo
+representante antes de la regresión múltiple o a tratarlo mediante componentes
+principales. El mismo argumento aplica, en menor grado, a `RH_media` con
+`RH_min_diurna` (0.89), a `WSR_media` con `WSR_min` (0.72) y a `PM10_media`
+con `PM2.5_media` (0.69).
+
+El segundo bloque es meteorológico y concentra la asociación con el ozono. Las
+cuatro correlaciones más fuertes con `MDA8` corresponden a `RH_min_diurna`
+(-0.47), `TOUT_max` (0.43), `RH_media` (-0.42) y `SR_acum` (0.38). El signo es
+consistente con el mecanismo fotoquímico: la producción de ozono aumenta con la
+insolación acumulada y la temperatura máxima, y disminuye con el contenido de
+humedad, que actúa como sumidero y coincide con condiciones de mayor cobertura
+nubosa.
+
+El tercer bloque, el de precursores frente a la variable objetivo, presenta
+correlaciones débiles: `NO2_06_09` con 0.18, `NOX_06_09` con 0.12 y `NO_06_09`
+con 0.08. Este resultado invierte el signo observado en el conjunto horario,
+donde O₃ correlaciona -0.43 con NOX y -0.35 con NO2. La diferencia no es un
+artefacto de la agregación sino la separación de dos procesos que operan a
+escalas distintas. En resolución horaria domina la titulación: el NO consume
+ozono en el mismo punto y en la misma hora, y esa reacción local genera la
+correlación negativa. Al agregar al día y desplazar los precursores a la
+ventana 06-09 h, la titulación deja de ser la señal dominante y aparece la
+relación de precursor, positiva y débil.
+
+La magnitud reducida de esas correlaciones es en sí misma un resultado. La
+formación de ozono no es lineal en NOx: bajo régimen limitado por COV, un
+incremento de NOx reduce el ozono, mientras que bajo régimen limitado por NOx
+lo incrementa. Una correlación de Pearson agrupada sobre ambos regímenes
+promedia efectos de signo opuesto y tiende a cero. Este comportamiento
+justifica el uso de análisis discriminante y de conglomerados en lugar de una
+regresión lineal simple sobre precursores.
+
+La comparación intra-estación confirma el patrón, con una excepción. La
+correlación de `PRS_media` con `MDA8` pasa de -0.20 agrupada a -0.34 dentro de
+cada sitio, la mayor discrepancia de la tabla, seguida de `SR_acum`, que sube
+de 0.38 a 0.43. Agrupar las estaciones diluye ambas señales porque introduce
+la variación de presión asociada a la elevación de cada sitio, que no tiene
+relación con la formación de ozono. Las demás variables se desplazan menos de
+0.06.
+
+## Limitaciones
+
+El descarte listwise reduce la muestra de 23,931 a 14,395 días-estación, es
+decir 60.2 % del total. El cuello de botella es `PM2.5_media`, con 21.9 % de
+valores faltantes; su exclusión recuperaría cerca de 2,500 filas. La estación
+NE3 desaparece por completo del conjunto de casos completos y NO3 conserva 89
+observaciones, por debajo del umbral aplicado en la sección intra-estación.
+
+La correlación de Pearson mide asociación lineal. Las relaciones no lineales
+del sistema fotoquímico, en particular la dependencia del ozono respecto al
+cociente COV/NOx, no son detectables por esta vía y requieren las técnicas
+multivariadas de las etapas siguientes.
+
+El SIMA no mide compuestos orgánicos volátiles especiados. El CO es el único
+proxy disponible para el segundo precursor del ozono, y su correlación con
+`MDA8` es de 0.10.
