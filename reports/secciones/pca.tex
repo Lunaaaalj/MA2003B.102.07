@@ -1,0 +1,73 @@
+\subsection{Componentes Principales}
+\label{sec:pca}
+
+El procedimiento de ACP es esencial para tratar la multicolinealidad de los predictores antes de su uso en el modelo: \texttt{NO} y \texttt{NOX} se correlacionan por 0.94. El resultado esperado son los componentes principales con nombres interpretables al contexto y las relaciones de las cargas. Se realiza el procedimiento a partir de los datos en estación-día.
+Las variables categóricas (\texttt{tipo\_dia}, \texttt{temporada}, \texttt{festivo}, \texttt{zona}) no entran al proceso; así como las derivadas de \texttt{O3} y los indicadores de excedencia son la variable respuesta, usar estos se consideraría fuga de información, se construirían componentes que tienen información que se quiere predecir.
+
+Solo se ajustará con el periodo de 2021-2024, dejando 2025 para aplicarlo, ya que de incluirlo se filtraría información del conjunto de validación de los modelos en los ejes.
+
+Se calculan los eigenvalores y se construye el gráfico scree (\cref{fig:scree_pca}). Sobre él se determina por el método del codo el número de componentes que se mantienen. La curvatura ubica el corte en el tercer componente principal.
+
+Las cargas son el producto de los eigenvectores y la raíz de sus eigenvalores correspondientes, de modo que se interpretan como la correlación entre las variables y los componentes (\cref{tab:pca-cargas}).
+
+El primer componente tiene cargas altas con, \texttt{NOX}, \texttt{NO2}, \texttt{NO}, \texttt{PM10} y \texttt{WSR\_min} negativa con $-0.48$, la relación de estas variables es principalmente que son las substancias que actúan en las reacciones químicas que forman el ozono, cuya fuente principal es la quema de combustibles fósiles, y la velocidad del viento (con carga negativa) actúa como dispersión; por esta razón \texttt{PC1} se denomina \textit{Carga primaria de combustión}.
+
+\texttt{PC2} tiene cargas altas negativas con la humedad relativa y cargas altas con la radiación solar y la temperatura, estas variables siguen una relación, ya que al aumentar la temperatura, la humedad relativa baja, dado que el aire caliente puede admitir más vapor; los días más soleados y secos aumentan la producción de ozono. Este componente principal es el \textit{Forzamiento fotoquímico}.
+
+El tercer componente es una relación de las condiciones que afectan el estancamiento de las partículas de contaminantes, al aumentar presión, aumenta el estancamiento, lo contrario al aumentar la velocidad del viento, este componente es el \textit{Estancamiento atmosférico} (\cref{fig:pca_biplot}).
+
+Los tres componentes acumulan 55.9\,\% de la varianza de los 15 predictores.
+La referencia para juzgar esa cifra no es el 100\,\%, sino la que producirían
+tres componentes sobre variables independientes: con $p = 15$ cada eigenvalor
+valdría 1 y tres acumularían 20\,\%. Los retenidos valen 3.92, 2.97 y 1.50,
+2.8 veces el nulo. La correlación entre \texttt{NO} y \texttt{NOX} que motivó
+el análisis queda absorbida en \texttt{PC1}, y las tres coordenadas que
+heredan los modelos posteriores son ortogonales por construcción.
+
+
+\begin{figure}
+  \centering
+  \includegraphics[width = \linewidth]{pca_scree.pdf}
+  \caption{Varianza explicada por cada componente. El decremento mayor ocurre en el tercer componente; a partir de ahí es marginal.}
+  \label{fig:scree_pca}
+\end{figure}
+
+\begin{table}[h]
+  \centering
+  \caption{Cargas dominantes de los componentes retenidos, con la varianza que
+    explica cada uno.}
+  \label{tab:pca-cargas}
+  \begin{tabular}{lr}
+    \toprule
+    Componente y variable & Carga \\
+    \midrule
+    \multicolumn{2}{l}{\emph{Carga primaria de combustión} (26.1\,\%)} \\
+    \quad \texttt{NOX}      & 0.88 \\
+    \quad \texttt{NO}       & 0.82 \\
+    \quad \texttt{NO2}      & 0.81 \\
+    \quad \texttt{PM10}     & 0.66 \\
+    \quad \texttt{WSR\_min} & $-0.48$ \\
+    \midrule
+    \multicolumn{2}{l}{\emph{Forzamiento fotoquímico} (19.8\,\%)} \\
+    \quad \texttt{RH\_min\_diurna} & $-0.77$ \\
+    \quad \texttt{TOUT\_max}       & 0.72 \\
+    \quad \texttt{RH\_media}       & $-0.70$ \\
+    \quad \texttt{SR\_acum}        & 0.65 \\
+    \quad \texttt{WSR\_media}      & 0.60 \\
+    \midrule
+    \multicolumn{2}{l}{\emph{Estancamiento atmosférico} (10.0\,\%)} \\
+    \quad \texttt{WSR\_min}        & $-0.50$ \\
+    \quad \texttt{viento\_u\_media} & 0.48 \\
+    \quad \texttt{WSR\_media}      & $-0.41$ \\
+    \quad \texttt{PRS\_media}      & 0.39 \\
+    \quad \texttt{RH\_min\_diurna} & $-0.37$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}
+  \centering
+  \includegraphics[width = \linewidth]{pca_biplot.pdf}
+  \caption{Biplot de los ejes retenidos. Puntos: submuestra de 3,000 observaciones de entrenamiento por temporada. Flechas: cargas escaladas al marco. Nombres abreviados: \texttt{TOUT} y \texttt{SR} son máximo y acumulado diarios; \texttt{NO}, \texttt{NO2}, \texttt{NOX} y \texttt{CO} son la ventana 06--09 h; el resto son medias diarias, salvo \texttt{WSR} mín y \texttt{RH} mín.}
+  \label{fig:pca_biplot}
+\end{figure}
