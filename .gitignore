@@ -279,10 +279,17 @@ packrat/lib*/
 packrat/src/
 
 # Datos derivados de data/raw/ por src/importar_datos.py + limpieza.py + transformaciones.qmd.
-# No se versionan (son reproducibles corriendo el pipeline), excepto el dataset
-# final limpio y transformado, que sí se commitea (issue #15).
+# No se versionan (son reproducibles corriendo el pipeline), excepto los datasets
+# finales transformados, que sí se commitean.
 data/processed/*
+# Horario (issue #15). Salió del pipeline previo a la PR #46, así que no contiene
+# NO, SO2, RH ni SR. Queda mientras el reporte lo siga describiendo; retirarlo se
+# decide en la issue #52, no aquí.
 !data/processed/sima_transformado_horario.parquet
+# Diario de modelado (issue #52), entrada de #53, #54 y #55. Se versiona porque
+# regenerarlo exige la cadena completa desde data/raw/, que no está en el repo.
+!data/processed/sima_transformado_diario.parquet
+!data/processed/transformacion_diaria_parametros.csv
 
 .vscode/
 .idea/

@@ -1,0 +1,184 @@
+\section{Diccionario de datos transformados}\label{sec:diccionario-transformado}
+Esta sección documenta el conjunto de datos diario resultante de las
+transformaciones de \cref{sec:transformaciones}. El archivo
+\texttt{data/processed/sima\_transformado\_diario.parquet} constituye la entrada
+de los análisis multivariados posteriores.
+
+\subsection{Dimensión y cobertura}
+El conjunto transformado contiene 23,931 observaciones día-estación y 34
+columnas. Comprende 15 estaciones y cubre del 1 de enero de 2021 al 30 de junio
+de 2025. Se transformaron y estandarizaron 16 predictores continuos medidos. Las
+18 columnas restantes se conservaron en su escala original.
+
+El criterio de \cref{sec:transformaciones} se reaplicó sobre la tabla diaria sin
+modificar el método. De las 16 variables continuas, 12 requirieron Box-Cox y
+estandarización z. \texttt{SR\_acum}, \texttt{PRS\_media}, \texttt{RH\_media} y
+\texttt{RH\_min\_diurna} cumplieron el criterio de sesgo desde la escala
+original y solo se estandarizaron. Los valores faltantes se conservaron sin
+imputación.
+
+\subsection{Variables del conjunto diario}
+La \cref{tab:dic-diario-continuas} presenta los 16 predictores continuos. Las
+unidades corresponden a la escala original, antes de la transformación y la
+estandarización.
+
+\begin{table*}[t]
+  \centering
+  \caption{Predictores continuos transformados y estandarizados del conjunto
+    diario. Las unidades corresponden a la escala original.}
+  \label{tab:dic-diario-continuas}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{lp{7.2cm}llr}
+    \toprule
+    Variable & Descripción & Unidad & Tratamiento & Faltantes \\
+    \midrule
+    \texttt{TOUT\_max} & Máximo diario de temperatura ambiente
+      & $^{\circ}\mathrm{C}$ & Box-Cox + z & 1,272 \\
+    \texttt{SR\_acum} & Acumulado diario de radiación solar
+      & $\mathrm{kWh}/\mathrm{m}^{2}$ & solo z & 1,018 \\
+    \texttt{NO\_06\_09} & Media de NO entre las 06:00 y las 09:00 h
+      & ppb & Box-Cox + z & 1,598 \\
+    \texttt{NO2\_06\_09} & Media de NO$_2$ entre las 06:00 y las 09:00 h
+      & ppb & Box-Cox + z & 1,624 \\
+    \texttt{NOX\_06\_09} & Media de NO$_x$ entre las 06:00 y las 09:00 h
+      & ppb & Box-Cox + z & 1,584 \\
+    \texttt{CO\_06\_09} & Media de CO entre las 06:00 y las 09:00 h
+      & ppm & Box-Cox + z & 1,554 \\
+    \texttt{WSR\_media} & Media diaria de la velocidad del viento
+      & km/h & Box-Cox + z & 959 \\
+    \texttt{WSR\_min} & Mínimo diario de la velocidad del viento
+      & km/h & Box-Cox + z & 959 \\
+    \texttt{PRS\_media} & Media diaria de la presión atmosférica
+      & mmHg & solo z & 751 \\
+    \texttt{RH\_media} & Media diaria de la humedad relativa
+      & \% & solo z & 2,067 \\
+    \texttt{RH\_min\_diurna} & Mínimo diurno de la humedad relativa
+      & \% & solo z & 1,995 \\
+    \texttt{viento\_u\_media} & Media vectorial diaria del viento en la
+      componente este-oeste & --- & Box-Cox + z & 1,387 \\
+    \texttt{viento\_v\_media} & Media vectorial diaria del viento en la
+      componente norte-sur & --- & Box-Cox + z & 1,387 \\
+    \texttt{PM10\_media} & Media diaria de partículas PM$_{10}$
+      & $\mu\mathrm{g}/\mathrm{m}^{3}$ & Box-Cox + z & 805 \\
+    \texttt{PM2.5\_media} & Media diaria de partículas PM$_{2.5}$
+      & $\mu\mathrm{g}/\mathrm{m}^{3}$ & Box-Cox + z & 5,229 \\
+    \texttt{SO2\_media} & Media diaria de SO$_2$
+      & ppb & Box-Cox + z & 1,720 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+Aunque \texttt{SR\_acum} contiene 1,830 ceros, su sesgo de 0.30 cumple el
+criterio establecido. Por esta razón se conserva como predictor continuo y no
+se convierte en una variable binaria. Las 16 variables de la
+\cref{tab:dic-diario-continuas} quedan dentro del criterio
+$|\mathrm{sesgo}|<0.5$.
+
+La \cref{tab:dic-diario-originales} reúne las 18 columnas que no se
+transformaron. \texttt{msnm} se conserva porque representa un atributo de la
+estación, con 15 valores repetidos, y no una medición diaria. \texttt{MDA8} y
+\texttt{O3\_max\_1h} permanecen en ppb porque definen las variables objetivo y
+sus umbrales deben conservar una interpretación física directa.
+
+\begin{table*}[t]
+  \centering
+  \caption{Columnas conservadas en la escala original dentro del conjunto
+    diario transformado.}
+  \label{tab:dic-diario-originales}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{llp{8.0cm}lr}
+    \toprule
+    Variable & Tipo & Descripción & Unidad & Faltantes \\
+    \midrule
+    \texttt{estacion} & nominal & Estación de monitoreo SIMA, con 15 niveles
+      & --- & 0 \\
+    \texttt{fecha} & fecha & Día calendario de la observación
+      & --- & 0 \\
+    \texttt{zona} & nominal & Zona geográfica del catálogo SIMA, con siete
+      niveles & --- & 0 \\
+    \texttt{msnm} & continua & Elevación de la estación sobre el nivel del mar
+      & m & 0 \\
+    \texttt{anio} & discreta & Año calendario
+      & --- & 0 \\
+    \texttt{mes} & discreta & Mes calendario
+      & --- & 0 \\
+    \texttt{temporada} & nominal & Temporada del año, con cuatro niveles
+      & --- & 0 \\
+    \texttt{tipo\_dia} & nominal & Día laborable, sábado, domingo o festivo
+      & --- & 0 \\
+    \texttt{festivo} & binaria & Indicadora de día de asueto
+      & 0/1 & 0 \\
+    \texttt{fin\_de\_semana} & binaria & Indicadora de sábado o domingo
+      & 0/1 & 0 \\
+    \texttt{llovio} & binaria & Indicadora de al menos una hora del día con
+      precipitación & 0/1 & 706 \\
+    \texttt{MDA8} & continua & Máximo diario de la media móvil de 8 h de O$_3$
+      & ppb & 1,402 \\
+    \texttt{ventanas\_validas} & discreta & Número de ventanas móviles de 8 h válidas
+      durante el día, de un máximo de 24 & ventanas & 0 \\
+    \texttt{O3\_max\_1h} & continua & Máximo horario de O$_3$ durante el día
+      & ppb & 709 \\
+    \texttt{excede\_anio\_1} & binaria & Excedencia de MDA8 sobre 65 ppb
+      & 0/1 & 1,402 \\
+    \texttt{excede\_anio\_3} & binaria & Excedencia de MDA8 sobre 60 ppb
+      & 0/1 & 1,402 \\
+    \texttt{excede\_anio\_5} & binaria & Excedencia de MDA8 sobre 51 ppb
+      & 0/1 & 1,402 \\
+    \texttt{excede\_1h} & binaria & Excedencia del máximo horario sobre 95 ppb
+      & 0/1 & 0 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsection{Sesgo y curtosis}
+La \cref{tab:dic-diario-sesgo} compara la forma de las distribuciones antes y
+después del tratamiento. La estandarización z es una transformación lineal y no
+modifica el sesgo ni la curtosis. Por ello, las cuatro variables que solo se
+estandarizaron conservan los valores de la escala original.
+
+\begin{table*}[t]
+  \centering
+  \caption{Sesgo y curtosis de exceso, con referencia normal igual a cero, de
+    las variables continuas del conjunto diario antes y después del
+    tratamiento.}
+  \label{tab:dic-diario-sesgo}
+  \small
+  \setlength{\tabcolsep}{6pt}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    & & & \multicolumn{2}{c}{Sesgo} & \multicolumn{2}{c}{Curtosis} \\
+    \cmidrule(lr){4-5}\cmidrule(lr){6-7}
+    Variable & Despl. & $\lambda$ & Antes & Después & Antes & Después \\
+    \midrule
+    \texttt{TOUT\_max} & 1.55 & 2.055 & $-0.83$ & $-0.16$ & 0.51 & $-0.51$ \\
+    \texttt{SR\_acum} & --- & --- & 0.30 & 0.30 & 1.65 & 1.65 \\
+    \texttt{NO\_06\_09} & 0.00 & $-0.092$ & 3.06 & 0.01 & 13.23 & $-0.10$ \\
+    \texttt{NO2\_06\_09} & 1.00 & 0.270 & 1.70 & 0.02 & 7.12 & 0.41 \\
+    \texttt{NOX\_06\_09} & 0.00 & 0.017 & 2.39 & 0.00 & 8.35 & 0.49 \\
+    \texttt{CO\_06\_09} & 1.00 & $-0.234$ & 1.30 & 0.01 & 4.13 & $-0.49$ \\
+    \texttt{WSR\_media} & 0.00 & 0.139 & 8.19 & 0.07 & 142.35 & 4.02 \\
+    \texttt{WSR\_min} & 0.00 & 0.282 & 8.84 & 0.04 & 342.92 & 0.93 \\
+    \texttt{PRS\_media} & --- & --- & 0.12 & 0.12 & $-0.18$ & $-0.18$ \\
+    \texttt{RH\_media} & --- & --- & $-0.36$ & $-0.36$ & 0.14 & 0.14 \\
+    \texttt{RH\_min\_diurna} & --- & --- & 0.44 & 0.44 & 0.12 & 0.12 \\
+    \texttt{viento\_u\_media} & 116.16 & 3.002 & $-1.82$ & 0.29 & 27.36 & 5.25 \\
+    \texttt{viento\_v\_media} & 99.96 & 2.972 & $-1.58$ & 0.20 & 28.28 & 4.97 \\
+    \texttt{PM10\_media} & 0.00 & 0.193 & 1.55 & 0.02 & 4.91 & 0.57 \\
+    \texttt{PM2.5\_media} & 0.00 & 0.031 & 2.03 & 0.00 & 9.88 & 0.04 \\
+    \texttt{SO2\_media} & 0.00 & $-0.210$ & 3.67 & $-0.01$ & 36.68 & 0.47 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+La agregación diaria redujo la curtosis de exceso de las componentes
+\texttt{viento\_u\_media} y \texttt{viento\_v\_media} de 37.5 a 27.4 y de 38.7
+a 28.3, respectivamente. Esta disminución equivale aproximadamente a 27 \% y
+no elimina por sí sola las colas pesadas. Box-Cox las reduce a 5.25 y 4.97.
+
+Las mayores curtosis antes de la transformación corresponden a
+\texttt{WSR\_min}, con 342.92, y \texttt{WSR\_media}, con 142.35. Después de
+Box-Cox disminuyen a 0.93 y 4.02. Aunque todas las variables cumplen el criterio
+de sesgo, la curtosis residual del bloque de viento debe considerarse al
+interpretar el análisis discriminante lineal.
