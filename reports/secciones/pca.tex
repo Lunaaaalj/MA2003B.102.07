@@ -1,70 +1,41 @@
-\subsection{Componentes principales}\label{sec:pca}
+\subsection{Componentes Principales}
+\label{sec:pca}
 
-Los predictores diarios no son coordenadas independientes: \texttt{NO2} y
-\texttt{NOX} comparten la mayor parte de su variación, y otro tanto ocurre entre
-\texttt{PM10} y \texttt{PM2.5}. El análisis de componentes principales no
-persigue aquí un objetivo propio, sino sustituir ese bloque correlacionado por
-un conjunto de ejes ortogonales que el modelo de clasificación pueda emplear sin
-inflar los errores estándar de sus coeficientes.
+El procedimiento de ACP es esencial para tratar la multicolinealidad de los predictores antes de su uso en el modelo: \texttt{NO} y \texttt{NOX} se correlacionan por 0.94. El resultado esperado son los componentes principales con nombres interpretables al contexto y las relaciones de las cargas. Se realiza el procedimiento a partir de los datos en estación-día.
+Las variables categóricas (\texttt{tipo\_dia}, \texttt{temporada}, \texttt{festivo}, \texttt{zona}) no entran al proceso; así como las derivadas de \texttt{O3} y los indicadores de excedencia son la variable respuesta, usar estos se consideraría fuga de información, se construirían componentes que tienen información que se quiere predecir.
 
-\subsubsection{Bloque de predictores}
+Solo se ajustará con el periodo de 2021-2024, dejando 2025 para aplicarlo, ya que de incluirlo se filtraría información del conjunto de validación de los modelos en los ejes.
 
-Entran las variables continuas de precursores y meteorología. Las indicadoras de
-zona, \texttt{tipo\_dia}, \texttt{temporada} y \texttt{festivo} quedan fuera,
-porque una columna binaria eleva de forma artificial la varianza explicada; se
-incorporan directamente a la etapa de modelado. También se excluyen \ce{MDA8},
-\texttt{O3\_max\_1h} y las indicadoras de excedencia, que constituyen la
-respuesta y cuya inclusión como predictores sería fuga de información.
+Se calculan los eigenvalores y se construye el gráfico scree (\cref{fig:scree_pca}). Sobre él se determina por el método del codo el número de componentes que se mantienen. La curvatura ubica el corte en el tercer componente principal.
 
-\texttt{PM2.5} se retira del bloque. La estación \texttt{NE3} no registra un
-solo valor de esa variable y \texttt{NO3} registra 12.5\,\%, de modo que exigir
-observaciones completas no descarta días aislados sino estaciones enteras: la
-retención de la zona Noroeste caería de 60.5\,\% a 44.0\,\%, justamente la zona
-de mayor tasa de excedencia. La dimensión de aerosoles permanece representada
-por \texttt{PM10}. El bloque final reúne 15 predictores.
+Las cargas son el producto de los eigenvectores y la raíz de sus eigenvalores correspondientes, de modo que se interpretan como la correlación entre las variables y los componentes (\cref{tab:pca-cargas}).
 
-\subsubsection{Ajuste y criterio de retención}
+El primer componente tiene cargas altas con, \texttt{NOX}, \texttt{NO2}, \texttt{NO}, \texttt{PM10} y \texttt{WSR\_min} negativa con $-0.48$, la relación de estas variables es principalmente que son las substancias que actúan en las reacciones químicas que forman el ozono, cuya fuente principal es la quema de combustibles fósiles, y la velocidad del viento (con carga negativa) actúa como dispersión; por esta razón \texttt{PC1} se denomina \textit{Carga primaria de combustión}.
 
-La descomposición se ajusta sobre la matriz de correlación de los años 2021 a
-2024 y se aplica al año 2025 mediante los mismos vectores propios y momentos de
-entrenamiento; ajustarla sobre el periodo completo transferiría información del
-conjunto de validación a la construcción de los ejes. El ajuste emplea 16{,}008
-observaciones y la proyección de validación, 1{,}340.
+\texttt{PC2} tiene cargas altas negativas con la humedad relativa y cargas altas con la radiación solar y la temperatura, estas variables siguen una relación, ya que al aumentar la temperatura, la humedad relativa baja, dado que el aire caliente puede admitir más vapor; los días más soleados y secos aumentan la producción de ozono. Este componente principal es el \textit{Forzamiento fotoquímico}.
 
-El criterio de retención se fijó antes de ejecutar el análisis: método del codo
-sobre el gráfico de sedimentación, presentado en \cref{fig:pca-scree}. La
-curvatura del perfil de valores propios alcanza su máximo en la tercera
-componente, con 1.13 frente a 0.26 en la cuarta, y las caídas sucesivas
-confirman la lectura: el tramo pronunciado termina en la tercera componente y a
-partir de ahí la pendiente se aplana. Se retienen tres componentes, que reúnen
-55.9\,\% de la varianza.
+El tercer componente es una relación de las condiciones que afectan el estancamiento de las partículas de contaminantes, al aumentar presión, aumenta el estancamiento, lo contrario al aumentar la velocidad del viento, este componente es el \textit{Estancamiento atmosférico} (\cref{fig:pca_biplot}).
 
-El criterio de Kaiser retendría cinco componentes y 71.0\,\% de la varianza. Se
-reporta como contraste, sin modificar la decisión: el umbral $\lambda > 1$ es
-fijo y no considera la forma del perfil. Una lectura alternativa del codo, la de
-máxima distancia a la recta que une los extremos, sitúa el punto en la cuarta
-componente, si bien con un margen de 3\,\% sobre la tercera.
+Los tres componentes acumulan 55.9\,\% de la varianza de los 15 predictores.
+La referencia para juzgar esa cifra no es el 100\,\%, sino la que producirían
+tres componentes sobre variables independientes: con $p = 15$ cada eigenvalor
+valdría 1 y tres acumularían 20\,\%. Los retenidos valen 3.92, 2.97 y 1.50,
+2.8 veces el nulo. La correlación entre \texttt{NO} y \texttt{NOX} que motivó
+el análisis queda absorbida en \texttt{PC1}, y las tres coordenadas que
+heredan los modelos posteriores son ortogonales por construcción.
 
-\begin{figure}[t]
+
+\begin{figure}
   \centering
-  \includegraphics[width=\linewidth]{pca_scree.pdf}
-  \caption{Gráfico de sedimentación de los 15 predictores. El codo por
-    curvatura se ubica en la tercera componente; la línea punteada marca el
-    umbral de Kaiser.}
-  \label{fig:pca-scree}
+  \includegraphics[width = \linewidth]{pca_scree.pdf}
+  \caption{Varianza explicada por cada componente. El decremento mayor ocurre en el tercer componente; a partir de ahí es marginal.}
+  \label{fig:scree_pca}
 \end{figure}
-
-\subsubsection{Interpretación de los ejes}
-
-\cref{tab:pca-cargas} reúne las cargas dominantes de cada componente retenida.
-Las tres admiten lectura física, lo que permite interpretar después los
-coeficientes del modelo de clasificación en términos de condiciones
-atmosféricas y no de componentes numeradas.
 
 \begin{table}[h]
   \centering
-  \caption{Cargas dominantes de las componentes retenidas, con la varianza que
-    explica cada una.}
+  \caption{Cargas dominantes de los componentes retenidos, con la varianza que
+    explica cada uno.}
   \label{tab:pca-cargas}
   \begin{tabular}{lr}
     \toprule
@@ -94,37 +65,9 @@ atmosféricas y no de componentes numeradas.
   \end{tabular}
 \end{table}
 
-La primera componente agrupa los precursores de emisión vehicular en la ventana
-matutina, acompañados de material particulado y de velocidad de viento con signo
-negativo: describe la acumulación de carga primaria cuando el aire no la
-dispersa. La segunda opone temperatura máxima y radiación acumulada a humedad
-relativa, la firma de un día caluroso, despejado y seco. La tercera combina
-viento débil con presión elevada, el patrón anticiclónico.
-
-Este último eje merece una precisión metodológica. La combinación de viento
-débil y presión alta no se construyó como índice para después presentarla como
-resultado: emerge de la descomposición, que agrupa esas variables por su
-covariación observada. \cref{fig:pca-biplot} muestra la estructura en los dos
-planos definidos por la primera componente.
-
-\begin{figure*}[t]
+\begin{figure}
   \centering
-  \includegraphics[width=\linewidth]{pca_biplot.pdf}
-  \caption{Biplot de las componentes retenidas. Los puntos corresponden a una
-    submuestra de 3{,}000 observaciones de entrenamiento, coloreadas por
-    temporada; las flechas representan las cargas escaladas al marco del
-    gráfico.}
-  \label{fig:pca-biplot}
-\end{figure*}
-
-Los nombres describen la composición de cada eje y no atribuyen un mecanismo de
-formación. El conjunto no incluye mediciones de compuestos orgánicos volátiles,
-por lo que las componentes se describen como consistentes con procesos de
-combustión, fotoquímica y estancamiento, sin sustentar afirmación alguna sobre
-el régimen que limita la producción de ozono.
-
-Queda una limitación del procedimiento. Los parámetros de la transformación
-Box-Cox descrita en \cref{sec:transformaciones} se estimaron sobre el periodo
-completo, de modo que la forma marginal de cada variable incorpora información
-del año 2025. El efecto no alcanza a la variable respuesta ni a la construcción
-de los ejes, que se ajustan únicamente con los años de entrenamiento.
+  \includegraphics[width = \linewidth]{pca_biplot.pdf}
+  \caption{Biplot de los ejes retenidos. Puntos: submuestra de 3,000 observaciones de entrenamiento por temporada. Flechas: cargas escaladas al marco. Nombres abreviados: \texttt{TOUT} y \texttt{SR} son máximo y acumulado diarios; \texttt{NO}, \texttt{NO2}, \texttt{NOX} y \texttt{CO} son la ventana 06--09 h; el resto son medias diarias, salvo \texttt{WSR} mín y \texttt{RH} mín.}
+  \label{fig:pca_biplot}
+\end{figure}
