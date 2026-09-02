@@ -291,5 +291,7 @@ data/processed/*
 !data/processed/sima_transformado_diario.parquet
 !data/processed/transformacion_diaria_parametros.csv
 
+!data/processed/pca_puntuaciones_diarias.parquet
+
 .vscode/
 .idea/
