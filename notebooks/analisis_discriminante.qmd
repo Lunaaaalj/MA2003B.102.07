@@ -1,0 +1,338 @@
+---
+title: "Regresión logística y análisis discriminante"
+subtitle: "Issue #55 — MA2003B, equipo 7"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      # Sin esto, las tablas y los prints anchos se salen del margen: fvextra
+      # parte los renglones largos de los bloques verbatim en vez de recortarlos.
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+# Motor knitr (no jupyter): los chunks son de R. Requiere el paquete rmarkdown,
+# ya registrado en renv.lock.
+engine: knitr
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    message: false
+    warning: false
+    fig.width: 6
+    fig.height: 3.6
+    dpi: 150
+    dev: "pdf"
+---
+
+
+```{r}
+library(nanoparquet)
+library(dplyr)
+
+sima_scores = read_parquet("../data/processed/pca_puntuaciones_diarias.parquet")
+sima_modelado  = read_parquet("../data/processed/sima_diario_modelado.parquet")
+
+# fecha es hora local de pared sin zona horaria (ver CLAUDE.md); nanoparquet la
+# lee como UTC y R la despliega en America/Monterrey, corriéndola 6 horas.
+# Fijar el atributo, no convertir (as.POSIXct(tz=) sí correría los datos).
+attr(sima_scores$fecha, "tzone") <- "UTC"
+attr(sima_modelado$fecha, "tzone") <- "UTC"
+
+summary(sima_scores)
+summary(sima_modelado)
+```
+
+## Unión con la matriz de diseño
+
+Las puntuaciones del PCA (`sima_scores`) solo traen `estacion`, `fecha`, `particion`
+y las tres componentes. Zona, calendario y la variable respuesta viven en
+`sima_modelado`, así que se unen por `(estacion, fecha)`.
+
+```{r}
+sima_disc <- sima_scores |>
+  inner_join(
+    sima_modelado |>
+      select(estacion, fecha, zona, tipo_dia, temporada, excede_anio_5),
+    by = c("estacion", "fecha")
+  )
+
+stopifnot(nrow(sima_disc) == nrow(sima_scores))
+summary(sima_disc)
+```
+
+## Categóricas: referencia explícita y dummies k−1
+
+Referencia por variable (issue #55):
+
+- `zona`: **Noreste**, la de menor tasa de excedencia (19.0 %, `docs/05_estacionalidad_ozono.pdf`) — baseline de menor riesgo.
+- `tipo_dia`: **laborable**, el nivel más frecuente y el orden natural de `NIVELES_TIPO_DIA` en `src/agregacion_diaria.py`.
+- `temporada`: **invierno**, temporada de menor actividad fotoquímica.
+
+`festivo` no se agrega aparte: por construcción (`src/agregacion_diaria.py`,
+`marcar_calendario`) `tipo_dia == "festivo"` es idéntico a `festivo == 1` — son
+la misma indicadora. Incluir ambas duplicaría la columna y generaría
+colinealidad perfecta; la dummy `tipo_dia_festivo` ya la cubre.
+
+```{r}
+sima_disc <- sima_disc |>
+  mutate(
+    zona = relevel(factor(zona), ref = "Noreste"),
+    tipo_dia = factor(tipo_dia,
+                       levels = c("laborable", "sabado", "domingo", "festivo")),
+    temporada = factor(temporada,
+                        levels = c("invierno", "primavera", "verano", "otoño"))
+  )
+
+dummies <- model.matrix(~ zona + tipo_dia + temporada, data = sima_disc)[, -1]
+colnames(dummies) <- gsub("^zona|^tipo_dia|^temporada", "", colnames(dummies))
+colnames(dummies) <- c(
+  paste0("zona_", colnames(dummies)[1:6]),
+  paste0("tipo_dia_", colnames(dummies)[7:9]),
+  paste0("temporada_", colnames(dummies)[10:12])
+)
+
+sima_disc <- cbind(sima_disc, dummies)
+stopifnot(ncol(dummies) == 12)  # 6 zona + 3 tipo_dia + 3 temporada
+summary(sima_disc)
+```
+
+
+## Partición
+
+Entrenamiento 2021–2024, validación 2025, como decidió el equipo (#54, #55).
+`sima_scores` ya trae `particion` calculada así desde el PCA — se reutiliza
+en vez de recalcularla a partir de `fecha`, para garantizar que el PCA y los
+modelos de clasificación usan exactamente la misma frontera y que ninguno
+vio 2025 durante el ajuste.
+
+```{r}
+table(sima_disc$particion)
+
+sima_train <- sima_disc |> filter(particion == "entrenamiento")
+sima_valid <- sima_disc |> filter(particion == "validacion")
+
+range(sima_train$fecha)
+range(sima_valid$fecha)
+```
+
+**Limitación de la partición** (cuantificada en `docs/05_estacionalidad_ozono.pdf`):
+como 2025 termina el 30 de junio, la validación es 52.3 % primavera, 32.2 %
+invierno, 15.5 % verano y 0 % otoño, contra un entrenamiento repartido casi
+por igual (23.1–26.0 %). La tasa base de excedencia pasa de 29.31 % a
+41.50 %, 12.2 puntos que vienen del calendario y no del modelo. El AUC es
+menos sensible a la tasa base que la exactitud, lo que amortigua el problema
+pero no lo elimina — por eso la exactitud no se usa como métrica de decisión
+más adelante.
+
+```{r}
+mean(sima_train$excede_anio_5, na.rm = TRUE)
+mean(sima_valid$excede_anio_5, na.rm = TRUE)
+```
+
+## Regresión logística
+
+Respuesta `excede_anio_5`; predictores las tres componentes retenidas en #54
+más los 12 dummies (zona, tipo_dia, temporada) del paso anterior. Se arma la
+fórmula a partir de los nombres de columna en vez de escribirla a mano, para
+que quede ligada a los dummies que de verdad existen en `sima_disc` — si
+cambia el catálogo de zonas, la fórmula lo sigue sin que haya que tocarla.
+
+```{r}
+predictores <- c("PC1", "PC2", "PC3",
+                  grep("^zona_|^tipo_dia_|^temporada_", names(sima_disc), value = TRUE))
+formula_log <- reformulate(predictores, response = "excede_anio_5")
+formula_log
+```
+
+Ajuste sobre `sima_train` únicamente — `sima_valid` no participa del ajuste,
+solo de la evaluación:
+
+```{r}
+modelo_log <- glm(formula_log, data = sima_train, family = binomial)
+summary(modelo_log)
+```
+
+### Razones de momios
+
+La tabla que cuenta la historia (issue #55): `exp(coeficiente)` convierte la
+escala logit a razón de momios, e `IC 95%` viene de `broom::tidy` con
+`conf.int = TRUE` (Wald, no perfil de verosimilitud — más rápido y suficiente
+para reportar signo y magnitud).
+
+```{r}
+library(broom)
+
+momios_log <- tidy(modelo_log, exponentiate = TRUE, conf.int = TRUE) |>
+  filter(term != "(Intercept)")
+momios_log
+```
+
+### Razones de momios por componente
+
+Los tres ejes retenidos en #54, con su nombre interpretativo (no solo
+"PC1/PC2/PC3") porque ese es justo el requisito que #54 le impone a esta
+tabla: sin nombre, una razón de momios sobre un componente es ilegible.
+
+```{r}
+nombres_pc <- c(PC1 = "Carga primaria de combustión",
+                 PC2 = "Forzamiento fotoquímico",
+                 PC3 = "Estancamiento atmosférico")
+
+momios_pc <- momios_log |>
+  filter(term %in% names(nombres_pc)) |>
+  mutate(eje = nombres_pc[term], .before = 1) |>
+  select(eje, termino = term, momios = estimate,
+         ic_inf = conf.low, ic_sup = conf.high, p.value)
+momios_pc
+```
+
+Cada razón de momios es **por desviación estándar** del componente, no por
+unidad arbitraria — así lo dejó #54 al construir `sima_scores` (puntuaciones
+ya estandarizadas del PCA), y es lo que hace comparables los tres momios
+entre sí pese a que las cargas originales tengan escalas distintas.
+
+```{r}
+library(ggplot2)
+
+fig_momios <- ggplot(momios_pc, aes(x = momios, y = reorder(eje, momios))) +
+  geom_vline(xintercept = 1, linetype = "dashed", colour = "grey60") +
+  geom_pointrange(aes(xmin = ic_inf, xmax = ic_sup), colour = "#2c7fb8", linewidth = 0.8) +
+  geom_text(aes(label = sprintf("%.2f", momios)), vjust = -1, size = 3.5) +
+  labs(title = "Razones de momios por componente",
+       subtitle = "Excedencia MDA8 > 51 ppb — IC 95 %",
+       x = "Razón de momios", y = NULL) +
+  theme_minimal()
+
+fig_momios
+ggsave("../reports/figuras/momios_componentes.pdf", fig_momios,
+       width = 6, height = 3.6, units = "in")
+```
+
+Los tres quedan por encima de 1 con el intervalo lejos de esa línea: subir
+una desviación estándar en cualquiera de los tres ejes se asocia con mayores
+momios de excedencia, controlando por zona y calendario. El de mayor efecto
+es el forzamiento fotoquímico, seguido de la combustión primaria — consistente
+con que el ozono es un contaminante secundario que necesita tanto precursores
+como las condiciones para formarse fotoquímicamente, no solo lo primero.
+
+### Evaluación en validación: AUC, sensibilidad, especificidad
+
+**Nunca exactitud** — con 41.50 % de excedencia base en validación, un
+clasificador constante ya acierta bien sin distinguir nada.
+
+```{r}
+library(pROC)
+
+p_valid <- predict(modelo_log, newdata = sima_valid, type = "response")
+roc_log <- roc(sima_valid$excede_anio_5, p_valid, quiet = TRUE)
+
+auc(roc_log)
+```
+
+Criterio de logro del issue: AUC ≥ 0.75 en validación. Umbral de clasificación
+para sensibilidad/especificidad y matriz de confusión — el que maximiza
+sensibilidad + especificidad (Youden), declarado explícitamente en vez de
+asumir 0.5:
+
+```{r}
+umbral_log <- coords(roc_log, "best", best.method = "youden", ret = "threshold")
+umbral_log <- as.numeric(umbral_log)
+umbral_log
+
+pred_log <- factor(p_valid >= umbral_log, levels = c(FALSE, TRUE),
+                    labels = c("no_excede", "excede"))
+obs_log <- factor(sima_valid$excede_anio_5, levels = c(0, 1),
+                   labels = c("no_excede", "excede"))
+
+matriz_log <- table(observado = obs_log, predicho = pred_log)
+matriz_log
+
+coords(roc_log, umbral_log, ret = c("sensitivity", "specificity"))
+```
+
+### Curva ROC y matriz de confusión
+
+Estas figuras son solo del modelo logístico; cuando se agregue el
+discriminante lineal, la curva ROC se rehace comparando ambos en una sola
+figura (`reports/figuras/roc_modelos.pdf`, issue #55) en vez de duplicar dos
+figuras separadas — por eso esta versión se guarda con nombre provisional
+(`roc_log.pdf`) y se retira cuando exista la comparativa.
+
+```{r}
+library(ggplot2)
+
+fig_roc_log <- ggroc(roc_log, linewidth = 1, colour = "#2c7fb8") +
+  geom_abline(intercept = 1, slope = 1, linetype = "dashed", colour = "grey60") +
+  annotate("text", x = 0.25, y = 0.1,
+           label = sprintf("AUC = %.3f", auc(roc_log)), size = 4) +
+  labs(title = "Curva ROC — regresión logística (validación 2025)",
+       x = "Especificidad", y = "Sensibilidad") +
+  coord_equal() +
+  theme_minimal()
+
+fig_roc_log
+ggsave("../reports/figuras/roc_log.pdf", fig_roc_log,
+       width = 6, height = 3.6, units = "in")
+```
+
+Matriz de confusión al umbral de Youden, como conteos y como proporción por
+fila (observado):
+
+```{r}
+matriz_prop <- as.data.frame(matriz_log) |>
+  group_by(observado) |>
+  mutate(prop = Freq / sum(Freq))
+
+fig_matriz_log <- ggplot(matriz_prop, aes(x = predicho, y = observado, fill = prop)) +
+  geom_tile(colour = "white") +
+  geom_text(aes(label = sprintf("%d\n(%.1f %%)", Freq, prop * 100)),
+            colour = "white", fontface = "bold") +
+  scale_fill_gradient(low = "#9ecae1", high = "#08519c", limits = c(0, 1),
+                       guide = "none") +
+  labs(title = "Matriz de confusión — regresión logística (validación 2025)",
+       subtitle = sprintf("Umbral = %.3f (Youden)", umbral_log),
+       x = "Predicho", y = "Observado") +
+  theme_minimal()
+
+fig_matriz_log
+ggsave("../reports/figuras/matriz_confusion_log.pdf", fig_matriz_log,
+       width = 6, height = 3.6, units = "in")
+```
+
+### Análisis de umbral
+
+Cada punto de la curva ROC es un umbral distinto; esta tabla lo hace
+explícito para un puñado de candidatos, en vez de comprometerse solo con el
+de Youden. Se incluye exactitud a propósito, para mostrar por qué **no** se
+usa como criterio: sube con el umbral más alto (clasifica casi todo como
+"no excede", la clase mayoritaria) mientras la sensibilidad se desploma —
+exactamente el efecto que el checklist de la issue #55 advierte.
+
+```{r}
+candidatos <- c(youden = umbral_log, `0.5` = 0.5,
+                 tasa_base_train = mean(sima_train$excede_anio_5, na.rm = TRUE),
+                 tasa_base_valid = mean(sima_valid$excede_anio_5, na.rm = TRUE))
+
+tabla_umbrales <- coords(roc_log, candidatos,
+                          ret = c("threshold", "sensitivity", "specificity", "accuracy")) |>
+  mutate(criterio = names(candidatos), .before = 1)
+
+tabla_umbrales
+```
+
+Sensibilidad y especificidad se mueven en direcciones opuestas al mover el
+umbral — no hay un punto que maximice ambas a la vez, por eso Youden
+(maximizar su suma) es un criterio razonable por defecto y no un óptimo
+universal: si el costo de una excedencia no detectada fuera mucho mayor que
+el de una falsa alarma, convendría un umbral más bajo que sacrifique
+especificidad por sensibilidad.
+
+
