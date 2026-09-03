@@ -1,0 +1,257 @@
+---
+title: "Correlación a resolución diaria"
+subtitle: "Issue #53 — MA2003B, equipo 7"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+jupyter: python3
+---
+
+**Issue #53.** Depende de #52. La correlación que hoy justifica el PCA en
+`reports/secciones/descript_quant.tex` es horaria ($n = 574{,}343$
+hora-estación): sus cifras no respaldan un PCA que va a correr sobre la tabla
+diaria (#54). Esta notebook recalcula la matriz de correlación de Pearson
+**sobre las 16 variables continuas del dataset diario transformado**
+(`sima_transformado_diario.parquet`, #52), agrega el mapa de calor y los
+diagnósticos previos al PCA que el checklist de selección ya dejaba apuntados
+(`docs/checklist_seleccion_variables.md`: determinante, número de condición,
+KMO, Bartlett), y compara los pares más fuertes contra los ya reportados a
+resolución horaria.
+
+Deliberadamente **no** repite boxplots, histogramas ni densidades: esos
+describen la etapa horaria y siguen siendo correctos en su propio alcance
+(`descript_quant.tex`). Tampoco toca el balance de clases, que ya es diario
+por construcción (`eda_cualitativas.tex`).
+
+Las figuras se escriben en `reports/figuras/` y las cifras alimentan una
+subsección nueva de `reports/secciones/descript_quant.tex`, que convive con la
+subsección horaria existente sin sobrescribirla.
+
+## 0. Carga
+
+```{python}
+import sys
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+from factor_analyzer.factor_analyzer import calculate_bartlett_sphericity, calculate_kmo
+# No fijar matplotlib.use("Agg") aquí: es un backend no interactivo, así que
+# plt.show() no emite nada, Quarto no captura ninguna figura y el PDF sale con
+# los captions vacíos (PR #50).
+
+RAIZ = Path.cwd().parent
+PROC = RAIZ / "data" / "processed"
+FIGS = RAIZ / "reports" / "figuras"
+FIGS.mkdir(parents=True, exist_ok=True)
+
+# El cwd de Quarto es notebooks/, así que la raíz del repo no está en sys.path.
+sys.path.insert(0, str(RAIZ))
+
+D = pd.read_parquet(PROC / "sima_transformado_diario.parquet")
+print(f"diario transformado: {D.shape[0]:,} filas × {D.shape[1]} columnas")
+```
+
+Las 16 continuas son las mismas 16 que transformó #52: se importan de
+`src/agregacion_diaria.RESUMENES`, no se reescriben, por la misma razón que ya
+documentó `transformaciones_diarias.qmd` — que agregar un resumen allá no deje
+esta notebook desactualizada en silencio. Son los predictores continuos que
+entran a #54; `MDA8`/`O3_max_1h` (objetivo) y las categóricas quedan fuera del
+PCA por diseño (`objetivo_tecnicas.tex`), igual que en #52.
+
+```{python}
+from src.agregacion_diaria import RESUMENES
+
+CONTINUAS = [r.salida for r in RESUMENES]
+print(len(CONTINUAS), "continuas:", CONTINUAS)
+
+NUEVAS = {"NO": "NO_06_09", "SO2": "SO2_media", "RH": ["RH_media", "RH_min_diurna"],
+          "SR": "SR_acum"}
+print("\nVariables del reproceso (#46) ausentes del mapa de calor horario:")
+for base, cols in NUEVAS.items():
+    cols = [cols] if isinstance(cols, str) else cols
+    print(f"  {base}: {cols} -> {'OK' if all(c in CONTINUAS for c in cols) else 'FALTA'}")
+```
+
+## 1. Caso completo (listwise)
+
+La correlación se calcula sobre el **subconjunto con las 16 continuas
+completas**, no pairwise. Es la misma regla que ya fijó #51/#52 para el
+modelado (*"el modelado descarta listwise"*) y aquí importa por una razón
+adicional: una matriz de correlación pairwise, construida con un conjunto de
+casos distinto en cada celda, no está garantizada semidefinida positiva, y
+eso invalida sus valores propios — exactamente lo que piden los diagnósticos
+de la sección 5 (determinante, número de condición, KMO).
+
+```{python}
+X = D[CONTINUAS].dropna()
+print(f"n listwise: {X.shape[0]:,} de {D.shape[0]:,} "
+      f"({X.shape[0]/D.shape[0]*100:.1f} %)")
+```
+
+Es menor que las 22,529 filas con MDA8 válido (`docs/log_agregacion_diaria.md`
+§5): ese conteo solo exige el objetivo, no los 16 predictores simultáneamente.
+No se imputa nada aquí; es la misma decisión de #51 aplicada a este análisis.
+
+## 2. Matriz de correlación de Pearson
+
+```{python}
+R = X.corr(method="pearson")
+print(R.round(2).to_string())
+```
+
+## 3. Mapa de calor
+
+```{python}
+#| label: fig-mapa-calor-diario
+#| fig-cap: "Mapa de calor de correlación de Pearson entre las 16 variables continuas del dataset diario transformado (triángulo inferior; $n=14{,}719$ días-estación completos)."
+plt.rcParams.update({"font.size": 8, "font.family": "serif",
+                     "axes.spines.top": False, "axes.spines.right": False,
+                     "figure.dpi": 150})
+AZUL, ROJO, GRIS, CLARO = "#3b6ea5", "#b5443a", "#8c8c8c", "#d9d9d9"
+cmap = LinearSegmentedColormap.from_list("azul_claro_rojo", [AZUL, CLARO, ROJO])
+cmap.set_bad("white")
+
+p = len(CONTINUAS)
+mascara = np.triu(np.ones((p, p), dtype=bool), k=1)
+M = np.ma.array(R.values, mask=mascara)
+
+fig, ax = plt.subplots(figsize=(3.6, 4.0))
+im = ax.imshow(M, cmap=cmap, vmin=-1, vmax=1)
+ax.set_xticks(range(p)); ax.set_xticklabels(CONTINUAS, rotation=90, fontsize=5.5)
+ax.set_yticks(range(p)); ax.set_yticklabels(CONTINUAS, fontsize=5.5)
+ax.tick_params(length=0)
+for spine in ax.spines.values():
+    spine.set_visible(False)
+cbar = fig.colorbar(im, ax=ax, shrink=.7, pad=.02)
+cbar.ax.tick_params(labelsize=5.5)
+cbar.set_label("$r$ de Pearson", fontsize=6.5)
+fig.tight_layout()
+fig.savefig(FIGS / "mapa_calor_correlacion_diario.pdf")
+plt.show()
+```
+
+## 4. Pares más fuertes y comparación contra la resolución horaria
+
+```{python}
+pares = (R.where(np.triu(np.ones(R.shape, dtype=bool), k=1))
+          .stack()
+          .sort_values(key=lambda s: s.abs(), ascending=False))
+print("Top 12 pares por |r|, resolución diaria:")
+print(pares.head(12).round(3).to_string())
+```
+
+Los tres pares con análogo directo en la sección horaria
+(`descript_quant.tex`, \S Correlación): `NO2`--`NOX`, `PM10`--`PM2.5` y
+`viento_u`--`WSR`.
+
+```{python}
+# r horario: copiado literal de reports/secciones/descript_quant.tex
+# (par NO2-NOX, PM10-PM2.5, viento_u-WSR), no recalculado — ese dataset ya no
+# se toca aquí.
+HORARIO = {
+    ("NO2_06_09", "NOX_06_09"): ("NO2 -- NOX", 0.89),
+    ("PM10_media", "PM2.5_media"): ("PM10 -- PM2.5", 0.62),
+    ("viento_u_media", "WSR_media"): ("viento_u -- WSR", -0.45),
+}
+comp = pd.DataFrame([
+    {"par": nombre, "r_horario": r_h, "r_diario": round(R.loc[a, b], 3),
+     "delta": round(R.loc[a, b] - r_h, 3)}
+    for (a, b), (nombre, r_h) in HORARIO.items()
+])
+print(comp.to_string(index=False))
+```
+
+`PM10`--`PM2.5` sube de forma clara (+0.07) y `viento_u`--`WSR` sube en
+magnitud (+0.03); ambas consistentes con la hipótesis de la issue: promediar a
+día cancela ruido de medición y las correlaciones reales se acentúan.
+`NO2`--`NOX` es la excepción: prácticamente sin cambio (diferencia < 0.01,
+dentro del margen de redondeo).
+
+Lo que sí cambia es el **orden**: el par que dominaba a resolución horaria
+(`NO2`--`NOX`, $r=0.89$) ya no es el primero. Lo desplazan dos pares que no
+existían en el mapa de calor horario porque sus variables no estaban:
+`NO_06_09`--`NOX_06_09` ($r=0.95$) y `RH_media`--`RH_min_diurna` ($r=0.89$).
+El primero es la redundancia definicional que el checklist de selección dejó
+señalada sin resolver (`docs/checklist_seleccion_variables.md`, criterio C3:
+`NOX` $\approx$ `NO` + `NO2`) y que solo se vuelve visible ahora porque `NO`
+entra al dataset por primera vez (#46). El segundo es la misma variable
+(`RH`) resumida dos veces sobre ventanas distintas del día, no dos fenómenos
+independientes. `WSR_media`--`WSR_min` ($r=0.72$) es el mismo caso para
+viento. Estas tres son redundancia de construcción, no relación física nueva
+entre contaminantes; es `PM10`--`PM2.5` ($r=0.69$) la que repite la lectura ya
+dada a resolución horaria (material particulado de origen común).
+
+## 5. Diagnósticos previos al PCA
+
+Los cuatro que deja pendientes `docs/checklist_seleccion_variables.md` para
+esta etapa ("Multicolinealidad: determinante, número de condición, VIF, KMO,
+Bartlett").
+
+```{python}
+det = np.linalg.det(R.values)
+eigvals = np.linalg.eigvalsh(R.values)
+cond = eigvals.max() / eigvals.min()
+print(f"determinante:        {det:.3e}")
+print(f"valor propio mínimo:  {eigvals.min():.4f}")
+print(f"valor propio máximo:  {eigvals.max():.4f}")
+print(f"número de condición:  {cond:.1f}")
+```
+
+```{python}
+chi2, p_valor = calculate_bartlett_sphericity(X)
+gl = len(CONTINUAS) * (len(CONTINUAS) - 1) // 2
+print(f"Bartlett: chi2 = {chi2:,.1f}, gl = {gl}, p = {p_valor:.3g}")
+
+kmo_var, kmo_total = calculate_kmo(X)
+print(f"\nKMO total: {kmo_total:.3f}")
+kmo_tabla = pd.Series(kmo_var, index=CONTINUAS).sort_values()
+print("\nKMO por variable (ascendente):")
+print(kmo_tabla.round(3).to_string())
+```
+
+Determinante cercano a 0 y número de condición de 324 son evidencia de
+multicolinealidad fuerte — la contraparte numérica de los pares de la sección
+4. Bartlett rechaza esfericidad ($p < 0.001$: la matriz de correlación no es
+la identidad, hay estructura que reducir) y el KMO total (0.661) libra el
+umbral convencional de 0.6. A nivel variable, `RH_media` (0.589) y `PRS_media`
+(0.590) quedan justo debajo de ese umbral — no arrastran el total por debajo
+del corte, pero quedan documentadas como las más débiles del conjunto.
+
+## 6. Criterios de aceptación
+
+```{python}
+#| echo: false
+chk = [
+    ("Bartlett rechaza esfericidad (p < 0.05)", bool(p_valor < 0.05)),
+    ("KMO total >= 0.6 (aceptable)", bool(kmo_total >= 0.6)),
+    ("NO, SO2, RH y SR aparecen en la matriz",
+     all(c in CONTINUAS for c in
+         ["NO_06_09", "SO2_media", "RH_media", "RH_min_diurna", "SR_acum"])),
+    ("Matriz de correlación es simétrica y con diagonal 1",
+     bool(np.allclose(R.values, R.values.T)) and bool(np.allclose(np.diag(R.values), 1.0))),
+]
+for nombre, ok in chk:
+    print(("OK   " if ok else "FALLA") + "  " + nombre)
+```
+
+## 7. Qué queda para el reporte
+
+`reports/secciones/descript_quant.tex` gana una subsección corta después de
+"Correlación" (la horaria, que no se toca) con @fig-mapa-calor-diario,
+la tabla de comparación de la sección 4 y los diagnósticos de la sección 5.
+Esa subsección, no la horaria, es la que formalmente justifica el PCA de #54.
+
