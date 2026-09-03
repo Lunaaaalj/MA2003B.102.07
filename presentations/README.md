@@ -6,16 +6,28 @@ socioformador), separadas del reporte de `reports/`. Formato Beamer, no
 
 ## Archivos
 
-- `avance_socioformador.tex` — avance del proyecto tras el cambio de
-  objetivo (issue #64). No es la presentación final de entrega.
+Dos versiones del mismo avance (issue #64), con las mismas cifras y la
+misma estructura de 3 diapositivas de contenido (objetivo + PCA /
+regresión logística / discriminante lineal y comparación), pero
+redactadas para audiencias distintas:
+
+- `avance_socioformador.tex` — versión **simple**: lenguaje llano, sin
+  jerga estadística.
+- `avance_socioformador_tecnico.tex` — versión **técnica**: misma
+  estructura y cifras, con terminología estadística (razones de momios,
+  homocedasticidad, prueba de DeLong, etc.) para una audiencia con ese
+  conocimiento previo.
+
+Ninguna es la presentación final de entrega.
 
 ## Cómo compilar
 
 Desde esta carpeta:
 
 ```bash
-latexmk                    # -> avance_socioformador.pdf
-latexmk -c                 # limpia auxiliares
+latexmk avance_socioformador.tex           # -> avance_socioformador.pdf
+latexmk avance_socioformador_tecnico.tex   # -> avance_socioformador_tecnico.pdf
+latexmk -c                                 # limpia auxiliares de ambas
 ```
 
 ## Figuras
@@ -27,8 +39,6 @@ duplicar archivos entre el reporte y la presentación.
 ## Estado del contenido
 
 Cada cifra citada debe existir igual en `reports/secciones/`; no se
-recalcula ni se redondea distinto. Si un dato todavía no está redactado en
-el reporte (por ejemplo, mientras las issues #54/#55 de regresión
-logística y discriminante lineal siguen abiertas), la diapositiva
-correspondiente se deja marcada como pendiente en vez de rellenarse a
-mano.
+recalcula ni se redondea distinto. Si un dato todavía no está redactado
+en el reporte, la diapositiva correspondiente se deja marcada como
+pendiente en vez de rellenarse a mano.

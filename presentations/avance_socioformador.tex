@@ -1,20 +1,19 @@
 % =============================================================================
 %  avance_socioformador.tex - presentacion breve de avance (issue #64)
+%  VERSION SIMPLE: lenguaje llano, sin jerga estadistica. Ver tambien
+%  avance_socioformador_tecnico.tex (misma estructura, cifras identicas,
+%  redaccion tecnica) para comparar las dos opciones.
 %
 %  NO es la presentacion final de entrega: es un medio para mostrarle al
 %  socioformador el avance tras el cambio de objetivo y recibir
 %  retroalimentacion. Compila independiente de reports/ (misma carpeta de
 %  figuras, via \graphicspath, para no duplicar archivos).
 %
-%  Estado (2026-09-03): diapositivas 1 (objetivo + PCA) y 2 (regresion
-%  logistica) completas, con cifras tomadas de reports/secciones/. La
-%  logistica se actualizo tras traer los cambios de la PR #63
-%  (regresion-logistica-analisis-discriminante) a esta rama, que agrego
-%  reports/secciones/regresion_logistica.tex.
-%  La diapositiva 3 (discriminante) sigue pendiente: esa PR aun no
-%  redacta una seccion de discriminante en reports/secciones/ (solo la
-%  de logistica), asi que no hay de donde tomar sus cifras sin
-%  inventarlas. Revisar de nuevo cuando exista esa seccion.
+%  Estado (2026-09-03): las 3 diapositivas de contenido estan completas.
+%  Cifras tomadas de reports/secciones/objetivo_tecnicas.tex,
+%  reports/secciones/pca.tex y reports/secciones/regresion_logistica.tex
+%  (que ya incluye logistica, discriminante y su comparacion, traidas a
+%  esta rama desde la PR #63, regresion-logistica-analisis-discriminante).
 %
 %  Compilar desde esta carpeta:   latexmk
 % =============================================================================
@@ -26,6 +25,9 @@
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+% Igual que reports/main.tex: es-nodecimaldot evita que babel convierta
+% los puntos decimales en comas dentro de modo matematico.
+\def\spanishoptions{es-tabla,es-nodecimaldot,es-noquoting}
 \usepackage[spanish]{babel}
 \usepackage{enumitem}
 
@@ -36,7 +38,7 @@
 \setbeamertemplate{caption}[numbered]
 
 \title[Avance: excedencias de ozono]{Clasificación de excedencias de ozono en el AMM}
-\subtitle{Presentación de avance para el socioformador}
+\subtitle{Presentación de avance para el socioformador --- versión simple}
 \author{Equipo 102.07}
 \institute[MA2003B --- 102.07]{MA2003B --- Aplicación de Métodos Multivariados en Ciencia de Datos}
 \date{\today}
@@ -94,8 +96,8 @@
 
 % -----------------------------------------------------------------------
 % Diapositiva 2: regresion logistica
-% Fuente: reports/secciones/regresion_logistica.tex (traida a esta rama
-% desde la PR #63, regresion-logistica-analisis-discriminante).
+% Fuente: reports/secciones/regresion_logistica.tex, subseccion
+% "Regresion Logistica".
 % -----------------------------------------------------------------------
 \begin{frame}{Regresión logística: primeros resultados}
   \footnotesize
@@ -125,32 +127,55 @@
     \end{column}
     \begin{column}{0.44\textwidth}
       \centering
-      \includegraphics[width=0.92\linewidth]{roc_log.pdf}
+      \includegraphics[width=0.92\linewidth]{momios_componentes.pdf}
 
-      \footnotesize Curva ROC en validación (AUC = 0.893).
+      \footnotesize Qué tanto empuja cada eje hacia la excedencia.
     \end{column}
   \end{columns}
 \end{frame}
 
 % -----------------------------------------------------------------------
-% Diapositiva 3: discriminante + cierre -- PENDIENTE (issues #55 y #57)
-% Fuente ya disponible: reports/secciones/objetivo_tecnicas.tex (supuestos).
+% Diapositiva 3: discriminante + comparacion + cierre
+% Fuente: reports/secciones/regresion_logistica.tex, subsecciones
+% "Analisis discriminante lineal", "Comparacion de los dos modelos" y
+% "Limitaciones".
 % -----------------------------------------------------------------------
-\begin{frame}{Análisis discriminante lineal y cierre}
+\begin{frame}{¿El discriminante da lo mismo? Comparación y cierre}
+  \footnotesize
 
-  \begin{alertblock}{Pendiente --- issue \#55}
-    Faltan los resultados del discriminante (AUC de validación,
-    sensibilidad, especificidad) y la comparación logística vs.\
-    discriminante a la luz de sus supuestos: el discriminante lineal
-    asume normalidad multivariada, aproximada por Box-Cox con
-    $|\text{sesgo}| < 0.5$; la regresión logística no la requiere.
-  \end{alertblock}
+  \textbf{El discriminante lineal} es la otra técnica que probamos.
+  Parte de un supuesto más fuerte que la logística: que los datos
+  siguen una distribución normal y que se dispersan igual en ambos
+  grupos. Lo segundo no se cumple del todo --- los días de excedencia
+  varían menos que los de no excedencia ---, pero en la práctica no
+  importó.
+  \vspace{4pt}
 
-  \begin{block}{Propuesta de cierre}
-    Pendiente --- issue \#57 (sección de resultados y cierre del
-    reporte). Plan B si el AUC no llega a 0.75: repetir el análisis con
-    el umbral de 65 ppb.
-  \end{block}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      También alcanza un AUC de \textbf{0.893} en validación: detecta
+      el \textbf{84.5\,\%} de las excedencias reales y acierta el
+      \textbf{81.1\,\%} de los días sin excedencia --- casi idéntico a
+      la logística.
+
+      De hecho, los dos modelos coinciden en el \textbf{98.1\,\%} de
+      sus decisiones, y una prueba estadística no encuentra diferencia
+      real entre sus curvas ROC.
+
+      \textbf{Cierre.} Aunque el discriminante rompe uno de sus
+      supuestos, llega prácticamente al mismo resultado que el modelo
+      que no lo necesita. Queda pendiente: los modelos explican qué
+      acompaña una excedencia el mismo día, no predicen el siguiente;
+      y como varias estaciones comparten el mismo clima, los días no
+      son del todo independientes entre sí.
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \centering
+      \includegraphics[width=0.92\linewidth]{roc_modelos.pdf}
+
+      \footnotesize Las dos curvas se superponen casi por completo.
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \end{document}

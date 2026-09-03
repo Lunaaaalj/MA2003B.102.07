@@ -20,7 +20,8 @@
 *.vrb
 *.xdv
 
-# El PDF compilado tampoco se versiona por defecto; para la entrega al
-# socioformador se sube con:
+# Los PDF compilados tampoco se versionan por defecto (incluye la
+# variante tecnica); para la entrega al socioformador se suben con:
 #   git add -f presentations/avance_socioformador.pdf
-avance_socioformador.pdf
+#   git add -f presentations/avance_socioformador_tecnico.pdf
+avance_socioformador*.pdf
