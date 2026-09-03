@@ -258,54 +258,11 @@ matriz_log
 coords(roc_log, umbral_log, ret = c("sensitivity", "specificity"))
 ```
 
-### Curva ROC y matriz de confusión
-
-Estas figuras son solo del modelo logístico; cuando se agregue el
-discriminante lineal, la curva ROC se rehace comparando ambos en una sola
-figura (`reports/figuras/roc_modelos.pdf`, issue #55) en vez de duplicar dos
-figuras separadas — por eso esta versión se guarda con nombre provisional
-(`roc_log.pdf`) y se retira cuando exista la comparativa.
-
-```{r}
-library(ggplot2)
-
-fig_roc_log <- ggroc(roc_log, linewidth = 1, colour = "#2c7fb8") +
-  geom_abline(intercept = 1, slope = 1, linetype = "dashed", colour = "grey60") +
-  annotate("text", x = 0.25, y = 0.1,
-           label = sprintf("AUC = %.3f", auc(roc_log)), size = 4) +
-  labs(title = "Curva ROC — regresión logística (validación 2025)",
-       x = "Especificidad", y = "Sensibilidad") +
-  coord_equal() +
-  theme_minimal()
-
-fig_roc_log
-ggsave("../reports/figuras/roc_log.pdf", fig_roc_log,
-       width = 6, height = 3.6, units = "in")
-```
-
-Matriz de confusión al umbral de Youden, como conteos y como proporción por
-fila (observado):
-
-```{r}
-matriz_prop <- as.data.frame(matriz_log) |>
-  group_by(observado) |>
-  mutate(prop = Freq / sum(Freq))
-
-fig_matriz_log <- ggplot(matriz_prop, aes(x = predicho, y = observado, fill = prop)) +
-  geom_tile(colour = "white") +
-  geom_text(aes(label = sprintf("%d\n(%.1f %%)", Freq, prop * 100)),
-            colour = "white", fontface = "bold") +
-  scale_fill_gradient(low = "#9ecae1", high = "#08519c", limits = c(0, 1),
-                       guide = "none") +
-  labs(title = "Matriz de confusión — regresión logística (validación 2025)",
-       subtitle = sprintf("Umbral = %.3f (Youden)", umbral_log),
-       x = "Predicho", y = "Observado") +
-  theme_minimal()
-
-fig_matriz_log
-ggsave("../reports/figuras/matriz_confusion_log.pdf", fig_matriz_log,
-       width = 6, height = 3.6, units = "in")
-```
+La curva ROC y la matriz de confusión no se grafican aquí: se construyen más
+abajo con los dos modelos en una sola figura (`roc_modelos.pdf` y
+`matriz_confusion.pdf`), que es como las pide el issue #55. Las versiones
+provisionales solo del logístico (`roc_log.pdf`, `matriz_confusion_log.pdf`)
+quedaron retiradas al existir la comparativa.
 
 ### Análisis de umbral
 
@@ -336,3 +293,295 @@ el de una falsa alarma, convendría un umbral más bajo que sacrifique
 especificidad por sensibilidad.
 
 
+
+## Análisis discriminante lineal
+
+La segunda técnica de `tab:tecnicas` (`reports/secciones/objetivo_tecnicas.tex`)
+sobre la misma matriz de diseño y la misma respuesta que la logística. El
+contraste es lo que interesa: el discriminante sí supone normalidad
+multivariada dentro de cada clase y homocedasticidad entre clases, supuestos que
+la logística no necesita. Si ambos coinciden, el resultado no depende de esos
+supuestos; si difieren, la diferencia se lee contra ellos.
+
+### Verificación de supuestos
+
+Box-Cox (#52) dejó los predictores originales con `|sesgo| < 0.5`, y las
+componentes son combinaciones lineales de esos predictores. Se verifica sobre
+las puntuaciones, que es donde el supuesto opera, y por clase, que es como lo
+exige el discriminante:
+
+```{r}
+sesgo <- function(x) {
+  x <- x[!is.na(x)]
+  sum((x - mean(x))^3) / (length(x) * sd(x)^3)
+}
+
+sima_train |>
+  filter(!is.na(excede_anio_5)) |>
+  group_by(excede_anio_5) |>
+  summarise(across(c(PC1, PC2, PC3), ~ round(sesgo(.x), 3)), n = n())
+```
+
+Los seis sesgos quedan por debajo de 0.4 en valor absoluto, así que la
+aproximación a normalidad se sostiene sobre las componentes.
+
+La homocedasticidad es otra historia. No se usa la M de Box: con más de 15,000
+observaciones rechaza cualquier diferencia por pequeña que sea, así que su
+$p$-valor no informa. Se comparan las matrices de covarianza directamente:
+
+```{r}
+cov_por_clase <- function(y) {
+  sima_train |>
+    filter(excede_anio_5 == y) |>
+    dplyr::select(PC1, PC2, PC3) |>
+    cov()
+}
+
+S0 <- cov_por_clase(0)
+S1 <- cov_por_clase(1)
+
+round(sqrt(diag(S1)) / sqrt(diag(S0)), 3)  # razón de desviaciones estándar
+c(det_no_excede = det(S0), det_excede = det(S1))
+```
+
+Las razones son 0.883, 0.694 y 0.924: los días de excedencia son **menos
+dispersos** que los de no excedencia, sobre todo en el eje fotoquímico (PC2),
+y la varianza generalizada cae de 19.6 a 6.1. El supuesto de covarianzas
+iguales no se cumple estrictamente. Se declara aquí y se retoma al comparar los
+dos modelos, en vez de sustituirlo por un discriminante cuadrático: la issue
+pide el lineal como contraste de la logística, y cambiar de técnica a medio
+camino cambiaría lo que se está contrastando.
+
+Un segundo desvío, más grosero: los 12 dummies son binarios, y una indicadora
+no es normal bajo ninguna transformación. El discriminante lineal es conocido
+por tolerarlo — el clasificador resultante sigue siendo una frontera lineal
+razonable — pero la evidencia de que aquí lo tolera es empírica, y está en la
+comparación de más abajo, no en el supuesto.
+
+### Ajuste
+
+Misma fórmula, misma partición de entrenamiento. Las probabilidades previas se
+dejan en las proporciones observadas (el comportamiento por defecto de
+`MASS::lda`) en vez de fijarlas en 0.5: la tasa base de excedencia es
+información del problema, no un artefacto del muestreo.
+
+`MASS::select` no existe, pero `MASS` sí enmascara otras funciones de `dplyr`
+al cargarse después; por eso los `select` de aquí en adelante van calificados
+como `dplyr::select`.
+
+```{r}
+library(MASS)
+
+modelo_lda <- lda(formula_log, data = sima_train)
+modelo_lda$prior
+```
+
+Coeficientes de la única función discriminante — con dos clases hay
+$\min(k-1, p) = 1$:
+
+```{r}
+coef_lda <- data.frame(termino = rownames(modelo_lda$scaling),
+                        LD1 = round(as.numeric(modelo_lda$scaling), 4))
+coef_lda
+```
+
+El orden y el signo reproducen los de la logística: primavera y otoño pesan
+más que verano, el Noroeste y el Suroeste son las zonas de mayor riesgo, y
+entre las componentes manda el forzamiento fotoquímico (PC2) sobre la carga
+primaria (PC1) y el estancamiento (PC3). Los coeficientes no son razones de
+momios y no se leen como tales; son la dirección en la que las dos clases se
+separan al máximo.
+
+### Evaluación en validación
+
+Se usa la probabilidad posterior de la clase "excede" como puntaje continuo,
+para que la ROC sea comparable con la de la logística — no la clase que
+`predict` asigna por defecto, que ya trae incorporado un umbral de 0.5.
+
+```{r}
+p_valid_lda <- predict(modelo_lda, newdata = sima_valid)$posterior[, "1"]
+roc_lda <- roc(sima_valid$excede_anio_5, p_valid_lda, quiet = TRUE)
+
+auc(roc_lda)
+```
+
+Mismo criterio de umbral que en la logística (Youden), para que la comparación
+de sensibilidad y especificidad no confunda el efecto del modelo con el de una
+regla de corte distinta:
+
+```{r}
+umbral_lda <- as.numeric(coords(roc_lda, "best", best.method = "youden",
+                                 ret = "threshold"))
+umbral_lda
+
+pred_lda <- factor(p_valid_lda >= umbral_lda, levels = c(FALSE, TRUE),
+                    labels = c("no_excede", "excede"))
+matriz_lda <- table(observado = obs_log, predicho = pred_lda)
+matriz_lda
+
+coords(roc_lda, umbral_lda, ret = c("sensitivity", "specificity"))
+```
+
+## Comparación de los dos modelos
+
+```{r}
+comparacion <- data.frame(
+  modelo = c("Regresión logística", "Discriminante lineal"),
+  auc = c(as.numeric(auc(roc_log)), as.numeric(auc(roc_lda))),
+  umbral = c(umbral_log, umbral_lda),
+  sensibilidad = c(coords(roc_log, umbral_log, ret = "sensitivity")[[1]],
+                    coords(roc_lda, umbral_lda, ret = "sensitivity")[[1]]),
+  especificidad = c(coords(roc_log, umbral_log, ret = "specificity")[[1]],
+                     coords(roc_lda, umbral_lda, ret = "specificity")[[1]])
+)
+comparacion
+```
+
+Ambos superan el criterio de logro del issue (AUC ≥ 0.75) con holgura. La
+diferencia de AUC se contrasta con la prueba de DeLong, que es la adecuada
+porque las dos curvas están correlacionadas — se calculan sobre las mismas
+1,340 observaciones de validación:
+
+```{r}
+roc.test(roc_log, roc_lda, method = "delong")
+```
+
+```{r}
+cor(p_valid, p_valid_lda)                      # correlación de los puntajes
+mean((p_valid >= umbral_log) == (p_valid_lda >= umbral_lda))  # concordancia
+```
+
+Las dos técnicas son indistinguibles en estos datos: los AUC coinciden hasta el
+cuarto decimal (0.8928 contra 0.8928, DeLong $p = 0.99$), los puntajes
+correlacionan a 0.997 y las clasificaciones coinciden en el 98.1 % de los días
+de validación. Donde difieren es en el reparto de errores: el discriminante
+detecta ocho excedencias más (sensibilidad 0.845 contra 0.831) a cambio de diez
+falsas alarmas más (especificidad 0.811 contra 0.824), un intercambio dentro del
+ruido de muestreo.
+
+**Esa coincidencia es el resultado, no un anticlímax.** La heterocedasticidad
+documentada arriba es real y aun así no mueve el desempeño: la frontera que
+ambos trazan es prácticamente la misma. La lectura que sigue —las razones de
+momios de la \[sección de momios\]— no depende entonces del supuesto de
+normalidad que la logística no hace y el discriminante sí, que era exactamente
+la razón de ajustar los dos.
+
+### Curvas ROC de ambos modelos
+
+Una sola figura con las dos curvas, como pide el issue #55:
+
+```{r}
+# El AUC va en la leyenda y no como anotación suelta: el texto no se recorta
+# contra el panel y cada curva queda etiquetada con su propio valor.
+etiqueta <- function(nombre, r) sprintf("%s (AUC = %.3f)", nombre, auc(r))
+rocs <- setNames(list(roc_log, roc_lda),
+                 c(etiqueta("Regresión logística", roc_log),
+                   etiqueta("Discriminante lineal", roc_lda)))
+
+# Las dos curvas se superponen casi por completo, así que el discriminante va
+# punteado: sin eso la de abajo queda invisible y parecería haber una sola.
+fig_roc <- ggroc(rocs, aes = c("colour", "linetype"), linewidth = 0.8) +
+  geom_abline(intercept = 1, slope = 1, linetype = "dashed", colour = "grey60") +
+  scale_colour_manual(values = c("#2c7fb8", "#d95f02")) +
+  scale_linetype_manual(values = c("solid", "22")) +
+  labs(title = "Curvas ROC en validación (2025)",
+       subtitle = "Excedencia MDA8 > 51 ppb",
+       x = "Especificidad", y = "Sensibilidad",
+       colour = NULL, linetype = NULL) +
+  coord_equal() +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.direction = "vertical",
+        legend.spacing.y = unit(0, "pt"))
+
+fig_roc
+ggsave("../reports/figuras/roc_modelos.pdf", fig_roc,
+       width = 6, height = 4.2, units = "in")
+```
+
+Las curvas se superponen en casi todo su recorrido, que es la versión gráfica
+de la prueba de DeLong.
+
+### Matrices de confusión
+
+Las dos matrices al umbral de Youden de cada modelo, en la misma figura y con
+la misma escala para que se comparen de un vistazo:
+
+```{r}
+prop_por_fila <- function(m, modelo) {
+  as.data.frame(m) |>
+    group_by(observado) |>
+    mutate(prop = Freq / sum(Freq)) |>
+    ungroup() |>
+    mutate(modelo = modelo)
+}
+
+matrices <- bind_rows(
+  prop_por_fila(matriz_log, sprintf("Logística (umbral %.3f)", umbral_log)),
+  prop_por_fila(matriz_lda, sprintf("Discriminante (umbral %.3f)", umbral_lda))
+) |>
+  # bind_rows preserva el orden, pero facet_wrap ordena los paneles por el
+  # factor: sin fijar los niveles quedarían alfabéticos y el discriminante
+  # aparecería antes que la logística, al revés de como se leen en el texto.
+  mutate(modelo = factor(modelo, levels = unique(modelo)),
+         across(c(observado, predicho),
+                ~ factor(.x, levels = c("no_excede", "excede"),
+                          labels = c("No excede", "Excede"))))
+
+fig_matrices <- ggplot(matrices, aes(x = predicho, y = observado, fill = prop)) +
+  geom_tile(colour = "white") +
+  # El texto se pinta claro sobre las celdas oscuras y oscuro sobre las claras:
+  # en blanco fijo, los conteos de las celdas de proporción baja no se leen.
+  geom_text(aes(label = sprintf("%d\n(%.1f %%)", Freq, prop * 100),
+                colour = prop > 0.5),
+            fontface = "bold", size = 3, show.legend = FALSE) +
+  facet_wrap(~ modelo) +
+  scale_fill_gradient(low = "#deebf7", high = "#08519c", limits = c(0, 1),
+                       guide = "none") +
+  scale_colour_manual(values = c(`FALSE` = "#08306b", `TRUE` = "white")) +
+  labs(title = "Matrices de confusión en validación (2025)",
+       x = "Predicho", y = "Observado") +
+  theme_minimal()
+
+fig_matrices
+ggsave("../reports/figuras/matriz_confusion.pdf", fig_matrices,
+       width = 6, height = 3.2, units = "in")
+```
+
+## Limitaciones
+
+**Autocorrelación.** Las 15 estaciones de un mismo día comparten el clima
+sinóptico y los días consecutivos correlacionan entre sí, de modo que las
+17,002 filas día-estación que entran al ajuste y la validación no son
+observaciones independientes: la n efectiva está mucho más cerca de los 1,642
+días distintos que cubre la serie. Los errores
+estándar de la \[tabla de momios\] y los $p$-valores de `summary(modelo_log)`
+son, por lo tanto, optimistas — los intervalos de confianza reales son más
+anchos que los reportados. No se corrige: agregar a día-AMM devolvería la
+independencia temporal pero eliminaría la dimensión espacial, que es
+justamente donde están los contrastes de zona que el modelo encuentra
+significativos. La decisión es declararlo. Vale la pena notar que el AUC de
+validación no se ve afectado por esto: se calcula sobre 2025, que el modelo no
+vio, y no depende de ningún error estándar.
+
+**Sin COV, ninguna afirmación de mecanismo.** El SIMA no mide compuestos
+orgánicos volátiles, así que los ejes se describen como *consistentes con*
+combustión primaria, forzamiento fotoquímico o estancamiento, nunca como una
+atribución de régimen NOx–COV. Una razón de momios de 1.58 sobre PC2 dice que
+los días con más forzamiento fotoquímico tienen mayores momios de excedencia;
+no dice cuál de los dos precursores limita la formación de ozono, y esa
+pregunta no es contestable con estos datos.
+
+**Modelo explicativo, no de pronóstico.** Los predictores son del mismo día que
+la respuesta. El modelo describe qué condiciones acompañan a una excedencia; no
+anticipa el ozono de mañana con los datos de hoy, y por eso no se validó como
+serie de tiempo.
+
+**Partición estacionalmente desbalanceada.** Ya cuantificada arriba: la
+validación de 2025 no tiene otoño y le sobra primavera. El AUC amortigua el
+sesgo de tasa base, pero las cifras de sensibilidad y especificidad se leen
+sobre una validación más cargada de días propensos a excedencia que un año
+completo.
+
+**Verificación espacial pendiente.** El reajuste por zona para ver si las
+razones de momios de las componentes se mueven entre zonas está marcado como
+opcional en el issue #55 y no se realizó. Queda como extensión natural.
