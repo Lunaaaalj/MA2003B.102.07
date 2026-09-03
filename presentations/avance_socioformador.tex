@@ -6,13 +6,15 @@
 %  retroalimentacion. Compila independiente de reports/ (misma carpeta de
 %  figuras, via \graphicspath, para no duplicar archivos).
 %
-%  Estado (2026-09-03): la diapositiva 1 (objetivo + PCA) esta completa,
-%  con cifras tomadas de reports/secciones/objetivo_tecnicas.tex y
-%  reports/secciones/pca.tex. Las diapositivas 2 y 3 (regresion logistica
-%  y discriminante) dependen de las issues #54/#55, que aun no cierran: no
-%  existe reports/secciones/regresion_logistica.tex ni la seccion del
-%  discriminante, asi que esas diapositivas se dejan como pendientes
-%  marcados en vez de inventar cifras. Actualizar cuando #55 cierre.
+%  Estado (2026-09-03): diapositivas 1 (objetivo + PCA) y 2 (regresion
+%  logistica) completas, con cifras tomadas de reports/secciones/. La
+%  logistica se actualizo tras traer los cambios de la PR #63
+%  (regresion-logistica-analisis-discriminante) a esta rama, que agrego
+%  reports/secciones/regresion_logistica.tex.
+%  La diapositiva 3 (discriminante) sigue pendiente: esa PR aun no
+%  redacta una seccion de discriminante en reports/secciones/ (solo la
+%  de logistica), asi que no hay de donde tomar sus cifras sin
+%  inventarlas. Revisar de nuevo cuando exista esa seccion.
 %
 %  Compilar desde esta carpeta:   latexmk
 % =============================================================================
@@ -91,28 +93,43 @@
 \end{frame}
 
 % -----------------------------------------------------------------------
-% Diapositiva 2: regresion logistica -- PENDIENTE (issue #55)
-% Fuente ya disponible: reports/secciones/pca.tex (particion) y
-% reports/secciones/objetivo_tecnicas.tex (criterio de logro, desbalance).
-% Los resultados del modelo no se inventan hasta que exista
-% reports/secciones/regresion_logistica.tex.
+% Diapositiva 2: regresion logistica
+% Fuente: reports/secciones/regresion_logistica.tex (traida a esta rama
+% desde la PR #63, regresion-logistica-analisis-discriminante).
 % -----------------------------------------------------------------------
-\begin{frame}{Regresión logística}
+\begin{frame}{Regresión logística: primeros resultados}
+  \footnotesize
 
-  \begin{block}{Partición}
-    Entrenamiento 2021--2024, validación 2025.
-  \end{block}
+  \textbf{Partición.} Entrenamiento con 2021--2024; validación con
+  2025, fechas que el modelo no vio durante el ajuste.
+  \vspace{4pt}
 
-  \begin{alertblock}{Pendiente --- issue \#55}
-    Faltan por redactarse en \texttt{reports/secciones/}: razones de
-    momios por componente, AUC de validación, sensibilidad y
-    especificidad.
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \textbf{¿Qué tan bien clasifica?} En validación, el modelo
+      distingue los días con y sin excedencia con un AUC de
+      \textbf{0.893} --- muy por encima de la meta de 0.75. Detecta el
+      \textbf{83.1\,\%} de las excedencias reales (sensibilidad) y
+      descarta correctamente el \textbf{82.4\,\%} de los días sin
+      excedencia (especificidad).
 
-    \vspace{2pt}
-    \small La exactitud no se presenta como métrica de decisión: con el
-    umbral de 51 ppb, un clasificador constante alcanza 69.30\,\% sin
-    identificar el fenómeno. Criterio de logro: AUC $\geq 0.75$.
-  \end{alertblock}
+      No se usa la exactitud como criterio: 41.5\,\% de los
+      días-estación de validación excede el umbral, así que un modelo
+      que solo adivinara la clase más común ya luciría bien sin
+      detectar nada real.
+
+      De los 3 ejes del ACP, el que más empuja hacia la excedencia es
+      el \textit{forzamiento fotoquímico}, seguido de la
+      \textit{carga primaria de combustión}; el
+      \textit{estancamiento atmosférico} influye menos.
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \centering
+      \includegraphics[width=0.92\linewidth]{roc_log.pdf}
+
+      \footnotesize Curva ROC en validación (AUC = 0.893).
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % -----------------------------------------------------------------------
