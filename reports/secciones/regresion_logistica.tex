@@ -1,0 +1,112 @@
+\section{Uso de tecnicas de clasificacion}\label{sec:clasificacion_tecs}
+
+A partir de las puntuaciones generadas por medio del ACP, unimos su base de datos con el resto de las variables categóricas y binarias, el resultado es una base con las variables, incluyendo:
+
+\begin{multicols}{2}
+    \begin{enumerate}
+        \item \texttt{estacion}
+        \item \texttt{fecha}
+        \item \texttt{particion}
+        \item \texttt{PC1}
+        \item \texttt{PC2}
+        \item \texttt{PC3}
+        \item \texttt{zona}
+        \item \texttt{tipo\_dia}
+        \item \texttt{temporada}
+        \item \texttt{excede\_anio\_5}
+        \item \texttt{zona\_Centro}
+        \item \texttt{zona\_Noroeste}
+        \item \texttt{zona\_Norte}
+        \item \texttt{zona\_Sur}
+        \item \texttt{zona\_Sureste}
+        \item \texttt{zona\_Suroeste}
+        \item \texttt{tipo\_dia\_sabado}
+        \item \texttt{tipo\_dia\_domingo}
+        \item \texttt{tipo\_dia\_festivo}
+        \item \texttt{temporada\_primavera}
+        \item \texttt{temporada\_verano}
+        \item \texttt{temporada\_otono}
+    \end{enumerate}
+\end{multicols}
+
+Las variables \texttt{zona\_*}, \texttt{tipo\_dia\_*} y \texttt{temporada\_*} son indicadoras binarias obtenidas al codificar las categóricas \texttt{zona}, \texttt{tipo\_dia} y \texttt{temporada}: cada una vale 1 cuando la observación pertenece a la zona, el tipo de día o la temporada correspondiente, y 0 en caso contrario. En cada grupo se omite una categoría, que queda como nivel de referencia.
+
+
+Se hace una partición de los datos para usar como entrenamiento el conjunto correspondiente a las fechas de 2021-2024 y usar como validación los correspondientes a 2025.
+
+\subsection{Regresión Logística}\label{sec:reg_log}
+
+Se toma como variable respuesta \texttt{excede\_anio\_5} y como predictores las tres componentes retenidas del ACP más las 12 indicadoras binarias. El ajuste se realiza únicamente sobre la partición de entrenamiento (2021--2024); la de validación (2025) se reserva para la evaluación. Las razones de momios resultantes se reportan en la \cref{tab:momios-log}.
+
+\begin{table}[h]
+  \centering
+  \caption{Razones de momios del modelo logístico (\texttt{exp} del
+    coeficiente). Las componentes se interpretan por desviación estándar; las
+    indicadoras, contra su nivel de referencia: \texttt{Noreste} (zona), día
+    laborable (\texttt{tipo\_dia}) e invierno (\texttt{temporada}). Todos los
+    coeficientes son significativos ($p<0.001$) salvo
+    \texttt{tipo\_dia\_sabado} y \texttt{tipo\_dia\_festivo}.}
+  \label{tab:momios-log}
+  \begin{tabular}{lr}
+    \toprule
+    Variable & Momios \\
+    \midrule
+    \texttt{PC1} (carga primaria de combustión) & 1.47 \\
+    \texttt{PC2} (forzamiento fotoquímico)      & 1.58 \\
+    \texttt{PC3} (estancamiento atmosférico)    & 1.22 \\
+    \midrule
+    \texttt{zona\_Centro}    & 2.58 \\
+    \texttt{zona\_Noroeste}  & 3.35 \\
+    \texttt{zona\_Norte}     & 1.31 \\
+    \texttt{zona\_Sur}       & 2.94 \\
+    \texttt{zona\_Sureste}   & 1.90 \\
+    \texttt{zona\_Suroeste}  & 3.18 \\
+    \midrule
+    \texttt{tipo\_dia\_sabado}  & 1.06 \\
+    \texttt{tipo\_dia\_domingo} & 1.39 \\
+    \texttt{tipo\_dia\_festivo} & 1.10 \\
+    \midrule
+    \texttt{temporada\_primavera} & 5.11 \\
+    \texttt{temporada\_verano}    & 2.73 \\
+    \texttt{temporada\_otono}     & 4.25 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Lo notable es que el forzamiento fotoquímico tiene un momio mayor al de la carga primaria de combustión. Aquí hay una diferencia que se tiene que tomar en cuenta, el eje de carga primaria de combustible toma los ingredientes que por medio de reacciones químicas contribuyen directa o indirectamente a la formación de ozono, la velocidad y volumen de estas reacciones químicas dependen de las condiciones fotoquímicas del ambiente, por lo que el forzamiento fotoquímico tiene más peso que la carga primaria de combustión.
+
+Las zonas con mayores momios son Suroeste y Noroeste, implica que estas áreas son tres veces más propensas a tener excedencias que no excedencias. Son zonas de alto riesgo.
+
+Otra observación es que la primavera tiene mayor efecto en el modelo, más grande que cualquier otro componente y zona. Es coherente a la teoría química, el invierno, dado que tiene temperatura y radiación solar más bajas, frena las reacciones fotoquímicas, aunque los precursores estén presentes, por lo que tiene una mayor influencia en el modelo.
+
+
+\subsubsection{Evaluación y validación del modelo}
+
+La evaluación se realiza exclusivamente sobre la partición de validación (2025), no vista durante el ajuste. Se reportan el área bajo la curva ROC (AUC), la sensibilidad y la especificidad; la exactitud se descarta como criterio de decisión, ya que la tasa base de excedencia en validación es de 41.50 \%, y un clasificador constante que prediga siempre la clase mayoritaria alcanzaría una exactitud alta sin distinguir clases.
+
+El modelo logístico alcanza un AUC de 0.893 en validación (\cref{fig:roc-log}), por encima del criterio de logro fijado en 0.75. El umbral de clasificación se elige por el criterio de Youden (el punto que maximiza la suma de sensibilidad y especificidad) en vez de asumir 0.5 por defecto, y resulta en 0.288. A ese umbral, la sensibilidad es de 0.831 y la especificidad de 0.824; la \cref{tab:matriz-log} reporta la matriz de confusión correspondiente.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\linewidth]{roc_log.pdf}
+  \caption{Curva ROC del modelo logístico en validación (2025). AUC = 0.893.}
+  \label{fig:roc-log}
+\end{figure}
+
+\begin{table}[h]
+  \centering
+  \caption{Matriz de confusión del modelo logístico en validación, al umbral de Youden (0.288).}
+  \label{tab:matriz-log}
+  \begin{tabular}{lrr}
+    \toprule
+     & \multicolumn{2}{c}{Predicho} \\
+    Observado & No excede & Excede \\
+    \midrule
+    No excede & 638 & 136 \\
+    Excede    & 93  & 457 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Un umbral de 0.5 en lugar del de Youden ilustra por qué la exactitud no es un criterio adecuado: la exactitud baja de 0.827 a 0.766, pero la sensibilidad cae de 0.831 a 0.518, es decir, el modelo deja de detectar casi la mitad de las excedencias reales a cambio de una especificidad mayor (0.942). El umbral de Youden se prefiere porque no privilegia una clase sobre otra sin una justificación explícita de costos.
+
