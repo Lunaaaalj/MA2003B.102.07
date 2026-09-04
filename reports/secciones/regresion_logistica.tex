@@ -175,3 +175,14 @@ Esta coincidencia es el resultado relevante de la comparación. La heterocedasti
 \textbf{Alcance explicativo.} Los predictores corresponden al mismo día que la variable respuesta. Los modelos describen qué condiciones acompañan a una excedencia; no anticipan la concentración de ozono del día siguiente a partir de la información del día en curso, y por esa razón no se validaron como serie de tiempo.
 
 \textbf{Desbalance estacional de la partición.} La validación de 2025 concluye el 30 de junio, por lo que no contiene otoño y sobrerrepresenta la primavera. El AUC amortigua el efecto del cambio en la tasa base, pero las cifras de sensibilidad y especificidad se leen sobre una validación con mayor proporción de días propensos a excedencia que un año completo.
+
+\subsection{Conclusiones}
+
+Conforme a los resultados que se obtuvieron, se puede llegar a las siguientes conclusiones:
+
+\begin{enumerate}[label=\roman*]
+  \item Ambos modelos resultaron en AUC aproximadamente equivalentes. La frontera de decisión está bien delimitada por los datos.
+  \item La estacionalidad es dominante sobre las demás condiciones, \texttt{temporada\_primavera} con momios de 5.11. La excedencia del ozono es un fenómeno principalmente estacional.
+  \item Hay una señal espacial que no es medida, en el Noroeste y Suroeste hay 3 veces más momios del noreste, aunque las condiciones meteorologícas sean las mismas, una característica de la zona misma provoca que sean zonas de riesgo.
+  \item El calendario laboral casi no tiene un efecto significativo, solo el domingo lo es y de manera relativamente baja. Hacer un experimento de contraste del efecto fin de semana sería un análisis débil.
+\end{enumerate}

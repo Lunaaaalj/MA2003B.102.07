@@ -37,8 +37,8 @@ knitr:
 library(nanoparquet)
 library(dplyr)
 
-sima_scores = read_parquet("../data/processed/pca_puntuaciones_diarias.parquet")
-sima_modelado  = read_parquet("../data/processed/sima_diario_modelado.parquet")
+sima_scores <- read_parquet("../data/processed/pca_puntuaciones_diarias.parquet")
+sima_modelado <- read_parquet("../data/processed/sima_diario_modelado.parquet")
 
 # fecha es hora local de pared sin zona horaria (ver CLAUDE.md); nanoparquet la
 # lee como UTC y R la despliega en America/Monterrey, corriéndola 6 horas.
@@ -58,11 +58,11 @@ y las tres componentes. Zona, calendario y la variable respuesta viven en
 
 ```{r}
 sima_disc <- sima_scores |>
-  inner_join(
-    sima_modelado |>
-      select(estacion, fecha, zona, tipo_dia, temporada, excede_anio_5),
-    by = c("estacion", "fecha")
-  )
+    inner_join(
+        sima_modelado |>
+            select(estacion, fecha, zona, tipo_dia, temporada, excede_anio_5),
+        by = c("estacion", "fecha")
+    )
 
 stopifnot(nrow(sima_disc) == nrow(sima_scores))
 summary(sima_disc)
@@ -83,24 +83,26 @@ colinealidad perfecta; la dummy `tipo_dia_festivo` ya la cubre.
 
 ```{r}
 sima_disc <- sima_disc |>
-  mutate(
-    zona = relevel(factor(zona), ref = "Noreste"),
-    tipo_dia = factor(tipo_dia,
-                       levels = c("laborable", "sabado", "domingo", "festivo")),
-    temporada = factor(temporada,
-                        levels = c("invierno", "primavera", "verano", "otoño"))
-  )
+    mutate(
+        zona = relevel(factor(zona), ref = "Noreste"),
+        tipo_dia = factor(tipo_dia,
+            levels = c("laborable", "sabado", "domingo", "festivo")
+        ),
+        temporada = factor(temporada,
+            levels = c("invierno", "primavera", "verano", "otoño")
+        )
+    )
 
 dummies <- model.matrix(~ zona + tipo_dia + temporada, data = sima_disc)[, -1]
 colnames(dummies) <- gsub("^zona|^tipo_dia|^temporada", "", colnames(dummies))
 colnames(dummies) <- c(
-  paste0("zona_", colnames(dummies)[1:6]),
-  paste0("tipo_dia_", colnames(dummies)[7:9]),
-  paste0("temporada_", colnames(dummies)[10:12])
+    paste0("zona_", colnames(dummies)[1:6]),
+    paste0("tipo_dia_", colnames(dummies)[7:9]),
+    paste0("temporada_", colnames(dummies)[10:12])
 )
 
 sima_disc <- cbind(sima_disc, dummies)
-stopifnot(ncol(dummies) == 12)  # 6 zona + 3 tipo_dia + 3 temporada
+stopifnot(ncol(dummies) == 12) # 6 zona + 3 tipo_dia + 3 temporada
 summary(sima_disc)
 ```
 
@@ -146,8 +148,10 @@ que quede ligada a los dummies que de verdad existen en `sima_disc` — si
 cambia el catálogo de zonas, la fórmula lo sigue sin que haya que tocarla.
 
 ```{r}
-predictores <- c("PC1", "PC2", "PC3",
-                  grep("^zona_|^tipo_dia_|^temporada_", names(sima_disc), value = TRUE))
+predictores <- c(
+    "PC1", "PC2", "PC3",
+    grep("^zona_|^tipo_dia_|^temporada_", names(sima_disc), value = TRUE)
+)
 formula_log <- reformulate(predictores, response = "excede_anio_5")
 formula_log
 ```
@@ -171,7 +175,7 @@ para reportar signo y magnitud).
 library(broom)
 
 momios_log <- tidy(modelo_log, exponentiate = TRUE, conf.int = TRUE) |>
-  filter(term != "(Intercept)")
+    filter(term != "(Intercept)")
 momios_log
 ```
 
@@ -182,15 +186,19 @@ Los tres ejes retenidos en #54, con su nombre interpretativo (no solo
 tabla: sin nombre, una razón de momios sobre un componente es ilegible.
 
 ```{r}
-nombres_pc <- c(PC1 = "Carga primaria de combustión",
-                 PC2 = "Forzamiento fotoquímico",
-                 PC3 = "Estancamiento atmosférico")
+nombres_pc <- c(
+    PC1 = "Carga primaria de combustión",
+    PC2 = "Forzamiento fotoquímico",
+    PC3 = "Estancamiento atmosférico"
+)
 
 momios_pc <- momios_log |>
-  filter(term %in% names(nombres_pc)) |>
-  mutate(eje = nombres_pc[term], .before = 1) |>
-  select(eje, termino = term, momios = estimate,
-         ic_inf = conf.low, ic_sup = conf.high, p.value)
+    filter(term %in% names(nombres_pc)) |>
+    mutate(eje = nombres_pc[term], .before = 1) |>
+    select(eje,
+        termino = term, momios = estimate,
+        ic_inf = conf.low, ic_sup = conf.high, p.value
+    )
 momios_pc
 ```
 
@@ -203,17 +211,20 @@ entre sí pese a que las cargas originales tengan escalas distintas.
 library(ggplot2)
 
 fig_momios <- ggplot(momios_pc, aes(x = momios, y = reorder(eje, momios))) +
-  geom_vline(xintercept = 1, linetype = "dashed", colour = "grey60") +
-  geom_pointrange(aes(xmin = ic_inf, xmax = ic_sup), colour = "#2c7fb8", linewidth = 0.8) +
-  geom_text(aes(label = sprintf("%.2f", momios)), vjust = -1, size = 3.5) +
-  labs(title = "Razones de momios por componente",
-       subtitle = "Excedencia MDA8 > 51 ppb — IC 95 %",
-       x = "Razón de momios", y = NULL) +
-  theme_minimal()
+    geom_vline(xintercept = 1, linetype = "dashed", colour = "grey60") +
+    geom_pointrange(aes(xmin = ic_inf, xmax = ic_sup), colour = "#2c7fb8", linewidth = 0.8) +
+    geom_text(aes(label = sprintf("%.2f", momios)), vjust = -1, size = 3.5) +
+    labs(
+        title = "Razones de momios por componente",
+        subtitle = "Excedencia MDA8 > 51 ppb — IC 95 %",
+        x = "Razón de momios", y = NULL
+    ) +
+    theme_minimal()
 
 fig_momios
 ggsave("../reports/figuras/momios_componentes.pdf", fig_momios,
-       width = 6, height = 3.6, units = "in")
+    width = 6, height = 3.6, units = "in"
+)
 ```
 
 Los tres quedan por encima de 1 con el intervalo lejos de esa línea: subir
@@ -247,10 +258,14 @@ umbral_log <- coords(roc_log, "best", best.method = "youden", ret = "threshold")
 umbral_log <- as.numeric(umbral_log)
 umbral_log
 
-pred_log <- factor(p_valid >= umbral_log, levels = c(FALSE, TRUE),
-                    labels = c("no_excede", "excede"))
-obs_log <- factor(sima_valid$excede_anio_5, levels = c(0, 1),
-                   labels = c("no_excede", "excede"))
+pred_log <- factor(p_valid >= umbral_log,
+    levels = c(FALSE, TRUE),
+    labels = c("no_excede", "excede")
+)
+obs_log <- factor(sima_valid$excede_anio_5,
+    levels = c(0, 1),
+    labels = c("no_excede", "excede")
+)
 
 matriz_log <- table(observado = obs_log, predicho = pred_log)
 matriz_log
@@ -274,13 +289,16 @@ usa como criterio: sube con el umbral más alto (clasifica casi todo como
 exactamente el efecto que el checklist de la issue #55 advierte.
 
 ```{r}
-candidatos <- c(youden = umbral_log, `0.5` = 0.5,
-                 tasa_base_train = mean(sima_train$excede_anio_5, na.rm = TRUE),
-                 tasa_base_valid = mean(sima_valid$excede_anio_5, na.rm = TRUE))
+candidatos <- c(
+    youden = umbral_log, `0.5` = 0.5,
+    tasa_base_train = mean(sima_train$excede_anio_5, na.rm = TRUE),
+    tasa_base_valid = mean(sima_valid$excede_anio_5, na.rm = TRUE)
+)
 
 tabla_umbrales <- coords(roc_log, candidatos,
-                          ret = c("threshold", "sensitivity", "specificity", "accuracy")) |>
-  mutate(criterio = names(candidatos), .before = 1)
+    ret = c("threshold", "sensitivity", "specificity", "accuracy")
+) |>
+    mutate(criterio = names(candidatos), .before = 1)
 
 tabla_umbrales
 ```
@@ -312,14 +330,14 @@ exige el discriminante:
 
 ```{r}
 sesgo <- function(x) {
-  x <- x[!is.na(x)]
-  sum((x - mean(x))^3) / (length(x) * sd(x)^3)
+    x <- x[!is.na(x)]
+    sum((x - mean(x))^3) / (length(x) * sd(x)^3)
 }
 
 sima_train |>
-  filter(!is.na(excede_anio_5)) |>
-  group_by(excede_anio_5) |>
-  summarise(across(c(PC1, PC2, PC3), ~ round(sesgo(.x), 3)), n = n())
+    filter(!is.na(excede_anio_5)) |>
+    group_by(excede_anio_5) |>
+    summarise(across(c(PC1, PC2, PC3), ~ round(sesgo(.x), 3)), n = n())
 ```
 
 Los seis sesgos quedan por debajo de 0.4 en valor absoluto, así que la
@@ -331,16 +349,16 @@ $p$-valor no informa. Se comparan las matrices de covarianza directamente:
 
 ```{r}
 cov_por_clase <- function(y) {
-  sima_train |>
-    filter(excede_anio_5 == y) |>
-    dplyr::select(PC1, PC2, PC3) |>
-    cov()
+    sima_train |>
+        filter(excede_anio_5 == y) |>
+        dplyr::select(PC1, PC2, PC3) |>
+        cov()
 }
 
 S0 <- cov_por_clase(0)
 S1 <- cov_por_clase(1)
 
-round(sqrt(diag(S1)) / sqrt(diag(S0)), 3)  # razón de desviaciones estándar
+round(sqrt(diag(S1)) / sqrt(diag(S0)), 3) # razón de desviaciones estándar
 c(det_no_excede = det(S0), det_excede = det(S1))
 ```
 
@@ -380,8 +398,10 @@ Coeficientes de la única función discriminante — con dos clases hay
 $\min(k-1, p) = 1$:
 
 ```{r}
-coef_lda <- data.frame(termino = rownames(modelo_lda$scaling),
-                        LD1 = round(as.numeric(modelo_lda$scaling), 4))
+coef_lda <- data.frame(
+    termino = rownames(modelo_lda$scaling),
+    LD1 = round(as.numeric(modelo_lda$scaling), 4)
+)
 coef_lda
 ```
 
@@ -410,12 +430,16 @@ de sensibilidad y especificidad no confunda el efecto del modelo con el de una
 regla de corte distinta:
 
 ```{r}
-umbral_lda <- as.numeric(coords(roc_lda, "best", best.method = "youden",
-                                 ret = "threshold"))
+umbral_lda <- as.numeric(coords(roc_lda, "best",
+    best.method = "youden",
+    ret = "threshold"
+))
 umbral_lda
 
-pred_lda <- factor(p_valid_lda >= umbral_lda, levels = c(FALSE, TRUE),
-                    labels = c("no_excede", "excede"))
+pred_lda <- factor(p_valid_lda >= umbral_lda,
+    levels = c(FALSE, TRUE),
+    labels = c("no_excede", "excede")
+)
 matriz_lda <- table(observado = obs_log, predicho = pred_lda)
 matriz_lda
 
@@ -426,13 +450,17 @@ coords(roc_lda, umbral_lda, ret = c("sensitivity", "specificity"))
 
 ```{r}
 comparacion <- data.frame(
-  modelo = c("Regresión logística", "Discriminante lineal"),
-  auc = c(as.numeric(auc(roc_log)), as.numeric(auc(roc_lda))),
-  umbral = c(umbral_log, umbral_lda),
-  sensibilidad = c(coords(roc_log, umbral_log, ret = "sensitivity")[[1]],
-                    coords(roc_lda, umbral_lda, ret = "sensitivity")[[1]]),
-  especificidad = c(coords(roc_log, umbral_log, ret = "specificity")[[1]],
-                     coords(roc_lda, umbral_lda, ret = "specificity")[[1]])
+    modelo = c("Regresión logística", "Discriminante lineal"),
+    auc = c(as.numeric(auc(roc_log)), as.numeric(auc(roc_lda))),
+    umbral = c(umbral_log, umbral_lda),
+    sensibilidad = c(
+        coords(roc_log, umbral_log, ret = "sensitivity")[[1]],
+        coords(roc_lda, umbral_lda, ret = "sensitivity")[[1]]
+    ),
+    especificidad = c(
+        coords(roc_log, umbral_log, ret = "specificity")[[1]],
+        coords(roc_lda, umbral_lda, ret = "specificity")[[1]]
+    )
 )
 comparacion
 ```
@@ -447,8 +475,8 @@ roc.test(roc_log, roc_lda, method = "delong")
 ```
 
 ```{r}
-cor(p_valid, p_valid_lda)                      # correlación de los puntajes
-mean((p_valid >= umbral_log) == (p_valid_lda >= umbral_lda))  # concordancia
+cor(p_valid, p_valid_lda) # correlación de los puntajes
+mean((p_valid >= umbral_log) == (p_valid_lda >= umbral_lda)) # concordancia
 ```
 
 Las dos técnicas son indistinguibles en estos datos: los AUC coinciden hasta el
@@ -474,28 +502,37 @@ Una sola figura con las dos curvas, como pide el issue #55:
 # El AUC va en la leyenda y no como anotación suelta: el texto no se recorta
 # contra el panel y cada curva queda etiquetada con su propio valor.
 etiqueta <- function(nombre, r) sprintf("%s (AUC = %.3f)", nombre, auc(r))
-rocs <- setNames(list(roc_log, roc_lda),
-                 c(etiqueta("Regresión logística", roc_log),
-                   etiqueta("Discriminante lineal", roc_lda)))
+rocs <- setNames(
+    list(roc_log, roc_lda),
+    c(
+        etiqueta("Regresión logística", roc_log),
+        etiqueta("Discriminante lineal", roc_lda)
+    )
+)
 
 # Las dos curvas se superponen casi por completo, así que el discriminante va
 # punteado: sin eso la de abajo queda invisible y parecería haber una sola.
 fig_roc <- ggroc(rocs, aes = c("colour", "linetype"), linewidth = 0.8) +
-  geom_abline(intercept = 1, slope = 1, linetype = "dashed", colour = "grey60") +
-  scale_colour_manual(values = c("#2c7fb8", "#d95f02")) +
-  scale_linetype_manual(values = c("solid", "22")) +
-  labs(title = "Curvas ROC en validación (2025)",
-       subtitle = "Excedencia MDA8 > 51 ppb",
-       x = "Especificidad", y = "Sensibilidad",
-       colour = NULL, linetype = NULL) +
-  coord_equal() +
-  theme_minimal() +
-  theme(legend.position = "bottom", legend.direction = "vertical",
-        legend.spacing.y = unit(0, "pt"))
+    geom_abline(intercept = 1, slope = 1, linetype = "dashed", colour = "grey60") +
+    scale_colour_manual(values = c("#2c7fb8", "#d95f02")) +
+    scale_linetype_manual(values = c("solid", "22")) +
+    labs(
+        title = "Curvas ROC en validación (2025)",
+        subtitle = "Excedencia MDA8 > 51 ppb",
+        x = "Especificidad", y = "Sensibilidad",
+        colour = NULL, linetype = NULL
+    ) +
+    coord_equal() +
+    theme_minimal() +
+    theme(
+        legend.position = "bottom", legend.direction = "vertical",
+        legend.spacing.y = unit(0, "pt")
+    )
 
 fig_roc
 ggsave("../reports/figuras/roc_modelos.pdf", fig_roc,
-       width = 6, height = 4.2, units = "in")
+    width = 6, height = 4.2, units = "in"
+)
 ```
 
 Las curvas se superponen en casi todo su recorrido, que es la versión gráfica
@@ -508,43 +545,58 @@ la misma escala para que se comparen de un vistazo:
 
 ```{r}
 prop_por_fila <- function(m, modelo) {
-  as.data.frame(m) |>
-    group_by(observado) |>
-    mutate(prop = Freq / sum(Freq)) |>
-    ungroup() |>
-    mutate(modelo = modelo)
+    as.data.frame(m) |>
+        group_by(observado) |>
+        mutate(prop = Freq / sum(Freq)) |>
+        ungroup() |>
+        mutate(modelo = modelo)
 }
 
 matrices <- bind_rows(
-  prop_por_fila(matriz_log, sprintf("Logística (umbral %.3f)", umbral_log)),
-  prop_por_fila(matriz_lda, sprintf("Discriminante (umbral %.3f)", umbral_lda))
+    prop_por_fila(matriz_log, sprintf("Logística (umbral %.3f)", umbral_log)),
+    prop_por_fila(matriz_lda, sprintf("Discriminante (umbral %.3f)", umbral_lda))
 ) |>
-  # bind_rows preserva el orden, pero facet_wrap ordena los paneles por el
-  # factor: sin fijar los niveles quedarían alfabéticos y el discriminante
-  # aparecería antes que la logística, al revés de como se leen en el texto.
-  mutate(modelo = factor(modelo, levels = unique(modelo)),
-         across(c(observado, predicho),
-                ~ factor(.x, levels = c("no_excede", "excede"),
-                          labels = c("No excede", "Excede"))))
+    # bind_rows preserva el orden, pero facet_wrap ordena los paneles por el
+    # factor: sin fijar los niveles quedarían alfabéticos y el discriminante
+    # aparecería antes que la logística, al revés de como se leen en el texto.
+    mutate(
+        modelo = factor(modelo, levels = unique(modelo)),
+        across(
+            c(observado, predicho),
+            ~ factor(.x,
+                levels = c("no_excede", "excede"),
+                labels = c("No excede", "Excede")
+            )
+        )
+    )
 
 fig_matrices <- ggplot(matrices, aes(x = predicho, y = observado, fill = prop)) +
-  geom_tile(colour = "white") +
-  # El texto se pinta claro sobre las celdas oscuras y oscuro sobre las claras:
-  # en blanco fijo, los conteos de las celdas de proporción baja no se leen.
-  geom_text(aes(label = sprintf("%d\n(%.1f %%)", Freq, prop * 100),
-                colour = prop > 0.5),
-            fontface = "bold", size = 3, show.legend = FALSE) +
-  facet_wrap(~ modelo) +
-  scale_fill_gradient(low = "#deebf7", high = "#08519c", limits = c(0, 1),
-                       guide = "none") +
-  scale_colour_manual(values = c(`FALSE` = "#08306b", `TRUE` = "white")) +
-  labs(title = "Matrices de confusión en validación (2025)",
-       x = "Predicho", y = "Observado") +
-  theme_minimal()
+    geom_tile(colour = "white") +
+    # El texto se pinta claro sobre las celdas oscuras y oscuro sobre las claras:
+    # en blanco fijo, los conteos de las celdas de proporción baja no se leen.
+    geom_text(
+        aes(
+            label = sprintf("%d\n(%.1f %%)", Freq, prop * 100),
+            colour = prop > 0.5
+        ),
+        fontface = "bold", size = 3, show.legend = FALSE
+    ) +
+    facet_wrap(~modelo) +
+    scale_fill_gradient(
+        low = "#deebf7", high = "#08519c", limits = c(0, 1),
+        guide = "none"
+    ) +
+    scale_colour_manual(values = c(`FALSE` = "#08306b", `TRUE` = "white")) +
+    labs(
+        title = "Matrices de confusión en validación (2025)",
+        x = "Predicho", y = "Observado"
+    ) +
+    theme_minimal()
 
 fig_matrices
 ggsave("../reports/figuras/matriz_confusion.pdf", fig_matrices,
-       width = 6, height = 3.2, units = "in")
+    width = 6, height = 3.2, units = "in"
+)
 ```
 
 ## Limitaciones
@@ -554,7 +606,7 @@ sinóptico y los días consecutivos correlacionan entre sí, de modo que las
 17,002 filas día-estación que entran al ajuste y la validación no son
 observaciones independientes: la n efectiva está mucho más cerca de los 1,642
 días distintos que cubre la serie. Los errores
-estándar de la \[tabla de momios\] y los $p$-valores de `summary(modelo_log)`
+estándar de `momios_log` y los $p$-valores de `summary(modelo_log)`
 son, por lo tanto, optimistas — los intervalos de confianza reales son más
 anchos que los reportados. No se corrige: agregar a día-AMM devolvería la
 independencia temporal pero eliminaría la dimensión espacial, que es
