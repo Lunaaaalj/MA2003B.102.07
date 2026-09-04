@@ -9,13 +9,16 @@
 %  retroalimentacion. Compila independiente de reports/ (misma carpeta de
 %  figuras, via \graphicspath, para no duplicar archivos).
 %
-%  Estado (2026-09-03): las 3 diapositivas de contenido estan completas.
-%  Cifras tomadas de reports/secciones/objetivo_tecnicas.tex,
-%  reports/secciones/pca.tex y reports/secciones/regresion_logistica.tex
-%  (que ya incluye logistica, discriminante y su comparacion, traidas a
-%  esta rama desde la PR #63, regresion-logistica-analisis-discriminante).
+%  Estructura (3 diapositivas de contenido):
+%    1. Objetivo y tratamiento de los datos (los componentes se resumen)
+%    2. Los dos modelos, juntos
+%    3. Conclusiones
 %
-%  Compilar desde esta carpeta:   latexmk
+%  Cifras tomadas de reports/secciones/objetivo_tecnicas.tex,
+%  reports/secciones/pca.tex, reports/secciones/regresion_logistica.tex
+%  (incluida su subseccion "Conclusiones") y docs/log_limpieza.md.
+%
+%  Compilar desde esta carpeta:   latexmk avance_socioformador.tex
 % =============================================================================
 
 \documentclass{beamer}
@@ -37,145 +40,144 @@
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{caption}[numbered]
 
-\title[Avance: excedencias de ozono]{Clasificación de excedencias de ozono en el AMM}
-\subtitle{Presentación de avance para el socioformador --- versión simple}
-\author{Equipo 102.07}
-\institute[MA2003B --- 102.07]{MA2003B --- Aplicación de Métodos Multivariados en Ciencia de Datos}
+% El titulo coincide con el de reports/main.tex; el subtitulo es la segunda
+% linea (\large) de ese mismo titulo. La distincion entre esta version y la
+% otra NO va en la portada: vive en el nombre del archivo y en el README.
+\title[Excedencias de ozono en el AMM]{Discriminación de excedencias de ozono
+día-estación bajo el umbral de 51 ppb de la NOM-020-SSA1-2021}
+\subtitle{Comparación de análisis discriminante lineal y regresión logística en
+15 estaciones del SIMA, Área Metropolitana de Monterrey}
+\author[Equipo 102.07]{Angel Luna \and Jenaro Alcaraz \and Emilia Rico \and
+Mar Fernández \and Sofía Fernández}
+\institute[MA2003B --- 102.07]{Instituto Tecnológico y de Estudios Superiores
+de Monterrey \\ MA2003B --- Grupo 102.07}
 \date{\today}
 
 \begin{document}
 
 \begin{frame}
   \titlepage
-  \begin{center}
-    \small Avance del proyecto tras el cambio de objetivo; no es la presentación final de entrega.
-  \end{center}
 \end{frame}
 
 % -----------------------------------------------------------------------
-% Diapositiva 1: objetivo + PCA
-% Fuente: reports/secciones/objetivo_tecnicas.tex y reports/secciones/pca.tex
+% Diapositiva 1: objetivo y tratamiento de los datos.
+% Fuente: reports/secciones/objetivo_tecnicas.tex, reports/secciones/pca.tex
+% y docs/log_limpieza.md (secciones 3 y 5).
 % -----------------------------------------------------------------------
-\begin{frame}{¿Qué buscamos y cómo simplificamos los datos?}
-  \footnotesize
+\begin{frame}{Qué buscamos y cómo tratamos los datos}
+  \scriptsize
 
-  \textbf{El objetivo.} Identificar, día por día y por estación, cuándo
-  el aire del Área Metropolitana de Monterrey superó el límite seguro
-  de ozono que marca la norma oficial (\textbf{51 ppb},
-  NOM-020-SSA1-2021), según los contaminantes y el clima de ese mismo
-  día. El modelo \textbf{explica} qué condiciones acompañan esos
-  episodios; no \textbf{predice} los siguientes.
-  \vspace{4pt}
+  \textbf{El objetivo.} Identificar, día por día y por estación, cuándo el aire del Área Metropolitana de Monterrey superó el límite de ozono de la norma oficial (\textbf{51 ppb}, meta a cinco años de la NOM-020-SSA1-2021), a partir de los contaminantes y el clima de ese mismo día. El modelo \textbf{explica} qué acompaña esos episodios; no \textbf{predice} los siguientes.
+  \vspace{2pt}
 
   \begin{columns}[T]
-    \begin{column}{0.56\textwidth}
-      \textbf{¿Por qué componentes principales?} Muchas de las 15
-      variables medidas se mueven juntas: \texttt{NO} y \texttt{NOX},
-      dos contaminantes clave, casi se comportan como uno solo
-      (correlación de 0.94). Para no repetir información, se resumen
-      en 3 grandes ejes:
-      \begin{itemize}[itemsep=1pt,topsep=2pt,parsep=0pt,leftmargin=*]
-        \item \textit{Carga primaria de combustión}: contaminación
-          por quema de combustibles
-        \item \textit{Forzamiento fotoquímico}: qué tan soleado y
-          seco está el día
-        \item \textit{Estancamiento atmosférico}: qué tanto se
-          acumula el aire contaminado
+    \begin{column}{0.62\textwidth}
+      \textbf{Qué hicimos con los datos}
+      \begin{itemize}[itemsep=1pt,topsep=1pt,parsep=0pt,leftmargin=*]
+        \item \textbf{Huecos}: rellenamos el \textbf{1.67\,\%} de los datos
+          faltantes uniendo la medición anterior con la siguiente, solo cuando
+          el hueco dura 3 horas o menos. Los paros largos se dejan vacíos.
+        \item \textbf{Valores extremos: se detectan, pero se conservan.}
+          Queremos justamente clasificar los días de excedencia; quitar los
+          valores altos nos quitaría la información más relevante.
+        \item \textbf{Lo que sí se elimina son errores del equipo}: el código
+          de dato ausente del registrador ($-9999$), los topes de saturación
+          del sensor (999, 1000, 1001) y las lecturas fuera del rango físico
+          que el aparato puede medir. Menos del 0.02\,\% de los datos.
       \end{itemize}
-      Juntos conservan \textbf{55.9\,\%} de esa información, y
-      alimentan los modelos que siguen.
+      \vspace{1pt}
+      \textbf{Los tres ejes.} Muchas de las 15 variables se mueven juntas
+      (\texttt{NO} y \texttt{NOX} casi como una sola), así que las resumimos en
+      tres ejes ---quema de combustibles, qué tan soleado y seco está el día, y
+      qué tanto se estanca el aire--- que conservan el \textbf{55.9\,\%} de esa
+      información y alimentan los modelos.
     \end{column}
-    \begin{column}{0.44\textwidth}
+    \begin{column}{0.38\textwidth}
       \centering
-      \includegraphics[width=0.92\linewidth]{pca_scree.pdf}
+      \includegraphics[width=\linewidth]{pca_scree.pdf}
 
-      \footnotesize Varianza explicada por componente.
+      \scriptsize Información que aporta cada eje.
     \end{column}
   \end{columns}
 \end{frame}
 
 % -----------------------------------------------------------------------
-% Diapositiva 2: regresion logistica
-% Fuente: reports/secciones/regresion_logistica.tex, subseccion
-% "Regresion Logistica".
+% Diapositiva 2: los dos modelos en una sola diapositiva.
+% Fuente: reports/secciones/regresion_logistica.tex.
 % -----------------------------------------------------------------------
-\begin{frame}{Regresión logística: primeros resultados}
-  \footnotesize
+\begin{frame}{Los dos modelos que probamos}
+  \scriptsize
 
-  \textbf{Partición.} Entrenamiento con 2021--2024; validación con
-  2025, fechas que el modelo no vio durante el ajuste.
-  \vspace{4pt}
+  \textbf{Cómo los evaluamos.} Ambos aprenden con los años 2021--2024 y se
+  califican con 2025, fechas que no vieron durante el ajuste.
+  \vspace{3pt}
 
   \begin{columns}[T]
-    \begin{column}{0.56\textwidth}
-      \textbf{¿Qué tan bien clasifica?} En validación, el modelo
-      distingue los días con y sin excedencia con un AUC de
-      \textbf{0.893} --- muy por encima de la meta de 0.75. Detecta el
-      \textbf{83.1\,\%} de las excedencias reales (sensibilidad) y
-      descarta correctamente el \textbf{82.4\,\%} de los días sin
-      excedencia (especificidad).
-
-      No se usa la exactitud como criterio: 41.5\,\% de los
-      días-estación de validación excede el umbral, así que un modelo
-      que solo adivinara la clase más común ya luciría bien sin
-      detectar nada real.
-
-      De los 3 ejes del ACP, el que más empuja hacia la excedencia es
-      el \textit{forzamiento fotoquímico}, seguido de la
-      \textit{carga primaria de combustión}; el
-      \textit{estancamiento atmosférico} influye menos.
+    \begin{column}{0.58\textwidth}
+      \textbf{Regresión logística.} Estima la probabilidad de que un día
+      exceda el límite y dice cuánto pesa cada condición.
+      \begin{itemize}[itemsep=1pt,topsep=2pt,parsep=0pt,leftmargin=*]
+        \item Distingue los días con y sin excedencia con una calificación
+          de \textbf{0.893} sobre 1, muy por encima de la meta de 0.75.
+        \item Detecta el \textbf{83.1\,\%} de las excedencias reales y
+          descarta bien el \textbf{82.4\,\%} de los días limpios.
+        \item Lo que más empuja hacia la excedencia es la
+          \textbf{primavera}, seguida del otoño y de las zonas Noroeste y
+          Suroeste.
+      \end{itemize}
+      \vspace{2pt}
+      \textbf{Discriminante lineal.} La otra técnica; parte de supuestos
+      más fuertes sobre la forma de los datos.
+      \begin{itemize}[itemsep=1pt,topsep=2pt,parsep=0pt,leftmargin=*]
+        \item Uno de esos supuestos no se cumple: los días de excedencia
+          varían menos que los demás.
+        \item Aun así llega a la misma calificación de \textbf{0.893},
+          detectando el \textbf{84.5\,\%} de las excedencias y acertando en
+          el \textbf{81.1\,\%} de los días limpios.
+      \end{itemize}
+      \vspace{2pt}
+      \textbf{Comparación.} Los dos coinciden en el \textbf{98.1\,\%} de
+      sus decisiones y una prueba estadística no encuentra diferencia real
+      entre ellos.
     \end{column}
-    \begin{column}{0.44\textwidth}
+    \begin{column}{0.42\textwidth}
       \centering
-      \includegraphics[width=0.92\linewidth]{momios_componentes.pdf}
+      \includegraphics[width=\linewidth]{roc_modelos.pdf}
 
-      \footnotesize Qué tanto empuja cada eje hacia la excedencia.
+      \scriptsize Las dos curvas se superponen casi por completo.
     \end{column}
   \end{columns}
 \end{frame}
 
 % -----------------------------------------------------------------------
-% Diapositiva 3: discriminante + comparacion + cierre
-% Fuente: reports/secciones/regresion_logistica.tex, subsecciones
-% "Analisis discriminante lineal", "Comparacion de los dos modelos" y
-% "Limitaciones".
+% Diapositiva 3: conclusiones.
+% Son las mismas cuatro de reports/secciones/regresion_logistica.tex,
+% subseccion "Conclusiones", en lenguaje llano.
 % -----------------------------------------------------------------------
-\begin{frame}{¿El discriminante da lo mismo? Comparación y cierre}
+\begin{frame}{Lo que concluimos hasta ahora}
   \footnotesize
 
-  \textbf{El discriminante lineal} es la otra técnica que probamos.
-  Parte de un supuesto más fuerte que la logística: que los datos
-  siguen una distribución normal y que se dispersan igual en ambos
-  grupos. Lo segundo no se cumple del todo --- los días de excedencia
-  varían menos que los de no excedencia ---, pero en la práctica no
-  importó.
-  \vspace{4pt}
+  \begin{enumerate}[label=\textbf{\roman*.},itemsep=6pt,topsep=2pt,parsep=0pt,leftmargin=*]
+    \item \textbf{Los dos modelos llegan a lo mismo.} Aciertan casi igual,
+      lo que indica que la frontera entre días de excedencia y días limpios
+      la marcan los datos y no el método elegido.
 
-  \begin{columns}[T]
-    \begin{column}{0.56\textwidth}
-      También alcanza un AUC de \textbf{0.893} en validación: detecta
-      el \textbf{84.5\,\%} de las excedencias reales y acierta el
-      \textbf{81.1\,\%} de los días sin excedencia --- casi idéntico a
-      la logística.
+    \item \textbf{La temporada del año manda sobre todo lo demás.} Un día
+      de primavera tiene cinco veces más posibilidades de excedencia que
+      uno de invierno en igualdad de condiciones. La excedencia de ozono es,
+      ante todo, un fenómeno estacional.
 
-      De hecho, los dos modelos coinciden en el \textbf{98.1\,\%} de
-      sus decisiones, y una prueba estadística no encuentra diferencia
-      real entre sus curvas ROC.
+    \item \textbf{Hay algo del territorio que no estamos midiendo.} El
+      Noroeste y el Suroeste tienen alrededor de \textbf{tres veces} las
+      posibilidades del Noreste aun con el mismo clima: algo propio de esas
+      zonas, que las variables disponibles no capturan, las vuelve zonas de
+      riesgo.
 
-      \textbf{Cierre.} Aunque el discriminante rompe uno de sus
-      supuestos, llega prácticamente al mismo resultado que el modelo
-      que no lo necesita. Queda pendiente: los modelos explican qué
-      acompaña una excedencia el mismo día, no predicen el siguiente;
-      y como varias estaciones comparten el mismo clima, los días no
-      son del todo independientes entre sí.
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      \centering
-      \includegraphics[width=0.92\linewidth]{roc_modelos.pdf}
-
-      \footnotesize Las dos curvas se superponen casi por completo.
-    \end{column}
-  \end{columns}
+    \item \textbf{El calendario laboral casi no influye.} Solo el domingo
+      muestra un efecto, y modesto; sábados y días festivos no se
+      distinguen de un día laborable. Montar un estudio sobre el ``efecto
+      fin de semana'' con estos datos daría un resultado débil.
+  \end{enumerate}
 \end{frame}
 
 \end{document}

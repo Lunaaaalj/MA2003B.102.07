@@ -7,9 +7,19 @@ socioformador), separadas del reporte de `reports/`. Formato Beamer, no
 ## Archivos
 
 Dos versiones del mismo avance (issue #64), con las mismas cifras y la
-misma estructura de 3 diapositivas de contenido (objetivo + PCA /
-regresión logística / discriminante lineal y comparación), pero
-redactadas para audiencias distintas:
+misma estructura de 3 diapositivas de contenido, pero redactadas para
+audiencias distintas:
+
+1. **Objetivo y tratamiento de los datos** — el objetivo del análisis y
+   qué se hizo con los datos (imputación, atípicos conservados, errores
+   de medición eliminados). El ACP se resume en un párrafo: no es el
+   tema de la presentación.
+2. **Los dos modelos** — regresión logística y discriminante lineal en
+   una sola diapositiva, con su comparación.
+3. **Conclusiones** — las cuatro de la subsección homónima de
+   `reports/secciones/regresion_logistica.tex`.
+
+Las versiones son:
 
 - `avance_socioformador.tex` — versión **simple**: lenguaje llano, sin
   jerga estadística.
