@@ -1,0 +1,27 @@
+# Archivos auxiliares de LaTeX/Beamer (analogo a reports/.gitignore).
+# Se regeneran en cada compilacion, no tiene caso versionarlos.
+
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.run.xml
+*.spl
+*.synctex.gz
+*.toc
+*.nav
+*.snm
+*.vrb
+*.xdv
+
+# Los PDF compilados tampoco se versionan por defecto (incluye la
+# variante tecnica); para la entrega al socioformador se suben con:
+#   git add -f presentations/avance_socioformador.pdf
+#   git add -f presentations/avance_socioformador_tecnico.pdf
+avance_socioformador*.pdf
