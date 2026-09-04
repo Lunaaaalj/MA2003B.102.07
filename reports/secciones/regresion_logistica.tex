@@ -1,0 +1,188 @@
+\section{Uso de tecnicas de clasificacion}\label{sec:clasificacion_tecs}
+
+A partir de las puntuaciones generadas por medio del ACP, unimos su base de datos con el resto de las variables categóricas y binarias, el resultado es una base con las variables, incluyendo:
+
+\begin{multicols}{2}
+    \begin{enumerate}
+        \item \texttt{estacion}
+        \item \texttt{fecha}
+        \item \texttt{particion}
+        \item \texttt{PC1}
+        \item \texttt{PC2}
+        \item \texttt{PC3}
+        \item \texttt{zona}
+        \item \texttt{tipo\_dia}
+        \item \texttt{temporada}
+        \item \texttt{excede\_anio\_5}
+        \item \texttt{zona\_Centro}
+        \item \texttt{zona\_Noroeste}
+        \item \texttt{zona\_Norte}
+        \item \texttt{zona\_Sur}
+        \item \texttt{zona\_Sureste}
+        \item \texttt{zona\_Suroeste}
+        \item \texttt{tipo\_dia\_sabado}
+        \item \texttt{tipo\_dia\_domingo}
+        \item \texttt{tipo\_dia\_festivo}
+        \item \texttt{temporada\_primavera}
+        \item \texttt{temporada\_verano}
+        \item \texttt{temporada\_otono}
+    \end{enumerate}
+\end{multicols}
+
+Las variables \texttt{zona\_*}, \texttt{tipo\_dia\_*} y \texttt{temporada\_*} son indicadoras binarias obtenidas al codificar las categóricas \texttt{zona}, \texttt{tipo\_dia} y \texttt{temporada}: cada una vale 1 cuando la observación pertenece a la zona, el tipo de día o la temporada correspondiente, y 0 en caso contrario. En cada grupo se omite una categoría, que queda como nivel de referencia.
+
+
+Se hace una partición de los datos para usar como entrenamiento el conjunto correspondiente a las fechas de 2021-2024 y usar como validación los correspondientes a 2025.
+
+\subsection{Regresión Logística}\label{sec:reg_log}
+
+Se toma como variable respuesta \texttt{excede\_anio\_5} y como predictores las tres componentes retenidas del ACP más las 12 indicadoras binarias. El ajuste se realiza únicamente sobre la partición de entrenamiento (2021--2024); la de validación (2025) se reserva para la evaluación. Las razones de momios resultantes se reportan en la \cref{tab:momios-log}.
+
+\begin{table}[h]
+  \centering
+  \caption{Razones de momios del modelo logístico (\texttt{exp} del
+    coeficiente). Las componentes se interpretan por desviación estándar; las
+    indicadoras, contra su nivel de referencia: \texttt{Noreste} (zona), día
+    laborable (\texttt{tipo\_dia}) e invierno (\texttt{temporada}). Todos los
+    coeficientes son significativos ($p<0.001$) salvo
+    \texttt{tipo\_dia\_sabado} y \texttt{tipo\_dia\_festivo}.}
+  \label{tab:momios-log}
+  \begin{tabular}{lr}
+    \toprule
+    Variable & Momios \\
+    \midrule
+    \texttt{PC1} (carga primaria de combustión) & 1.47 \\
+    \texttt{PC2} (forzamiento fotoquímico)      & 1.58 \\
+    \texttt{PC3} (estancamiento atmosférico)    & 1.22 \\
+    \midrule
+    \texttt{zona\_Centro}    & 2.58 \\
+    \texttt{zona\_Noroeste}  & 3.35 \\
+    \texttt{zona\_Norte}     & 1.31 \\
+    \texttt{zona\_Sur}       & 2.94 \\
+    \texttt{zona\_Sureste}   & 1.90 \\
+    \texttt{zona\_Suroeste}  & 3.18 \\
+    \midrule
+    \texttt{tipo\_dia\_sabado}  & 1.06 \\
+    \texttt{tipo\_dia\_domingo} & 1.39 \\
+    \texttt{tipo\_dia\_festivo} & 1.10 \\
+    \midrule
+    \texttt{temporada\_primavera} & 5.11 \\
+    \texttt{temporada\_verano}    & 2.73 \\
+    \texttt{temporada\_otono}     & 4.25 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Lo notable es que el forzamiento fotoquímico tiene un momio mayor al de la carga primaria de combustión. Aquí hay una diferencia que se tiene que tomar en cuenta, el eje de carga primaria de combustible toma los ingredientes que por medio de reacciones químicas contribuyen directa o indirectamente a la formación de ozono, la velocidad y volumen de estas reacciones químicas dependen de las condiciones fotoquímicas del ambiente, por lo que el forzamiento fotoquímico tiene más peso que la carga primaria de combustión.
+
+Las zonas con mayores momios son Suroeste y Noroeste, implica que estas áreas son tres veces más propensas a tener excedencias que no excedencias. Son zonas de alto riesgo.
+
+Otra observación es que la primavera tiene mayor efecto en el modelo, más grande que cualquier otro componente y zona. Es coherente a la teoría química, el invierno, dado que tiene temperatura y radiación solar más bajas, frena las reacciones fotoquímicas, aunque los precursores estén presentes, por lo que tiene una mayor influencia en el modelo.
+
+
+\subsubsection{Evaluación y validación del modelo}
+
+La evaluación se realiza exclusivamente sobre la partición de validación (2025), no vista durante el ajuste. Se reportan el área bajo la curva ROC (AUC), la sensibilidad y la especificidad; la exactitud se descarta como criterio de decisión, ya que la tasa base de excedencia en validación es de 41.50 \%, y un clasificador constante que prediga siempre la clase mayoritaria alcanzaría una exactitud alta sin distinguir clases.
+
+El modelo logístico alcanza un AUC de 0.893 en validación (\cref{fig:roc-modelos}), por encima del criterio de logro fijado en 0.75. El umbral de clasificación se elige por el criterio de Youden (el punto que maximiza la suma de sensibilidad y especificidad) en vez de asumir 0.5 por defecto, y resulta en 0.288. A ese umbral, la sensibilidad es de 0.831 y la especificidad de 0.824; el panel izquierdo de la \cref{fig:matrices} reporta la matriz de confusión correspondiente.
+
+Un umbral de 0.5 en lugar del de Youden ilustra por qué la exactitud no es un criterio adecuado: la exactitud baja de 0.827 a 0.766, pero la sensibilidad cae de 0.831 a 0.518, es decir, el modelo deja de detectar casi la mitad de las excedencias reales a cambio de una especificidad mayor (0.942). El umbral de Youden se prefiere porque no privilegia una clase sobre otra sin una justificación explícita de costos.
+
+
+\subsection{Análisis discriminante lineal}\label{sec:lda}
+
+La segunda técnica se ajusta sobre la misma matriz de diseño, la misma respuesta y la misma partición de entrenamiento que la logística. El contraste entre ambas es deliberado: el discriminante lineal supone normalidad multivariada dentro de cada clase y homocedasticidad entre clases, supuestos que la regresión logística no requiere.
+
+\subsubsection{Verificación de supuestos}
+
+Las transformaciones de Box--Cox aplicadas en el preprocesamiento dejaron los predictores originales con sesgo menor a 0.5 en valor absoluto, y las componentes principales son combinaciones lineales de esos predictores. Sobre las puntuaciones de entrenamiento, separadas por clase, los seis coeficientes de sesgo quedan por debajo de 0.4 en valor absoluto (entre $-0.273$ y 0.386), de modo que la aproximación a la normalidad se sostiene.
+
+La homocedasticidad no se cumple con la misma holgura. No se aplica la prueba M de Box: con más de 15,000 observaciones de entrenamiento rechaza diferencias arbitrariamente pequeñas, por lo que su $p$-valor no es informativo. La comparación directa de las matrices de covarianza por clase muestra que los días de excedencia son menos dispersos que los de no excedencia en las tres componentes, con razones de desviación estándar de 0.883, 0.694 y 0.924 respectivamente; la varianza generalizada baja de 19.6 a 6.1. La discrepancia se concentra en el eje de forzamiento fotoquímico.
+
+Un segundo desvío afecta a las 12 indicadoras binarias, que no son normales bajo ninguna transformación. El discriminante lineal tolera ambos desvíos en la práctica, pero esa tolerancia se verifica de forma empírica en la comparación de \cref{sec:comparacion}, no se asume.
+
+\subsubsection{Ajuste y evaluación}
+
+Las probabilidades previas se fijan en las proporciones observadas en entrenamiento (0.705 y 0.295) en lugar de igualarlas, porque la tasa base de excedencia es información del problema. Con dos clases, la solución tiene una sola función discriminante, cuyos coeficientes se reportan en la \cref{tab:coef-lda}.
+
+\begin{table}[h]
+  \centering
+  \caption{Coeficientes de la función discriminante lineal (LD1). Las
+    indicadoras se interpretan contra el mismo nivel de referencia que en la
+    \cref{tab:momios-log}. Los coeficientes indican la dirección de máxima
+    separación entre clases; no son razones de momios.}
+  \label{tab:coef-lda}
+  \begin{tabular}{lr}
+    \toprule
+    Variable & LD1 \\
+    \midrule
+    \texttt{PC1} (carga primaria de combustión) & 0.323 \\
+    \texttt{PC2} (forzamiento fotoquímico)      & 0.348 \\
+    \texttt{PC3} (estancamiento atmosférico)    & 0.184 \\
+    \midrule
+    \texttt{zona\_Centro}    & 0.813 \\
+    \texttt{zona\_Noroeste}  & 1.077 \\
+    \texttt{zona\_Norte}     & 0.163 \\
+    \texttt{zona\_Sur}       & 0.856 \\
+    \texttt{zona\_Sureste}   & 0.459 \\
+    \texttt{zona\_Suroeste}  & 1.043 \\
+    \midrule
+    \texttt{tipo\_dia\_sabado}  & 0.044 \\
+    \texttt{tipo\_dia\_domingo} & 0.263 \\
+    \texttt{tipo\_dia\_festivo} & $-0.070$ \\
+    \midrule
+    \texttt{temporada\_primavera} & 1.392 \\
+    \texttt{temporada\_verano}    & 0.676 \\
+    \texttt{temporada\_otono}     & 1.065 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+El orden y el signo de los coeficientes reproducen los de la \cref{tab:momios-log}: la primavera y el otoño pesan más que el verano, el Noroeste y el Suroeste son las zonas de mayor riesgo, y entre las componentes el forzamiento fotoquímico domina sobre la carga primaria de combustión y sobre el estancamiento atmosférico.
+
+La evaluación emplea la probabilidad posterior de la clase de excedencia como puntaje continuo, no la clase asignada por defecto, para que la curva ROC sea comparable con la del modelo logístico. El discriminante alcanza un AUC de 0.893 en validación, también por encima del criterio de logro de 0.75. Al umbral de Youden (0.293) la sensibilidad es de 0.845 y la especificidad de 0.811, con la matriz de confusión del panel derecho de la \cref{fig:matrices}.
+
+\subsection{Comparación de los dos modelos}\label{sec:comparacion}
+
+Las dos técnicas resultan indistinguibles sobre estos datos. Los valores de AUC coinciden hasta el cuarto decimal (0.8928 en ambos casos) y la prueba de DeLong para curvas ROC correlacionadas no detecta diferencia ($Z = 0.011$, $p = 0.99$, intervalo de confianza del 95 \% para la diferencia de AUC: $[-0.002,\ 0.002]$). Los puntajes de ambos modelos correlacionan a 0.997 y sus clasificaciones coinciden en el 98.1 \% de los días de validación. Las curvas ROC se superponen en casi todo su recorrido (\cref{fig:roc-modelos}).
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{roc_modelos.pdf}
+  \caption{Curvas ROC de ambos modelos en la partición de validación (2025).
+    Las dos curvas se superponen; el discriminante se traza punteado.}
+  \label{fig:roc-modelos}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{matriz_confusion.pdf}
+  \caption{Matrices de confusión en validación, cada modelo a su propio umbral
+    de Youden. Los porcentajes son proporciones por fila (clase observada).}
+  \label{fig:matrices}
+\end{figure}
+
+La única diferencia está en el reparto de los errores: el discriminante detecta ocho excedencias más que la logística (sensibilidad de 0.845 contra 0.831) a cambio de diez falsas alarmas adicionales (especificidad de 0.811 contra 0.824). El intercambio se ubica dentro del ruido de muestreo de una validación de 1,340 observaciones.
+
+Esta coincidencia es el resultado relevante de la comparación. La heterocedasticidad documentada en \cref{sec:lda} es real y aun así no altera el desempeño, de modo que la frontera de decisión que ambos modelos trazan es prácticamente la misma. La interpretación de las razones de momios de la \cref{tab:momios-log} no depende, por lo tanto, del supuesto de normalidad que el discriminante exige y la logística no.
+
+\subsection{Limitaciones}\label{sec:limitaciones-clasificacion}
+
+\textbf{Autocorrelación.} Las 15 estaciones de un mismo día comparten el clima sinóptico y los días consecutivos correlacionan entre sí, por lo que las 17,002 filas día--estación que entran al ajuste y la validación no son observaciones independientes: el tamaño de muestra efectivo se acerca más al número de días distintos que cubre la serie (1,642) que al de registros día--estación. Los errores estándar y los $p$-valores del modelo logístico son en consecuencia optimistas, y los intervalos de confianza reales son más anchos que los reportados. No se corrige: agregar al conjunto del área metropolitana devolvería la independencia temporal, pero eliminaría la dimensión espacial en la que se sostienen los contrastes por zona. El AUC de validación no se ve afectado por esta limitación, ya que se calcula sobre observaciones no vistas y no depende de ningún error estándar.
+
+\textbf{Ausencia de compuestos orgánicos volátiles.} El SIMA no mide COV, de modo que los ejes se describen como consistentes con combustión primaria, forzamiento fotoquímico o estancamiento, nunca como una atribución de régimen NOx--COV. Una razón de momios de 1.58 sobre \texttt{PC2} indica que los días con mayor forzamiento fotoquímico presentan mayores momios de excedencia; no identifica cuál precursor limita la formación de ozono, pregunta que no es contestable con estos datos.
+
+\textbf{Alcance explicativo.} Los predictores corresponden al mismo día que la variable respuesta. Los modelos describen qué condiciones acompañan a una excedencia; no anticipan la concentración de ozono del día siguiente a partir de la información del día en curso, y por esa razón no se validaron como serie de tiempo.
+
+\textbf{Desbalance estacional de la partición.} La validación de 2025 concluye el 30 de junio, por lo que no contiene otoño y sobrerrepresenta la primavera. El AUC amortigua el efecto del cambio en la tasa base, pero las cifras de sensibilidad y especificidad se leen sobre una validación con mayor proporción de días propensos a excedencia que un año completo.
+
+\subsection{Conclusiones}
+
+Conforme a los resultados que se obtuvieron, se puede llegar a las siguientes conclusiones:
+
+\begin{enumerate}[label=\roman*]
+  \item Ambos modelos resultaron en AUC aproximadamente equivalentes. La frontera de decisión está bien delimitada por los datos.
+  \item La estacionalidad es dominante sobre las demás condiciones, \texttt{temporada\_primavera} con momios de 5.11. La excedencia del ozono es un fenómeno principalmente estacional.
+  \item Hay una señal espacial que no es medida, en el Noroeste y Suroeste hay 3 veces más momios del noreste, aunque las condiciones meteorologícas sean las mismas, una característica de la zona misma provoca que sean zonas de riesgo.
+  \item El calendario laboral casi no tiene un efecto significativo, solo el domingo lo es y de manera relativamente baja. Hacer un experimento de contraste del efecto fin de semana sería un análisis débil.
+\end{enumerate}

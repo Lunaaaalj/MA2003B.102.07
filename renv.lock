@@ -2367,6 +2367,42 @@
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
       "Repository": "CRAN"
     },
+    "pROC": {
+      "Package": "pROC",
+      "Version": "1.19.1",
+      "Source": "Repository",
+      "Priority": null,
+      "Depends": [
+        "R (>= 2.14)"
+      ],
+      "Imports": [
+        "methods",
+        "Rcpp (>= 0.11.1)"
+      ],
+      "LinkingTo": [
+        "Rcpp"
+      ],
+      "Suggests": [
+        "MASS",
+        "logcondens",
+        "testthat",
+        "vdiffr",
+        "ggplot2",
+        "rlang",
+        "knitr",
+        "rmarkdown"
+      ],
+      "Enhances": [
+        null
+      ],
+      "License": "GPL (>= 3)",
+      "License_is_FOSS": null,
+      "License_restricts_use": null,
+      "OS_type": null,
+      "NeedsCompilation": "yes",
+      "Repository": "CRAN",
+      "Type": "source"
+    },
     "pillar": {
       "Package": "pillar",
       "Version": "1.11.1",
