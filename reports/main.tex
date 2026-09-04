@@ -152,9 +152,14 @@
 \begin{frontmatter}
 
 \title{Discriminación de excedencias de ozono día-estación bajo el umbral de
-51 ppb de la NOM-020-SSA1-2021\\
+51 ppb de la NOM-020-SSA1-2021\tnoteref{repo}\\
 \large Comparación de análisis discriminante lineal y regresión logística en
 15 estaciones del SIMA, Área Metropolitana de Monterrey}
+
+% Nota de portada: el enlace al repositorio se pone aqui, con el gancho
+% \tnotetext de elsarticle, para que salga al pie de la primera pagina.
+\tnotetext[repo]{Código, notebooks y fuente de este reporte:
+  \url{https://github.com/Lunaaaalj/MA2003B.102.07}}
 
 \author[tec]{Eduardo Luna}
 \author[tec]{Jenaro Alcaraz}
@@ -164,11 +169,33 @@
 \address[tec]{Instituto Tecnológico y de Estudios Superiores de Monterrey, MA2003B --- Grupo 102.07}
 
 \begin{abstract}
-Resumen por definir.
+El ozono troposférico del Área Metropolitana de Monterrey excede con
+regularidad el umbral de 51 ppb del máximo diario de la media móvil de 8 horas
+(MDA8). Este trabajo discrimina, a resolución día-estación, las excedencias de
+ese umbral a partir de las condiciones meteorológicas y de los contaminantes
+primarios del mismo día. Los registros horarios de 15 estaciones del SIMA entre
+el 1 de enero de 2021 y el 30 de junio de 2025 se agregan a una fila por
+día-estación; 17,002 de ellas cumplen la regla de completitud y entran al
+modelado con 15 predictores. El análisis de componentes principales, ajustado
+solo sobre 2021--2024 para no filtrar información de la partición de
+validación, retiene tres ejes que acumulan 55.9\,\% de la varianza y admiten
+lectura física: carga primaria de combustión, forzamiento fotoquímico y
+estancamiento atmosférico. Sobre esas tres coordenadas y 12 indicadoras de
+zona, tipo de día y temporada se ajustan una regresión logística y un análisis
+discriminante lineal, evaluados sobre 2025. Ambos alcanzan un AUC de 0.893 sin
+diferencia detectable entre sí, con sensibilidad de 0.831 y 0.845 y
+especificidad de 0.824 y 0.811 al umbral de Youden. La primavera multiplica los
+momios de excedencia por 5.11 respecto al invierno, por encima de cualquier
+predictor meteorológico, y el forzamiento fotoquímico pesa más que la carga
+primaria de combustión. La ausencia de mediciones de compuestos orgánicos
+volátiles impide atribuir un régimen fotoquímico, de modo que los ejes se
+interpretan como condiciones asociadas y no como mecanismo.
 \end{abstract}
 
 \begin{keyword}
-Por definir.
+ozono troposférico \sep análisis de componentes principales \sep regresión
+logística \sep análisis discriminante lineal \sep calidad del aire \sep
+Área Metropolitana de Monterrey
 \end{keyword}
 
 \end{frontmatter}
@@ -197,6 +224,7 @@ Por definir.
 % --- Etapa 3 ---
 \input{secciones/pca.tex}
 \input{secciones/regresion_logistica.tex}
+\input{secciones/declaratoria_ia.tex}
 
 \printbibliography
 
