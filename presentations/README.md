@@ -28,6 +28,11 @@ Las versiones son:
   homocedasticidad, prueba de DeLong, etc.) para una audiencia con ese
   conocimiento previo.
 
+También está `avance_socioformador.pptx`, la versión simple exportada a
+PowerPoint (mismas 4 diapositivas y mismas cifras, para quien necesite
+abrirla o editarla sin LaTeX). La fuente de verdad sigue siendo el `.tex`:
+si cambia una cifra, se cambia ahí y se regenera el `.pptx`, no al revés.
+
 Ninguna es la presentación final de entrega.
 
 ## Cómo compilar
