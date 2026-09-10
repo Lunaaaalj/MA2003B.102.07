@@ -53,7 +53,8 @@ FIGS = RAIZ / "reports" / "figuras"
 FIGS.mkdir(parents=True, exist_ok=True)
 
 from src.factorial import (ejes_principales, varimax, oblimin,
-                           puntajes_bartlett, residuos)
+                           puntajes_bartlett, residuos,
+                           determinacion, congruencia)
 
 plt.rcParams.update({"font.size": 9, "font.family": "serif",
                      "axes.spines.top": False, "axes.spines.right": False,
@@ -169,9 +170,9 @@ par = pd.DataFrame({"obs_reducida": obs_red, "p95_reducida": p95_red,
                     "obs_completa": obs_full, "p95_completa": p95_full},
                    index=[f"F{i+1}" for i in range(p14)])
 print(par.round(4).to_string())
-print(f"\nretiene — reducida: {(obs_red > p95_red).sum()}   "
+print(f"\nretiene - reducida: {(obs_red > p95_red).sum()}   "
       f"completa: {(obs_full > p95_full).sum()}   "
-      f"Kaiser (λ>1): {(obs_full > 1).sum()}")
+      f"Kaiser (lambda>1): {(obs_full > 1).sum()}")
 ```
 
 **El análisis paralelo retiene siete factores, y no hay que creerle.** El umbral
@@ -257,7 +258,7 @@ A14, h14 = ejes_principales(R14, K)
 com = pd.Series(h14, index=P14).sort_values(ascending=False)
 print(com.round(3).to_string())
 print(f"\ncomunalidad máxima = {h14.max():.3f}  "
-      f"casos Heywood (h²>1) = {(h14 > 1).sum()}")
+      f"casos Heywood (h^2>1) = {(h14 > 1).sum()}")
 ```
 
 `RH_min_diurna` da una comunalidad de 1.089. Es imposible: la comunalidad es una
@@ -284,7 +285,7 @@ R = np.corrcoef(Xtr, rowvar=False)
 
 A, h2 = ejes_principales(R, K)
 print(f"\ncomunalidad máxima = {h2.max():.3f}  "
-      f"casos Heywood = {(h2 > 1).sum()}  → solución admisible")
+      f"casos Heywood = {(h2 > 1).sum()}  -> solución admisible")
 ```
 
 ## 3. Rotación
@@ -302,7 +303,7 @@ había que leerlas como salieron; aquí se puede pedir estructura simple.
 Lv = varimax(A)
 Lo, Phi = oblimin(A)
 
-print("correlación entre factores bajo rotación oblicua (Φ):")
+print("correlación entre factores bajo rotación oblicua (Phi):")
 print(pd.DataFrame(Phi, index=[f"F{i+1}" for i in range(K)],
                    columns=[f"F{i+1}" for i in range(K)]).round(3).to_string())
 print(f"\ncorrelación absoluta máxima entre factores: "
@@ -510,7 +511,116 @@ pd.DataFrame(W, index=NOMBRES, columns=PRED).to_csv(PROC / "af_pesos.csv")
 print(f"guardados {len(PUNT):,} puntajes, cargas {cargas.shape} y pesos {W.shape}")
 ```
 
-## 7. Cierre
+## 7. Validación de la solución
+
+Tres preguntas que el PCA no necesita contestar y el análisis factorial sí:
+qué tan bien los puntajes miden lo que dicen medir, si los factores reaparecen
+fuera del periodo de ajuste, y cuánto se parece todo esto a las componentes que
+ya están en el reporte.
+
+### 7.1 Determinación de los puntajes
+
+Una componente principal **se calcula**: es una combinación lineal exacta de las
+variables y no hay error de por medio. Un factor es latente y su puntaje **se
+estima**, de modo que la correlación entre el puntaje y el factor que pretende
+medir es menor que uno. Ese coeficiente de determinación es la cara cuantitativa
+de la indeterminación factorial, y no tiene análogo en #54.
+
+```{python}
+rho = determinacion(R, Lv)
+print("correlación entre el puntaje estimado y el factor:")
+for nom, r in zip(NOMBRES, rho):
+    print(f"  {nom:<26} rho = {r:.3f}   rho^2 = {r ** 2:.3f}")
+```
+
+Los tres superan 0.80, que es el umbral utilizable, y solo la ventilación pasa
+de 0.90. El forzamiento fotoquímico es el más débil con 0.835: su ρ² de 0.698
+significa que **el puntaje comparte cerca del 70 % de su varianza con el factor
+que representa**, y el resto es error de estimación. Es una limitación real que
+hay que declarar, y es el precio de trabajar con variables latentes en vez de
+con combinaciones lineales exactas.
+
+### 7.2 Estabilidad fuera del periodo de ajuste
+
+Si los factores son estructura y no un artefacto de 2021–2024, deben reaparecer
+al reajustar el modelo sobre 2025. Se compara con la **congruencia de Tucker**,
+el coseno del ángulo entre dos vectores de cargas.
+
+Hay que emparejar los factores por congruencia y no por posición. El orden y el
+signo que devuelve cada ajuste son arbitrarios, así que comparar el primer
+factor de un ajuste contra el primero del otro puede cruzar ejes distintos y
+producir congruencias cercanas a cero que no significan nada.
+
+```{python}
+Zva = ((VA[PRED] - VA[PRED].mean()) / VA[PRED].std(ddof=0)).to_numpy()
+Ava, hva = ejes_principales(np.corrcoef(Zva, rowvar=False), K)
+Lva = varimax(Ava)
+Lva = Lva[:, (Lva ** 2).sum(0).argsort()[::-1]]
+
+C = congruencia(Lv, Lva)
+print(pd.DataFrame(C, index=NOMBRES,
+                   columns=[f"2025-f{j+1}" for j in range(K)]).round(3).to_string())
+print(f"\nn en 2025 = {len(VA):,}   casos Heywood = {(hva > 1).sum()}")
+print("\nemparejamiento por congruencia absoluta máxima:")
+for i, nom in enumerate(NOMBRES):
+    j = int(np.abs(C[i]).argmax())
+    print(f"  {nom:<26} -> 2025-f{j+1}   |phi| = {abs(C[i, j]):.3f}")
+```
+
+Los tres factores reaparecen, y en 2025 el orden sale distinto —la ventilación y
+el forzamiento fotoquímico intercambian lugares— justamente lo que obliga a
+emparejar por congruencia.
+
+Combustión primaria (0.930) y forzamiento fotoquímico (0.940) caen en el tramo
+de similitud razonable. **La ventilación es la más débil con 0.826**, por debajo
+del 0.85 convencional. Conviene no sobreinterpretarlo: 2025 termina el 30 de
+junio y solo cubre de enero a junio, así que el reajuste se hace sobre 1,341
+observaciones sin verano ni otoño, y el régimen de viento es precisamente el que
+más cambia con la estación. La cifra mide estabilidad y cobertura estacional
+mezcladas, y no hay forma de separarlas con estos datos.
+
+### 7.3 Cuánto difiere esto del PCA de #54
+
+La pregunta práctica para el reporte no es cuál método es mejor en abstracto,
+sino cuánto se moverían los modelos al cambiar de insumo. Se responde midiendo
+el solapamiento entre los dos subespacios de dimensión tres, con las
+**correlaciones canónicas** entre ambos conjuntos de puntajes — inmunes a que
+los ejes salgan rotados, reordenados o renombrados.
+
+```{python}
+PCA = pd.read_parquet(PROC / "pca_puntuaciones_diarias.parquet")
+J = PCA.merge(PUNT, on=["estacion", "fecha"])
+Ap = J[["PC1", "PC2", "PC3"]].to_numpy()
+Bf = J[[f"F{i+1}" for i in range(K)]].to_numpy()
+Ap = (Ap - Ap.mean(0)) / Ap.std(0)
+Bf = (Bf - Bf.mean(0)) / Bf.std(0)
+
+Qa, _ = np.linalg.qr(Ap)
+Qb, _ = np.linalg.qr(Bf)
+cc = np.linalg.svd(Qa.T @ Qb, compute_uv=False)
+ang = np.degrees(np.arccos(np.clip(cc, -1, 1)))
+print(f"filas en común: {len(J):,}")
+print(f"correlaciones canónicas: {np.round(cc, 4)}")
+print(f"ángulos principales:     {np.round(ang, 1)} grados")
+```
+
+**Dos de las tres direcciones son prácticamente la misma**: 5.3 y 12.7 grados de
+separación, con correlaciones canónicas de 0.996 y 0.976. La tercera difiere de
+verdad, a 36.5 grados.
+
+Y es la que tenía que diferir: es el eje donde #54 puso la presión barométrica
+junto al viento y lo llamó estancamiento, y donde este análisis encuentra que la
+presión casi no participa del espacio común. La discrepancia geométrica y la
+discrepancia interpretativa de la sección 4.1 son el mismo hecho medido de dos
+maneras.
+
+La consecuencia para el reporte es concreta: **cambiar de insumo no es una
+apuesta**. Los modelos de #55 recibirían dos coordenadas casi idénticas y una
+distinta, y esa distinta es la que menos pesaba —la razón de momios de `PC3` era
+1.22 contra 1.47 y 1.58 de las otras dos. Lo que cambia sustancialmente es la
+justificación, no las predicciones.
+
+## 8. Cierre
 
 Tres factores, elegidos por MAP de Velicer tras descartar el análisis paralelo
 por inflación con `n`, explican el 40.4 % de la varianza de trece predictores y
@@ -536,8 +646,10 @@ interpretativo. Lo que #55 consumiría es `af_puntajes_diarios.parquet` en lugar
 de `pca_puntuaciones_diarias.parquet`.
 
 Queda declarado como limitación lo que no mejoró: el KMO de 0.679 sigue siendo
-mediocre, el RMSR de 0.055 pasa la convención sin holgura y 24 de 78 residuos
-exceden 0.05. Y persiste la fuga no supervisada de #52 —el λ de Box-Cox se
+mediocre, el RMSR de 0.055 pasa la convención sin holgura, 24 de 78 residuos
+exceden 0.05, el puntaje del forzamiento fotoquímico comparte solo el 70 % de su
+varianza con el factor que representa, y la ventilación reaparece en 2025 con una
+congruencia de 0.826, por debajo del umbral convencional. Y persiste la fuga no supervisada de #52 —el λ de Box-Cox se
 estimó sobre el periodo completo— idéntica a la que #54 declaró y por la misma
 razón: revertirla exigiría rehacer el dataset transformado.
 
