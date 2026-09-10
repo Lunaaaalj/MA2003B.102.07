@@ -17,6 +17,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.factorial import (  # noqa: E402
+    congruencia,
+    determinacion,
     ejes_principales,
     oblimin,
     puntajes_bartlett,
@@ -127,3 +129,32 @@ def test_residuos_detecta_un_modelo_insuficiente(modelo_conocido):
     _, rmsr3 = residuos(R, *ejes_principales(R, 3))
     _, rmsr1 = residuos(R, *ejes_principales(R, 1))
     assert rmsr1 > rmsr3
+
+
+def test_determinacion_en_rango_valido(modelo_conocido):
+    _, _, R, _ = modelo_conocido
+    A, _ = ejes_principales(R, 3)
+    rho = determinacion(R, varimax(A))
+    assert rho.shape == (3,)
+    assert (rho > 0).all() and (rho <= 1 + 1e-9).all()
+    # con cargas de 0.65 a 0.80 y estructura simple los puntajes son buenos
+    assert (rho > 0.80).all()
+
+
+def test_congruencia_de_una_solucion_consigo_misma(modelo_conocido):
+    _, _, R, _ = modelo_conocido
+    A, _ = ejes_principales(R, 3)
+    L = varimax(A)
+    C = congruencia(L, L)
+    assert np.allclose(np.diag(C), 1, atol=1e-10)
+
+
+def test_congruencia_detecta_factores_permutados(modelo_conocido):
+    """El orden de los factores es arbitrario: emparejar por posicion falla."""
+    _, _, R, _ = modelo_conocido
+    A, _ = ejes_principales(R, 3)
+    L = varimax(A)
+    Lp = L[:, [2, 0, 1]] * np.array([1, -1, 1])   # permutados y con signo volteado
+    C = congruencia(L, Lp)
+    assert np.abs(np.diag(C)).max() < 0.6          # la diagonal no sirve
+    assert (np.abs(C).max(axis=1) > 0.99).all()    # el maximo por fila si

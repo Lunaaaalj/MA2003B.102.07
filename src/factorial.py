@@ -29,6 +29,8 @@ __all__ = [
     "oblimin",
     "puntajes_bartlett",
     "residuos",
+    "determinacion",
+    "congruencia",
 ]
 
 
@@ -160,3 +162,37 @@ def residuos(R: np.ndarray, L: np.ndarray,
     res = R - (L @ L.T + np.diag(1 - h2))
     fuera = res[~np.eye(len(R), dtype=bool)]
     return res, float(np.sqrt((fuera ** 2).mean()))
+
+
+def determinacion(R: np.ndarray, L: np.ndarray) -> np.ndarray:
+    """Coeficientes de determinacion de los puntajes factoriales.
+
+    Es la correlacion entre el puntaje estimado y el factor que pretende medir,
+    `rho = sqrt(diag(L' R^-1 L))`. Existe porque los puntajes factoriales se
+    estiman y no se calculan: a diferencia de una componente principal, que es
+    una combinacion lineal exacta de las variables, el factor es latente y
+    ningun puntaje lo recupera sin error.
+
+    Convencion: por encima de 0.90 se considera deseable y por encima de 0.80
+    utilizable. Por debajo, la indeterminacion factorial es lo bastante grande
+    como para que dos conjuntos de puntajes igualmente validos puedan
+    correlacionar poco entre si.
+    """
+    return np.sqrt(np.diag(L.T @ np.linalg.inv(R) @ L))
+
+
+def congruencia(La: np.ndarray, Lb: np.ndarray) -> np.ndarray:
+    """Matriz de congruencia de Tucker entre dos soluciones factoriales.
+
+    `phi` es el coseno del angulo entre dos vectores de cargas. Sirve para
+    comparar la misma solucion ajustada en dos muestras: por encima de 0.95 se
+    leen como equivalentes y entre 0.85 y 0.94 como razonablemente similares.
+
+    Devuelve la matriz completa y no solo la diagonal a proposito. El orden y
+    el signo de los factores son arbitrarios y pueden salir distintos en cada
+    ajuste, asi que emparejar por posicion produce congruencias absurdamente
+    bajas; hay que emparejar por congruencia absoluta maxima.
+    """
+    na = np.sqrt((La ** 2).sum(0))
+    nb = np.sqrt((Lb ** 2).sum(0))
+    return (La.T @ Lb) / np.outer(na, nb)
