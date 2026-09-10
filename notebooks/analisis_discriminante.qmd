@@ -183,8 +183,8 @@ mean(sima_valid$excede_anio_5, na.rm = TRUE)
 
 ## Regresión logística
 
-Respuesta `excede_anio_5`; predictores las tres componentes retenidas en #54
-más los 12 dummies (zona, tipo_dia, temporada) del paso anterior. Se arma la
+Respuesta `excede_anio_5`; predictores los tres factores comunes extraídos en
+`docs/09_extraccion_factorial.pdf` más los 12 dummies (zona, tipo_dia, temporada) del paso anterior. Se arma la
 fórmula a partir de los nombres de columna en vez de escribirla a mano, para
 que quede ligada a los dummies que de verdad existen en `sima_disc` — si
 cambia el catálogo de zonas, la fórmula lo sigue sin que haya que tocarla.
@@ -261,14 +261,14 @@ fig_momios <- ggplot(momios_factor, aes(x = momios, y = reorder(eje, momios))) +
     geom_pointrange(aes(xmin = ic_inf, xmax = ic_sup), colour = "#2c7fb8", linewidth = 0.8) +
     geom_text(aes(label = sprintf("%.2f", momios)), vjust = -1, size = 3.5) +
     labs(
-        title = "Razones de momios por componente",
+        title = "Razones de momios por factor",
         subtitle = "Excedencia MDA8 > 51 ppb — IC 95 %",
         x = "Razón de momios", y = NULL
     ) +
     theme_minimal()
 
 fig_momios
-ggsave("../reports/figuras/momios_componentes.pdf", fig_momios,
+ggsave("../reports/figuras/momios_factores.pdf", fig_momios,
     width = 6, height = 3.6, units = "in"
 )
 ```
