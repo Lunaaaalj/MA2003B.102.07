@@ -1,0 +1,282 @@
+---
+title: "Análisis factorial: adecuación de la matriz de correlación"
+subtitle: "Bloque 6b — MA2003B, equipo 7"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+jupyter: python3
+---
+
+El análisis de componentes principales de #54 describe su producto como **ejes
+con nombre**: carga primaria de combustión, forzamiento fotoquímico,
+estancamiento atmosférico. Esa es una afirmación factorial, no una afirmación
+sobre componentes. Decir que existe un eje de estancamiento que las variables
+manifiestan es postular una **variable latente**; el PCA no postula nada, solo
+rota los datos hacia la dirección de máxima varianza y deja que el lector le
+ponga nombre a la dirección.
+
+La diferencia no es de vocabulario. El PCA descompone la varianza **total** y
+cada componente es una combinación lineal exacta de las variables observadas. El
+análisis factorial descompone solo la varianza **común** y separa, para cada
+variable, una **unicidad** que ningún factor explica. Preguntarle a los datos
+cuánta varianza de la presión barométrica es compartida y cuánta es idiosincrática
+es una pregunta que el PCA no puede contestar, porque su modelo no la admite.
+
+Este documento **no extrae factores todavía**. Antes de descomponer hay que
+establecer que la matriz de correlación admite una descomposición factorial, y
+ese es un requisito que el PCA no impone y que por lo tanto #54 nunca verificó.
+El orden es deliberado: si la adecuación se midiera después de ver las cargas,
+el resultado decidiría el criterio.
+
+Opera sobre `sima_transformado_diario.parquet`, la salida de #52, con el mismo
+bloque de predictores y la misma partición que #54, para que la comparación
+entre ambos enfoques sea sobre el método y no sobre los datos.
+
+## 0. Carga y bloque de predictores
+
+```{python}
+import pandas as pd, numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+from pathlib import Path
+
+RAIZ = Path.cwd().parent
+PROC = RAIZ / "data" / "processed"
+FIGS = RAIZ / "reports" / "figuras"
+FIGS.mkdir(parents=True, exist_ok=True)
+
+plt.rcParams.update({"font.size": 9, "font.family": "serif",
+                     "axes.spines.top": False, "axes.spines.right": False,
+                     "figure.dpi": 150})
+AZUL, ROJO, GRIS, CLARO = "#3b6ea5", "#b5443a", "#8c8c8c", "#d9d9d9"
+
+D = pd.read_parquet(PROC / "sima_transformado_diario.parquet")
+D["anio"] = D.fecha.dt.year
+print(f"diario transformado: {D.shape}")
+```
+
+El bloque se define por exclusión, con los mismos tres criterios de #54 y por
+las mismas razones: las categóricas no tienen una dirección de máxima varianza
+que signifique algo, las derivadas de `O3` son la respuesta y meterlas sería
+fuga de información, y `PM2.5_media` se excluye porque exigirla completa no
+descarta observaciones sino **estaciones enteras** — NE3 no tiene un solo
+registro y NO3 apenas 12.5 %.
+
+```{python}
+RESPUESTA   = ["MDA8", "O3_max_1h", "excede_anio_1", "excede_anio_3",
+               "excede_anio_5", "excede_1h"]
+CATEGORICAS = ["zona", "tipo_dia", "temporada", "festivo", "fin_de_semana",
+               "llovio"]
+IDENTIFICA  = ["estacion", "fecha", "anio", "mes", "msnm", "ventanas_validas"]
+SIN         = "PM2.5_media"
+
+PRED = [c for c in D.columns
+        if c not in RESPUESTA + CATEGORICAS + IDENTIFICA + [SIN]]
+print(f"{len(PRED)} predictores: {PRED}")
+```
+
+## 1. Partición y re-estandarización
+
+Idéntica a #54: el ajuste usa **solo 2021–2024** y 2025 queda para aplicar. Las
+continuas ya vienen estandarizadas de #52, pero con los momentos del periodo
+completo; restringidas a entrenamiento la media no es cero ni la desviación uno,
+y todo lo que sigue opera sobre la matriz de correlación.
+
+```{python}
+es_tr    = D.anio.between(2021, 2024)
+completa = D[PRED].notna().all(axis=1)
+
+TR = D[es_tr & completa]
+VA = D[~es_tr & completa]
+
+mu, sd = TR[PRED].mean(), TR[PRED].std(ddof=0)
+X = ((TR[PRED] - mu) / sd).to_numpy()
+n, p = X.shape
+
+print(f"ajuste 2021-2024: {n:,} filas x {p} variables"
+      f"    aplicación 2025: {len(VA):,} filas")
+print(f"control - |media| máx {np.abs(X.mean(0)).max():.1e}, "
+      f"|sd-1| máx {np.abs(X.std(0, ddof=0) - 1).max():.1e}")
+```
+
+## 2. La estructura de la matriz de correlación
+
+Tres números describen la matriz antes de cualquier prueba formal. El
+**determinante** mide cuánta redundancia hay en conjunto: vale 1 si las
+variables son independientes y tiende a 0 conforme alguna se vuelve predecible
+desde las demás. El **eigenvalor mínimo** y el **número de condición** miden lo
+mismo por el lado numérico.
+
+```{python}
+R = np.corrcoef(X, rowvar=False)
+ev = np.linalg.eigvalsh(R)
+det = np.linalg.det(R)
+
+print(f"determinante(R) = {det:.3e}")
+print(f"eigenvalor mínimo = {ev.min():.4f}")
+print(f"número de condición = {ev.max() / ev.min():.1f}")
+```
+
+El determinante es del orden de $10^{-5}$: hay redundancia fuerte, que es
+justamente lo que motivó el análisis. Pero no es cero ni cercano a la precisión
+de máquina, de modo que la matriz es invertible y el VIF y el KMO —que dependen
+de `R⁻¹`— se pueden calcular sin que el resultado sea ruido numérico.
+
+## 3. Factores de inflación de varianza
+
+El VIF de una variable es $1/(1 - R_i^2)$, donde $R_i^2$ es el coeficiente de
+determinación de esa variable regresada contra **todas las demás**. Sobre datos
+estandarizados no hace falta ajustar quince regresiones: los VIF son exactamente
+la diagonal de la inversa de la matriz de correlación.
+
+```{python}
+Rinv = np.linalg.inv(R)
+vif = pd.Series(np.diag(Rinv), index=PRED).sort_values(ascending=False)
+vif_tab = pd.DataFrame({"VIF": vif, "R2": 1 - 1 / vif})
+print(vif_tab.round(3).to_string())
+```
+
+La convención más usada marca 5 como preocupante y 10 como severo. Aquí el
+resultado no está repartido: se concentra. `NOX` alcanza 47.2, lo que equivale a
+decir que el 97.9 % de su varianza es predecible desde las otras catorce
+variables; las diez últimas de la tabla viven por debajo de 2.6.
+
+```{python}
+print(f"VIF > 10: {list(vif[vif > 10].index)}")
+print(f"VIF entre 5 y 10: {list(vif[(vif > 5) & (vif <= 10)].index)}")
+print(f"mediana de los restantes: {vif[vif <= 5].median():.2f}")
+```
+
+### 3.1 El VIF alto no es un accidente estadístico
+
+`NOX` es, por definición química, la suma de `NO` y `NO2`. La correlación lo
+confirma sobre estos datos:
+
+```{python}
+Xd = pd.DataFrame(X, columns=PRED)
+r_suma = np.corrcoef(Xd.NOX_06_09, Xd.NO_06_09 + Xd.NO2_06_09)[0, 1]
+print(f"corr(NOX, NO + NO2) = {r_suma:.4f}")
+print(f"corr(NOX, NO)  = {Xd.NOX_06_09.corr(Xd.NO_06_09):.4f}")
+print(f"corr(NOX, NO2) = {Xd.NOX_06_09.corr(Xd.NO2_06_09):.4f}")
+print(f"corr(RH_media, RH_min_diurna) = "
+      f"{Xd.RH_media.corr(Xd.RH_min_diurna):.4f}")
+```
+
+Esto es lo que distingue al análisis factorial del PCA en la práctica. El PCA
+absorbe la redundancia sin protestar: concentra `NO`, `NO2` y `NOX` en un solo
+componente y produce un resultado numéricamente válido. El modelo factorial
+reparte la varianza de cada variable entre comunalidad y unicidad, y una
+variable que es combinación lineal casi exacta de otras dos no deja unicidad que
+repartir — el ajuste devuelve comunalidades mayores que 1, que son imposibles.
+Son los **casos Heywood**, y aparecen aquí.
+
+## 4. Prueba de esfericidad de Bartlett
+
+Contrasta $H_0: R = I$, es decir, que las variables no correlacionan entre sí y
+no hay nada que factorizar. El estadístico es
+$\chi^2 = -[(n-1) - (2p+5)/6]\ln|R|$ con $p(p-1)/2$ grados de libertad.
+
+```{python}
+chi2 = -((n - 1) - (2 * p + 5) / 6) * np.log(det)
+gl = p * (p - 1) / 2
+pval = stats.chi2.sf(chi2, gl)
+print(f"chi2 = {chi2:,.0f}   gl = {gl:.0f}   p = {pval:.3g}")
+```
+
+**El rechazo es contundente y no informa casi nada.** Conviene decirlo antes de
+que la cifra se cite como evidencia. El estadístico crece linealmente con `n`, y
+con 16,008 observaciones cualquier apartamiento de la identidad, por trivial que
+sea, produce un $\chi^2$ enorme. La prueba solo descartaría el caso patológico de
+variables ortogonales entre sí, que ya sabíamos que no era el nuestro: `NO2` y
+`NOX` correlacionan a 0.89.
+
+Hay una segunda razón para no apoyarse en ella. Bartlett supone observaciones
+independientes, y las filas son un panel día-estación con autocorrelación
+temporal y espacial: la calidad del aire de hoy se parece a la de ayer y la de
+NE3 a la de NE2. El `n` efectivo es bastante menor que 16,008, así que el
+$\chi^2$ está inflado además por esa vía.
+
+Se reporta porque el procedimiento estándar la incluye, no porque decida algo.
+Quien decide es el KMO.
+
+## 5. Medida de adecuación muestral de Kaiser–Meyer–Olkin
+
+El KMO compara las correlaciones simples contra las **parciales**. La idea:
+si un factor común genera la covariación, controlar por las demás variables debe
+dejar poco residuo, y las parciales serán chicas frente a las simples. Si en
+cambio cada correlación es un asunto bilateral entre dos variables, las
+parciales sobreviven y no hay estructura común que extraer.
+
+$$\mathrm{KMO} = \frac{\sum_{i \neq j} r_{ij}^2}{\sum_{i \neq j} r_{ij}^2 + \sum_{i \neq j} a_{ij}^2}$$
+
+donde $a_{ij}$ es la correlación parcial, que se obtiene de `R⁻¹` sin ajustar
+regresión alguna: es la anti-imagen normalizada.
+
+```{python}
+d = np.sqrt(np.diag(Rinv))
+A = -Rinv / np.outer(d, d)          # correlaciones parciales
+np.fill_diagonal(A, 0)
+Ro = R.copy()
+np.fill_diagonal(Ro, 0)
+
+kmo_global = (Ro ** 2).sum() / ((Ro ** 2).sum() + (A ** 2).sum())
+kmo_var = (Ro ** 2).sum(0) / ((Ro ** 2).sum(0) + (A ** 2).sum(0))
+print(f"KMO global = {kmo_global:.3f}")
+```
+
+La escala convencional de Kaiser: <0.50 inaceptable, 0.50–0.60 pobre,
+0.60–0.70 mediocre, 0.70–0.80 aceptable, 0.80–0.90 meritorio, >0.90 admirable.
+
+**0.646 cae en «mediocre».** Pasa el umbral mínimo, y no es un resultado que
+convenga adornar: el bloque admite factorización, pero sin holgura. El KMO por
+variable dice dónde se pierde.
+
+```{python}
+kmo_tab = pd.Series(kmo_var, index=PRED).sort_values()
+print(kmo_tab.round(3).to_string())
+print(f"\nbajo 0.60: {list(kmo_tab[kmo_tab < .60].index)}")
+```
+
+Las tres peores son `NO`, `NOX` y `NO2` — las mismas tres que encabezan el VIF,
+y en el mismo orden. No es coincidencia: una variable casi determinada por otras
+dos produce correlaciones parciales grandes con ellas, que es exactamente lo que
+el KMO penaliza. Ambos índices se leen de `R⁻¹`, así que están midiendo la misma
+redundancia desde dos ángulos. `RH_media` completa el grupo bajo 0.60, otra vez
+en compañía de la variable con la que se solapa.
+
+Kaiser recomienda considerar la eliminación de variables con KMO individual bajo
+0.50; ninguna llega a ese punto, de modo que el criterio no obliga a podar nada
+por sí solo. La poda que sigue se justifica por el VIF y por la identidad
+química, no por el KMO.
+
+## 6. Qué sigue
+
+Establecido lo anterior, la extracción de factores queda para el siguiente
+documento, y entra con dos decisiones ya justificadas por lo que se midió aquí:
+
+1. **`NOX_06_09` sale del bloque.** Es la suma de `NO` y `NO2` (r = 0.985 contra
+   la suma), tiene el VIF más alto y un KMO individual de 0.580. No aporta
+   información que `NO` y `NO2` no tengan; sí aporta el caso Heywood que impide
+   ajustar el modelo. La poda no pierde señal, quita una identidad contable.
+2. **`RH_min_diurna` queda en observación.** Correlaciona 0.892 con `RH_media` y
+   es la otra fuente de comunalidad inadmisible. A diferencia de `NOX` no es una
+   identidad, así que la decisión se toma con el ajuste en la mano y no antes.
+
+El KMO de 0.646 se arrastra como limitación declarada del enfoque, no como
+trámite aprobado. Y queda pendiente la pregunta que decide si el análisis
+factorial puede además sustituir al PCA en su papel instrumental: **si los
+puntajes factoriales sirven como predictores no colineales para #55**. Los
+puntajes de regresión correlacionan entre sí aun con rotación ortogonal, así que
+el VIF de esta sección tendrá que recalcularse sobre ellos antes de dar por
+hecho el reemplazo.
