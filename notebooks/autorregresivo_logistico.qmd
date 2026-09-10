@@ -1,0 +1,601 @@
+---
+title: "Verificación de supuestos del modelo autorregresivo logístico"
+subtitle: "MA2003B, equipo 7 — nowcasting de excedencia diaria"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      # Sin esto, las tablas y los prints anchos se salen del margen: fvextra
+      # parte los renglones largos de los bloques verbatim en vez de recortarlos.
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+# Motor knitr (no jupyter): los chunks son de R. Requiere el paquete rmarkdown,
+# ya registrado en renv.lock.
+engine: knitr
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    message: false
+    warning: false
+    fig.width: 6
+    fig.height: 3.6
+    dpi: 150
+    dev: "pdf"
+---
+
+El objetivo de modelado es la **clasificación contemporánea** (*nowcasting*): dado
+lo que se observó hoy —los tres puntajes factoriales del día— decidir si hoy es
+un día de excedencia. El modelo candidato es la logística autorregresiva
+
+$$\operatorname{logit} P(y_t = 1 \mid \mathcal{F}_{t-1}, x_t)
+  = x_t'\beta + \sum_{i=1}^{p} \alpha_i\, y_{t-i},$$
+
+donde $x_t$ son los factores del mismo día más los armónicos del calendario, y el
+pasado observado entra directo por los rezagos $y_{t-i}$. El pronóstico a días
+futuros queda para después; es otro modelo y otra validación.
+
+Este documento **no ajusta el modelo final**: verifica que sus supuestos se
+sostengan sobre estos datos antes de gastar el esfuerzo. Son cinco preguntas,
+más dos que salieron del propio diagnóstico:
+
+1. cuántos rezagos de $y_t$ entran al predictor,
+2. estacionariedad,
+3. ausencia de separación perfecta,
+4. especificación correcta del *link*,
+5. ergodicidad de la cadena subyacente,
+6. si la respuesta puede ser la fracción de estaciones o tiene que ser binaria,
+7. si queda dependencia serial después del término autorregresivo.
+
+`09_extraccion_factorial.pdf` produjo los puntajes; `serie_tiempo_factores.pdf`
+caracterizó su comportamiento temporal y estableció la decisión que este
+documento hereda sin reabrir: **se trabaja sobre la serie de área
+metropolitana**, no sobre el panel día-estación. La razón está ahí y es doble —
+la cobertura por estación es insuficiente (solo 3 de 15 superan 85 %) y la
+correlación entre estaciones el mismo día es alta (0.49 a 0.86), así que
+promediar es agregación legítima y no mezcla de señales independientes.
+
+## 0. Construcción de la serie de área metropolitana
+
+Se reconstruye la misma serie de `serie_tiempo_factores.pdf` §2. Se repite aquí
+en vez de leer un intermedio guardado porque ese documento no persistió la serie
+agregada, y reconstruirla cuesta segundos.
+
+```{r}
+library(nanoparquet)
+library(dplyr)
+
+af <- read_parquet("../data/processed/af_puntajes_diarios.parquet")
+di <- read_parquet("../data/processed/sima_transformado_diario.parquet")
+
+# Las marcas de tiempo son hora local de pared sin zona (ver CLAUDE.md).
+# nanoparquet las lee como UTC y R las despliega en America/Monterrey, lo que
+# las correría 6 h. Se fija el atributo, no se convierte.
+attr(af$fecha, "tzone") <- "UTC"
+attr(di$fecha, "tzone") <- "UTC"
+
+# F1/F2/F3 en el orden de NOMBRES de 09_extraccion_factorial.qmd.
+af <- rename(af, comb = F1, vent = F2, foto = F3)
+
+m <- inner_join(af, select(di, estacion, fecha, excede_anio_5),
+                by = c("estacion", "fecha")) |>
+  filter(if_all(c(comb, vent, foto, excede_anio_5), \(v) !is.na(v)))
+
+cat(sprintf("dia-estacion completos: %s\nprevalencia dia-estacion: %.4f\n",
+            format(nrow(m), big.mark = ","), mean(m$excede_anio_5)))
+```
+
+La respuesta de origen, `excede_anio_5`, es el escenario principal de modelado:
+MDA8 por encima de 51 ppb. Al agregar por día quedan el conteo de estaciones que
+exceden (`k`) y el de estaciones que reportan (`n`), que no es constante.
+
+```{r}
+area <- m |>
+  group_by(fecha) |>
+  summarise(comb = mean(comb), vent = mean(vent), foto = mean(foto),
+            k = sum(excede_anio_5), n = n_distinct(estacion), .groups = "drop")
+
+# Reindexar contra el calendario completo deja los huecos explicitos antes de
+# tocarlos: sin esto, un dia sin ninguna estacion desaparece en silencio y los
+# rezagos de la seccion 1 saltarian sobre el sin avisar.
+cal <- data.frame(fecha = seq(min(m$fecha), max(m$fecha), by = "day"))
+A   <- left_join(cal, area, by = "fecha")
+A$frac <- A$k / A$n
+
+cat(sprintf("dias de calendario: %s\ndias sin ninguna estacion: %d (%s)\n",
+            format(nrow(A), big.mark = ","), sum(is.na(A$comb)),
+            paste(format(A$fecha[is.na(A$comb)], "%Y-%m-%d"), collapse = ", ")))
+```
+
+Un solo día, 2021-02-16, se queda sin cobertura: 0.06 % del calendario. Se
+interpola linealmente por la misma razón que en `serie_tiempo_factores.pdf` —los
+rezagos exigen una rejilla regular— y se deja documentado, no se trata como si
+no hubiera pasado.
+
+```{r}
+interp <- function(v) {
+  i <- which(!is.na(v))
+  approx(i, v[i], seq_along(v), rule = 2)$y
+}
+for (v in c("comb", "vent", "foto", "frac")) A[[v]] <- interp(A[[v]])
+
+A$anio <- as.integer(format(A$fecha, "%Y"))
+doy    <- as.integer(format(A$fecha, "%j"))
+A$s1 <- sin(2 * pi * doy / 365.25);  A$c1 <- cos(2 * pi * doy / 365.25)
+A$s2 <- sin(4 * pi * doy / 365.25);  A$c2 <- cos(4 * pi * doy / 365.25)
+
+round(sapply(A[c("comb", "vent", "foto", "frac", "n")],
+             \(v) c(media = mean(v, na.rm = TRUE), sd = sd(v, na.rm = TRUE),
+                    min = min(v, na.rm = TRUE), max = max(v, na.rm = TRUE))), 3)
+```
+
+Los armónicos de periodo anual y semianual entran como covariables desde ahora.
+No son decoración: la sección 2 muestra que sin ellos la serie no cumple
+estacionariedad y el supuesto se cae.
+
+### 0.1 La respuesta binaria y el umbral
+
+`frac` es la **fracción** de estaciones que exceden, no una indicadora. La
+sección 6 muestra por qué no puede usarse directamente. Para el modelo binario
+hay que dicotomizarla, y el corte es una decisión sustantiva —qué cuenta como
+"día de excedencia para el área metropolitana"— no estadística.
+
+```{r}
+umbrales <- c("cualquiera (frac > 0)" = 1e-9,
+              "un cuarto (frac >= 0.25)" = 0.25,
+              "mayoria (frac >= 0.5)" = 0.5)
+round(sapply(umbrales, \(u) mean(A$frac >= u)), 3)
+```
+
+Se adopta **`frac >= 0.5`**: el día es de excedencia si la mayoría de las
+estaciones que reportaron ese día excedieron. Dos razones. La prevalencia
+resultante, 0.316, es prácticamente la del panel día-estación original (0.3035),
+así que el evento agregado conserva la tasa base del evento que se quiere
+modelar. Y el criterio es robusto a la cobertura variable: al ser una
+proporción, no premia a los días en que reportaron más estaciones, como sí haría
+un conteo. El corte "cualquiera excede" llevaría la prevalencia a 0.570 y
+convertiría el problema en otro —la pregunta pasaría a ser si *alguna* estación
+del área tuvo un mal día, que es un evento mucho más frecuente y menos
+informativo.
+
+```{r}
+A$y <- as.integer(A$frac >= 0.5)
+for (p in 1:7) A[[paste0("y", p)]] <- dplyr::lag(A$y, p)
+
+# El ajuste usa 2021-2024 y deja 2025 para validacion, igual que #54 y #55.
+# Se piden los 7 rezagos completos para que los modelos de la seccion 1 se
+# comparen sobre EXACTAMENTE las mismas filas: comparar AIC entre ajustes con
+# distinto n no significa nada.
+TR <- filter(A, anio <= 2024, !is.na(y7))
+cat(sprintf("entrenamiento: %s dias (%d-%d), prevalencia %.3f\n",
+            format(nrow(TR), big.mark = ","), min(TR$anio), max(TR$anio),
+            mean(TR$y)))
+```
+
+## 1. Cuántos rezagos de $y_t$ entran al predictor
+
+Dos lecturas independientes. La PACF de la serie cruda sugiere el orden por la
+vía descriptiva; el criterio de información lo confirma **condicionando a las
+covariables**, que es lo que importa: parte de la persistencia de $y_t$ puede ser
+sólo la persistencia de la meteorología que la produce, y en ese caso los
+rezagos sobrarían.
+
+```{r}
+round(pacf(A$y, lag.max = 10, plot = FALSE)$acf[1:10], 3)
+```
+
+```{r}
+base  <- "y ~ comb + vent + foto + s1 + c1 + s2 + c2"
+tabla <- NULL
+anterior <- NULL
+for (p in 0:7) {
+  f <- if (p == 0) base else paste(base, "+", paste0("y", 1:p, collapse = " + "))
+  g <- glm(as.formula(f), binomial, TR)
+  s <- coef(summary(g))
+  tabla <- rbind(tabla, data.frame(
+    p   = p,
+    AIC = AIC(g), BIC = BIC(g),
+    coef = if (p == 0) NA else s[paste0("y", p), 1],
+    z    = if (p == 0) NA else s[paste0("y", p), 3],
+    LR   = if (p == 0) NA else anterior$deviance - g$deviance))
+  anterior <- g
+}
+print(transform(tabla, AIC = round(AIC, 1), BIC = round(BIC, 1),
+                coef = round(coef, 3), z = round(z, 2), LR = round(LR, 2)),
+      row.names = FALSE)
+```
+
+**Se cumple, con $p = 1$.** La PACF cae de 0.464 a 0.101 en el lag 2 y a ruido
+de ahí en adelante: corta después del primer rezago, la firma de un AR(1). El
+BIC coincide y se minimiza en $p=1$; el AIC está empatado entre $p=1$ y $p=2$,
+pero el segundo rezago no alcanza significancia ($z = 1.74$) y del tercero en
+adelante los coeficientes son indistinguibles de cero.
+
+Lo que importa más que el orden: el primer rezago **sobrevive a las covariables
+contemporáneas**. Con los tres factores y los cuatro armónicos ya en el modelo,
+agregar $y_{t-1}$ produce una razón de verosimilitud de 71.7 sobre 1 grado de
+libertad y un coeficiente de $+1.35$ ($z = 8.4$). La persistencia día a día no
+es un reflejo de que la meteorología sea persistente: es dependencia genuina que
+el modelo necesita. Ese es el argumento que justifica la parte autorregresiva.
+
+## 2. Estacionariedad
+
+Conviene separar dos cosas que suelen confundirse. Una serie **binaria y
+acotada** no puede tener raíz unitaria: un paseo aleatorio es no acotado por
+construcción, así que aplicarle una prueba de Dickey-Fuller a $y_t$ responde una
+pregunta que ya tiene respuesta. Lo que sí puede fallar, y es lo que hay que
+probar, es que el proceso sea **homogéneo en el tiempo**: que $P(y_t \mid
+y_{t-1}, x_t)$ no cambie de forma a lo largo de los cuatro años.
+
+Sobre los tres factores —que sí son continuos y no acotados— la prueba de raíz
+unitaria sí corresponde.
+
+```{r}
+# ADF con constante y sin tendencia, escrito a mano. Se implementa en vez de
+# agregar `tseries` a renv.lock: son ocho lineas, el lockfile es contrato del
+# equipo y `snapshot()` esta prohibido en este repo. Mismo criterio que llevo a
+# escribir src/factorial.py en lugar de depender de factor_analyzer.
+#
+#   dx_t = a + rho * x_{t-1} + sum_i gamma_i dx_{t-i} + e_t
+#
+# H0: rho = 0 (hay raiz unitaria). El estadistico es el t de rho, que NO sigue
+# una t de Student: se compara contra los valores criticos de Dickey-Fuller
+# (MacKinnon), -2.86 al 5 % para el caso con constante y n grande.
+adf <- function(x, max_lag = 12) {
+  mejor <- NULL
+  for (L in 0:max_lag) {
+    d   <- diff(x)
+    idx <- (L + 1):length(d)
+    X   <- cbind(rezago = x[idx],
+                 if (L > 0) sapply(1:L, \(i) d[idx - i]) else NULL)
+    fit <- lm(d[idx] ~ X)
+    if (is.null(mejor) || AIC(fit) < mejor$aic)
+      mejor <- list(aic = AIC(fit), L = L, t = coef(summary(fit))[2, 3])
+  }
+  mejor
+}
+
+VC5 <- -2.86
+do.call(rbind, lapply(c("comb", "vent", "foto", "frac"), \(v) {
+  r <- adf(A[[v]])
+  data.frame(serie = v, t_ADF = round(r$t, 2), rezagos = r$L,
+             veredicto = ifelse(r$t < VC5, "rechaza raiz unitaria", "NO rechaza"))
+})) |> print(row.names = FALSE)
+```
+
+Las cuatro series rechazan la raíz unitaria con holgura. No hay que diferenciar
+nada.
+
+La marginal, en cambio, **no es estacionaria**, y por un margen que no se puede
+ignorar:
+
+```{r}
+round(tapply(A$y, format(A$fecha, "%m"), mean), 3)
+round(tapply(A$y, A$anio, mean), 3)
+```
+
+De 0.090 en diciembre a 0.561 en mayo: un factor de seis dentro del año. Y un
+escalón entre 2023 (0.249) y 2024–2025 (0.396, 0.442). Ninguno de los dos
+invalida el modelo, pero los dos obligan a que el ciclo esté **en el predictor**:
+la estacionariedad que la logística autorregresiva necesita es la de
+$y_t \mid x_t$, no la de $y_t$. Por eso los armónicos entran desde la sección 0
+y no como refinamiento posterior.
+
+Queda probar que, ya condicionando, el proceso sea homogéneo. La prueba directa
+es si los coeficientes cambian entre el primer periodo y el segundo.
+
+```{r}
+A$tardio <- as.integer(A$anio >= 2024)
+TR$tardio <- as.integer(TR$anio >= 2024)
+
+F0 <- y ~ comb + vent + foto + s1 + c1 + s2 + c2 + y1
+g0 <- glm(F0, binomial, TR)
+
+# Se separa el nivel de la persistencia: no es lo mismo que 2024 tenga mas dias
+# de excedencia (nivel) a que la cadena se vuelva mas pegajosa (persistencia).
+gn <- glm(update(F0, . ~ . + tardio), binomial, TR)
+gi <- glm(update(F0, . ~ . + tardio + y1:tardio), binomial, TR)
+
+data.frame(
+  hipotesis = c("cambio de nivel (tardio)", "cambio de persistencia (y1:tardio)"),
+  LR = round(c(g0$deviance - gn$deviance, gn$deviance - gi$deviance), 2),
+  p  = round(pchisq(c(g0$deviance - gn$deviance, gn$deviance - gi$deviance),
+                    1, lower.tail = FALSE), 4)) |> print(row.names = FALSE)
+
+cat(sprintf("\nb(y_t-1): 2021-2023 = %+.3f ; 2024 = %+.3f\n",
+            coef(gi)["y1"], coef(gi)["y1"] + coef(gi)["y1:tardio"]))
+```
+
+**Se cumple a medias, y hay que declararlo.** La *dinámica* es homogénea: el
+coeficiente autorregresivo pasa de $+1.25$ a $+1.42$ entre los dos periodos, una
+diferencia que no es significativa ($p = 0.63$). La estructura de dependencia
+temporal que el modelo supone es la misma en 2021 que en 2024.
+
+Lo que sí cambia es el **nivel**: la indicadora de 2024 en adelante aporta
+$LR = 10.51$, $p = 0.0012$. Es un escalón, no una deriva —una tendencia lineal
+en el tiempo no resulta significativa ($p = 0.77$) precisamente porque el cambio
+es abrupto y no gradual—, y los tres factores no lo absorben. Con estos datos no
+se puede decidir si es un cambio en las emisiones, un cambio de instrumentación
+en la red, o un par de años meteorológicamente atípicos cuya señal no llega a
+los quince predictores del bloque factorial. Queda como limitación del modelo,
+no como impedimento: el ajuste sobre 2021–2024 promedia los dos regímenes y la
+validación de 2025 dirá cuánto cuesta.
+
+## 3. Ausencia de separación perfecta
+
+La separación se delata sola: el algoritmo de Fisher no converge o converge a
+coeficientes que crecen sin límite, con errores estándar que explotan al mismo
+ritmo. Se revisan las tres firmas —convergencia, magnitud, probabilidades
+ajustadas— y además el traslape empírico, que es la causa y no el síntoma.
+
+```{r}
+cat(sprintf("convergio: %s   iteraciones: %d\n", g0$converged, g0$iter))
+round(coef(summary(g0)), 4)
+```
+
+```{r}
+p_aj <- fitted(g0)
+cat(sprintf("|coef| maximo      : %.3f\n", max(abs(coef(g0)))))
+cat(sprintf("error estandar max : %.3f\n", max(coef(summary(g0))[, 2])))
+cat(sprintf("prob. ajustadas en : [%.4f, %.4f]\n", min(p_aj), max(p_aj)))
+
+cat("\ntabla y_t x y_t-1 (una celda vacia implicaria separacion):\n")
+print(table(`y_{t-1}` = TR$y1, y_t = TR$y))
+
+cat("\ntraslape de cada factor entre clases (en desviaciones estandar):\n")
+round(sapply(c("comb", "vent", "foto"), \(v) {
+  r0 <- range(TR[[v]][TR$y == 0]); r1 <- range(TR[[v]][TR$y == 1])
+  min(r0[2], r1[2]) - max(r0[1], r1[1])
+}), 2)
+```
+
+**Se cumple, con margen amplio.** Convergió en 6 iteraciones; el coeficiente
+más grande es 1.800 y el error estándar más grande 0.209 —la firma de la
+separación son coeficientes por encima de 10 con errores estándar del mismo
+orden, y aquí no hay nada parecido. Las cuatro celdas de la tabla de transición
+están pobladas, y los tres factores se traslapan entre 3.3 y 4.5 desviaciones
+estándar. No hace falta corrección de Firth ni verosimilitud penalizada.
+
+## 4. Especificación correcta del *link*
+
+Dos pruebas complementarias. La comparación entre familias de *link* dice si el
+logit es la mejor de las opciones disponibles; el *linktest* de Pregibon dice si
+es adecuado en términos absolutos.
+
+```{r}
+round(sapply(c("logit", "probit", "cloglog", "cauchit"),
+             \(lk) AIC(glm(F0, binomial(link = lk), TR))), 2)
+```
+
+```{r}
+# Linktest de Pregibon: se agrega el cuadrado del predictor lineal ajustado. Si
+# el link es correcto, ese termino no aporta nada; si aporta, la escala esta mal
+# especificada en alguna parte.
+eta <- predict(g0)
+g2  <- glm(update(F0, . ~ . + I(eta^2)), binomial, TR)
+cat(sprintf("linktest: coef(eta^2) = %+.4f   LR = %.2f   p = %.4f\n",
+            coef(g2)["I(eta^2)"], g0$deviance - g2$deviance,
+            pchisq(g0$deviance - g2$deviance, 1, lower.tail = FALSE)))
+```
+
+El logit gana entre las cuatro familias, y por poco frente al probit (1129.26
+contra 1129.49) — como es habitual, ambos son casi indistinguibles salvo en las
+colas. El `cloglog`, que asumiría asimetría, queda 34 puntos de AIC atrás.
+
+Pero el *linktest* **rechaza** ($p = 0.0028$), lo que parecería condenar al
+logit. No es el *link*. El *linktest* es una prueba de especificación global:
+detecta cualquier no linealidad omitida, venga del *link* o del predictor. Se
+separan las dos hipótesis probando primero la curvatura en los factores.
+
+```{r}
+gq <- glm(update(F0, . ~ . + I(comb^2) + I(vent^2) + I(foto^2)), binomial, TR)
+cat(sprintf("cuadrados de los factores: LR = %.2f  gl = 3  p = %.4f\n",
+            g0$deviance - gq$deviance,
+            pchisq(g0$deviance - gq$deviance, 3, lower.tail = FALSE)))
+round(coef(summary(gq))[c("I(comb^2)", "I(vent^2)", "I(foto^2)"), 3], 2)
+
+# Repetir el linktest sobre el modelo ya con curvatura: si ahora no rechaza, el
+# problema era el predictor y no el link.
+eq  <- predict(gq)
+gq2 <- glm(update(formula(gq), . ~ . + I(eq^2)), binomial, TR)
+cat(sprintf("\nlinktest DESPUES de la curvatura: LR = %.2f   p = %.4f\n",
+            gq$deviance - gq2$deviance,
+            pchisq(gq$deviance - gq2$deviance, 1, lower.tail = FALSE)))
+```
+
+```{r}
+# Hosmer-Lemeshow por deciles de riesgo, escrito a mano por la misma razon que
+# el ADF. Mide calibracion: si las probabilidades predichas corresponden a las
+# frecuencias observadas dentro de cada grupo.
+gr <- cut(p_aj, quantile(p_aj, 0:10 / 10), include.lowest = TRUE)
+HL <- sum((tapply(TR$y, gr, sum) - tapply(p_aj, gr, sum))^2 /
+          tapply(p_aj * (1 - p_aj), gr, sum))
+cat(sprintf("Hosmer-Lemeshow: X2 = %.2f   gl = 8   p = %.4f\n",
+            HL, pchisq(HL, 8, lower.tail = FALSE)))
+```
+
+**Se cumple: el *link* logit es correcto; lo que faltaba era curvatura en el
+predictor.** Agregar los cuadrados de los tres factores mejora el ajuste
+($LR = 18.90$, $p = 0.0003$), con la contribución concentrada en el forzamiento
+fotoquímico ($z = -3.62$) y la ventilación ($z = -2.21$). Y el diagnóstico
+decisivo: **una vez incluida esa curvatura, el *linktest* deja de rechazar**
+($p = 0.60$). Si el problema hubiera sido el *link*, seguiría rechazando.
+
+Los signos negativos son físicamente coherentes: el efecto de ambos factores se
+satura. Duplicar el viento cuando ya hay viento fuerte no vuelve a dividir la
+probabilidad de excedencia. La calibración global nunca estuvo en duda —
+Hosmer-Lemeshow no rechaza ($p = 0.45$) ni siquiera en el modelo sin curvatura.
+
+**Consecuencia para el modelo final: los términos cuadráticos de `vent` y `foto`
+deben entrar.**
+
+## 5. Ergodicidad de la cadena subyacente
+
+La cadena de dos estados generada por $y_t$ debe ser irreducible (todos los
+estados alcanzables), aperiódica (sin ciclos deterministas) y con probabilidades
+acotadas lejos de 0 y 1 (sin estados absorbentes de facto). Se verifican las
+tres sobre la matriz de transición empírica.
+
+```{r}
+P <- prop.table(table(`y_{t-1}` = TR$y1, y_t = TR$y), 1)
+round(P, 3)
+
+lambda <- sort(abs(eigen(P)$values), decreasing = TRUE)
+cat(sprintf("\n|lambda| = %s\n", paste(round(lambda, 3), collapse = ", ")))
+cat(sprintf("tiempo de mezcla -1/log|lambda_2| = %.1f dias\n", -1 / log(lambda[2])))
+
+# La distribucion estacionaria es el eigenvector izquierdo de lambda = 1.
+e  <- eigen(t(P))$vectors[, 1]
+pi <- Re(e / sum(e))
+cat(sprintf("estacionaria P(y=1) = %.3f   vs empirica %.3f\n",
+            pi[2], mean(TR$y)))
+cat(sprintf("probabilidades ajustadas del modelo en [%.4f, %.4f]\n",
+            min(p_aj), max(p_aj)))
+```
+
+**Se cumple, y con holgura.** Las cuatro transiciones se observan, así que la
+cadena es irreducible; la diagonal es estrictamente positiva (0.837 y 0.622), lo
+que la hace aperiódica; y el segundo eigenvalor, $|\lambda_2| = 0.459 < 1$, da
+ergodicidad geométrica. La confirmación numérica es que la distribución
+estacionaria implicada, $P(y=1) = 0.302$, coincide con la frecuencia empírica
+(0.301) hasta la milésima: la cadena ya está en su régimen de equilibrio dentro de la
+ventana de datos, no en un transitorio.
+
+El tiempo de mezcla, $-1/\log|\lambda_2| \approx 1.3$ días, es la cifra que más
+dice sobre el alcance del modelo. La memoria del proceso es cortísima, lo que
+explica por qué el segundo rezago ya no aportaba nada en la sección 1 — y
+adelanta que un eventual pronóstico a más de dos o tres días va a converger a la
+climatología del mes, con poca ganancia sobre predecir la tasa base.
+
+## 6. Por qué la respuesta tiene que ser binaria y no la fracción
+
+Sería tentador modelar `frac` directamente como binomial: $k$ excedencias de $n$
+estaciones, con $n$ variable. Eso supondría que las $n$ estaciones de un día son
+ensayos Bernoulli independientes, y `serie_tiempo_factores.pdf` ya documentó que
+no lo son: la correlación entre estaciones el mismo día promedia 0.53 en la
+respuesta. Se cuantifica el costo.
+
+```{r}
+B     <- filter(A, anio <= 2024, !is.na(k), n > 0)
+p_bar <- sum(B$k) / sum(B$n)
+X2    <- sum((B$k - B$n * p_bar)^2 / (B$n * p_bar * (1 - p_bar)))
+cat(sprintf("X2 / gl = %.2f    (1.0 = binomial exacta)\n", X2 / (nrow(B) - 1)))
+cat(sprintf("factor de inflacion de los errores estandar = %.2f\n",
+            sqrt(X2 / (nrow(B) - 1))))
+```
+
+**Sobredispersión de casi 6 a 1.** Tratar $k$ de $n$ como binomial subestimaría
+los errores estándar por un factor de $\sqrt{5.97} \approx 2.4$: intervalos de
+confianza a menos de la mitad de su ancho real y $p$-valores correspondientemente
+optimistas. Es la correlación transversal reapareciendo como varianza inflada.
+Por eso el modelo trabaja sobre la indicadora dicotomizada de la sección 0.1 y
+no sobre la fracción.
+
+## 7. ¿Alcanza el AR(1) o queda dependencia serial?
+
+El AR(1) resuelve la dependencia que el modelo supone. Falta ver si resuelve
+toda la que hay: si los residuales siguen autocorrelacionados, el modelo está
+mal especificado en su parte temporal.
+
+```{r}
+resumen_residual <- function(modelo, etiqueta) {
+  ph <- fitted(modelo)
+  r  <- (TR$y - ph) / sqrt(ph * (1 - ph))          # residual de Pearson
+  data.frame(modelo = etiqueta,
+             acf1 = round(acf(r, lag.max = 5, plot = FALSE)$acf[2], 3),
+             acf2 = round(acf(r, lag.max = 5, plot = FALSE)$acf[3], 3),
+             LB7  = round(Box.test(r, lag = 7, type = "Ljung-Box")$p.value, 4),
+             LB14 = round(Box.test(r, lag = 14, type = "Ljung-Box")$p.value, 4))
+}
+rbind(
+  resumen_residual(glm(y ~ comb + vent + foto + s1 + c1 + s2 + c2, binomial, TR),
+                   "factores + estacionalidad"),
+  resumen_residual(g0, "+ y_{t-1}"),
+  resumen_residual(gq, "+ y_{t-1} + curvatura")) |> print(row.names = FALSE)
+```
+
+El rezago hace su trabajo sobre el lag 1: la autocorrelación residual cae de
+0.212 a 0.025, es decir se elimina. Pero **queda un residuo en el lag 2** (0.098)
+y Ljung-Box sigue rechazando en el lag 7.
+
+Vale la pena notar que la curvatura de la sección 4 **no ayuda aquí**: mejora el
+ajuste y arregla el *linktest*, pero deja la autocorrelación de lag 2 igual o
+ligeramente peor (0.116). No es contradictorio, es la separación limpia entre
+dos cosas distintas — la curvatura corrige la **forma** de la media condicional,
+no la **dependencia temporal** de los residuales. Cada problema necesita su
+propia herramienta.
+
+Ese rechazo de Ljung-Box hay que leerlo con la misma cautela que
+`serie_tiempo_factores.pdf` aplicó a sus propias pruebas: con $n = 1{,}454$, la
+prueba detecta autocorrelaciones triviales. Lo informativo es la magnitud, y
+0.098 en el lag 2 es pequeño pero no cero. La lectura honesta es que el AR(1)
+captura casi toda la dependencia y sobra un residuo de segundo orden que no
+justifica un segundo rezago —la sección 1 mostró que no es significativo— pero
+que sí deja espacio para un término de media móvil sobre los residuales, que es
+exactamente lo que un modelo GLARMA agregaría. Esa es la comparación natural del
+siguiente paso.
+
+Conviene anticipar una diferencia que se presta a confusión: GLARMA **no** pone
+$y_{t-1}$ en el predictor. Su estado autorregresivo se construye sobre los
+*residuales* predictivos, $Z_t = \sum_i \phi_i (Z_{t-i} + e_{t-i}) + \sum_j
+\theta_j e_{t-j}$, de modo que es un modelo distinto del de este documento y no
+una extensión suya. Los supuestos verificados aquí son los de la logística
+autorregresiva de Markov; los de GLARMA son otros —en particular, la
+estacionariedad se vuelve una condición sobre las raíces del polinomio ARMA, que
+sólo puede revisarse después de ajustar.
+
+## 8. Criterios de aceptación
+
+```
+OK       El orden autorregresivo se decide con PACF y con BIC condicionado a las
+         covariables, sobre filas identicas (p = 1)
+OK       La estacionariedad se prueba donde corresponde: raiz unitaria en los
+         factores continuos, homogeneidad temporal en la cadena binaria
+PARCIAL  La dinamica es homogenea (persistencia estable, p = 0.63) pero el nivel
+         da un escalon en 2024 (p = 0.0012) que los factores no absorben
+OK       No hay separacion perfecta: convergencia en 6 iteraciones, |b| max 1.80,
+         cuatro celdas de transicion pobladas, traslape > 3 sd en los tres factores
+OK       El link logit es correcto; el rechazo del linktest se atribuye a
+         curvatura omitida y desaparece al incluirla (p = 0.60)
+OK       La cadena es irreducible, aperiodica y geometricamente ergodica
+         (|lambda_2| = 0.459), con estacionaria 0.302 vs empirica 0.301
+OK       La respuesta se dicotomiza en vez de modelarse como fraccion: la
+         sobredispersion binomial es de 5.97
+OK       La dependencia residual se mide antes y despues del rezago
+```
+
+## 9. Qué se lleva el modelo, y qué queda declarado
+
+Los cinco supuestos se sostienen. La logística autorregresiva de orden 1 es un
+modelo defendible para el *nowcasting* de excedencia a nivel área metropolitana,
+con tres decisiones que este documento deja fijadas:
+
+1. **$p = 1$**: un solo rezago de la respuesta.
+2. **Los armónicos anuales y semianuales son obligatorios**, no opcionales: sin
+   ellos la marginal varía por un factor de seis dentro del año y el supuesto de
+   estacionariedad condicional no se sostiene.
+3. **Los términos cuadráticos de `vent` y `foto` entran**: sin ellos el
+   *linktest* rechaza la especificación.
+
+Y dos limitaciones que se declaran en vez de corregirse:
+
+**El escalón de 2024.** El nivel de excedencia sube de forma abrupta a partir de
+2024 y los factores no lo explican. El modelo ajustado sobre 2021–2024 promedia
+dos regímenes; la validación en 2025 —que pertenece al régimen alto— dirá cuánto
+cuesta ese promedio. No se corrige con una indicadora porque eso equivaldría a
+ajustar un parámetro al periodo de validación por la puerta de atrás.
+
+**La dimensión espacial se perdió.** Agregar a área metropolitana es lo que
+devuelve la independencia temporal y la rejilla regular, pero elimina el
+contraste entre estaciones y zonas que `analisis_discriminante.pdf` sí
+aprovecha. Los dos modelos responden preguntas distintas y no se sustituyen: uno
+clasifica días de área, el otro clasifica día-estación. La comparación de sus
+AUC no sería una comparación justa.
