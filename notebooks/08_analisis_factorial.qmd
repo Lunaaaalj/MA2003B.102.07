@@ -106,8 +106,8 @@ n, p = X.shape
 
 print(f"ajuste 2021-2024: {n:,} filas x {p} variables"
       f"    aplicación 2025: {len(VA):,} filas")
-print(f"control — |media| máx {np.abs(X.mean(0)).max():.1e}, "
-      f"|sd−1| máx {np.abs(X.std(0, ddof=0) - 1).max():.1e}")
+print(f"control - |media| máx {np.abs(X.mean(0)).max():.1e}, "
+      f"|sd-1| máx {np.abs(X.std(0, ddof=0) - 1).max():.1e}")
 ```
 
 ## 2. La estructura de la matriz de correlación
