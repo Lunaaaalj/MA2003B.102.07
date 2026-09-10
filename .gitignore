@@ -293,5 +293,10 @@ data/processed/*
 
 !data/processed/pca_puntuaciones_diarias.parquet
 
+!data/processed/af_cargas.csv
+!data/processed/af_pesos.csv
+!data/processed/af_puntajes_diarios.parquet
+
+
 .vscode/
 .idea/

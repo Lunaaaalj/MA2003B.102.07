@@ -1,6 +1,6 @@
 ---
 title: "Regresión logística y análisis discriminante"
-subtitle: "Issue #55 — MA2003B, equipo 7"
+subtitle: "Issue #55 — MA2003B, equipo 7 (sobre los factores comunes)"
 lang: es
 format:
   pdf:
@@ -37,7 +37,7 @@ knitr:
 library(nanoparquet)
 library(dplyr)
 
-sima_scores <- read_parquet("../data/processed/pca_puntuaciones_diarias.parquet")
+sima_scores <- read_parquet("../data/processed/af_puntajes_diarios.parquet")
 sima_modelado <- read_parquet("../data/processed/sima_diario_modelado.parquet")
 
 # fecha es hora local de pared sin zona horaria (ver CLAUDE.md); nanoparquet la
@@ -50,10 +50,52 @@ summary(sima_scores)
 summary(sima_modelado)
 ```
 
+## Escala de los puntajes
+
+Los puntajes factoriales **no tienen varianza unitaria**, y esto tiene
+consecuencias que conviene resolver antes de ajustar nada.
+
+```{r}
+tr <- sima_scores$particion == "entrenamiento"
+round(sapply(sima_scores[tr, c("F1", "F2", "F3")], sd), 4)
+```
+
+Un coeficiente de regresión se lee "por unidad del predictor", así que con
+escalas distintas entre ejes las razones de momios **no son comparables entre
+sí**: un eje con mayor dispersión produce un momio por unidad más chico sin que
+eso signifique que importa menos.
+
+Esto corrige un error de la versión anterior de este documento, que trabajaba
+sobre las puntuaciones del PCA y afirmaba que sus razones de momios eran por
+desviación estándar. No lo eran. Una puntuación de componente principal tiene
+varianza igual a su eigenvalor, de modo que las tres desviaciones estándar
+valían 1.98, 1.72 y 1.23 — no 1 — y los momios de 1.47, 1.58 y 1.22 que están
+hoy en el reporte son **por unidad**, no por desviación estándar, y no son
+comparables entre ejes como el texto afirmaba.
+
+La solución es reescalar a varianza unitaria **con los momentos de
+entrenamiento**, nunca con los de 2025:
+
+```{r}
+mu_f <- sapply(sima_scores[tr, c("F1", "F2", "F3")], mean)
+sd_f <- sapply(sima_scores[tr, c("F1", "F2", "F3")], sd)
+
+for (v in c("F1", "F2", "F3")) {
+    sima_scores[[v]] <- (sima_scores[[v]] - mu_f[[v]]) / sd_f[[v]]
+}
+
+# control: entrenamiento en 0 y 1; validación no tiene por qué estarlo
+round(sapply(sima_scores[tr, c("F1", "F2", "F3")], sd), 6)
+round(sapply(sima_scores[!tr, c("F1", "F2", "F3")], sd), 3)
+```
+
+A partir de aquí, cada razón de momios sí es por desviación estándar del factor
+y las tres son comparables entre sí.
+
 ## Unión con la matriz de diseño
 
-Las puntuaciones del PCA (`sima_scores`) solo traen `estacion`, `fecha`, `particion`
-y las tres componentes. Zona, calendario y la variable respuesta viven en
+Los puntajes factoriales (`sima_scores`) solo traen `estacion`, `fecha`, `particion`
+y los tres factores. Zona, calendario y la variable respuesta viven en
 `sima_modelado`, así que se unen por `(estacion, fecha)`.
 
 ```{r}
@@ -149,7 +191,7 @@ cambia el catálogo de zonas, la fórmula lo sigue sin que haya que tocarla.
 
 ```{r}
 predictores <- c(
-    "PC1", "PC2", "PC3",
+    "F1", "F2", "F3",
     grep("^zona_|^tipo_dia_|^temporada_", names(sima_disc), value = TRUE)
 )
 formula_log <- reformulate(predictores, response = "excede_anio_5")
@@ -179,38 +221,42 @@ momios_log <- tidy(modelo_log, exponentiate = TRUE, conf.int = TRUE) |>
 momios_log
 ```
 
-### Razones de momios por componente
+### Razones de momios por factor
 
-Los tres ejes retenidos en #54, con su nombre interpretativo (no solo
-"PC1/PC2/PC3") porque ese es justo el requisito que #54 le impone a esta
-tabla: sin nombre, una razón de momios sobre un componente es ilegible.
+Los tres factores comunes, con su nombre interpretativo (no solo "F1/F2/F3"):
+sin nombre, una razón de momios sobre un eje latente es ilegible.
+
+Ojo con el signo del segundo. **La ventilación apunta al revés que el eje de
+estancamiento** que usaba la versión con componentes: valores altos significan
+viento fuerte y buena dispersión, así que la razón de momios esperada es *menor*
+que 1. Un momio por debajo de 1 aquí no contradice al análisis anterior, dice lo
+mismo con el eje orientado en sentido contrario.
 
 ```{r}
-nombres_pc <- c(
-    PC1 = "Carga primaria de combustión",
-    PC2 = "Forzamiento fotoquímico",
-    PC3 = "Estancamiento atmosférico"
+nombres_factor <- c(
+    F1 = "Combustión primaria",
+    F2 = "Ventilación",
+    F3 = "Forzamiento fotoquímico"
 )
 
-momios_pc <- momios_log |>
-    filter(term %in% names(nombres_pc)) |>
-    mutate(eje = nombres_pc[term], .before = 1) |>
+momios_factor <- momios_log |>
+    filter(term %in% names(nombres_factor)) |>
+    mutate(eje = nombres_factor[term], .before = 1) |>
     select(eje,
         termino = term, momios = estimate,
         ic_inf = conf.low, ic_sup = conf.high, p.value
     )
-momios_pc
+momios_factor
 ```
 
-Cada razón de momios es **por desviación estándar** del componente, no por
-unidad arbitraria — así lo dejó #54 al construir `sima_scores` (puntuaciones
-ya estandarizadas del PCA), y es lo que hace comparables los tres momios
-entre sí pese a que las cargas originales tengan escalas distintas.
+Cada razón de momios es **por desviación estándar** del factor, no por unidad
+arbitraria, gracias al reescalado de la sección anterior — y es eso, y no la
+construcción de los puntajes, lo que hace comparables los tres momios entre sí.
 
 ```{r}
 library(ggplot2)
 
-fig_momios <- ggplot(momios_pc, aes(x = momios, y = reorder(eje, momios))) +
+fig_momios <- ggplot(momios_factor, aes(x = momios, y = reorder(eje, momios))) +
     geom_vline(xintercept = 1, linetype = "dashed", colour = "grey60") +
     geom_pointrange(aes(xmin = ic_inf, xmax = ic_sup), colour = "#2c7fb8", linewidth = 0.8) +
     geom_text(aes(label = sprintf("%.2f", momios)), vjust = -1, size = 3.5) +
@@ -323,10 +369,11 @@ supuestos; si difieren, la diferencia se lee contra ellos.
 
 ### Verificación de supuestos
 
-Box-Cox (#52) dejó los predictores originales con `|sesgo| < 0.5`, y las
-componentes son combinaciones lineales de esos predictores. Se verifica sobre
-las puntuaciones, que es donde el supuesto opera, y por clase, que es como lo
-exige el discriminante:
+Box-Cox (#52) dejó los predictores originales con `|sesgo| < 0.5`. Los puntajes
+factoriales son combinaciones lineales de esos predictores —los pesos de
+Bartlett de `af_pesos.csv`— así que la aproximación debería trasladarse. Se
+verifica sobre los puntajes, que es donde el supuesto opera, y por clase, que es
+como lo exige el discriminante:
 
 ```{r}
 sesgo <- function(x) {
@@ -337,11 +384,11 @@ sesgo <- function(x) {
 sima_train |>
     filter(!is.na(excede_anio_5)) |>
     group_by(excede_anio_5) |>
-    summarise(across(c(PC1, PC2, PC3), ~ round(sesgo(.x), 3)), n = n())
+    summarise(across(c(F1, F2, F3), ~ round(sesgo(.x), 3)), n = n())
 ```
 
-Los seis sesgos quedan por debajo de 0.4 en valor absoluto, así que la
-aproximación a normalidad se sostiene sobre las componentes.
+Los seis sesgos quedan por debajo de 0.51 en valor absoluto, así que la
+aproximación a normalidad se sostiene sobre los puntajes.
 
 La homocedasticidad es otra historia. No se usa la M de Box: con más de 15,000
 observaciones rechaza cualquier diferencia por pequeña que sea, así que su
@@ -351,7 +398,7 @@ $p$-valor no informa. Se comparan las matrices de covarianza directamente:
 cov_por_clase <- function(y) {
     sima_train |>
         filter(excede_anio_5 == y) |>
-        dplyr::select(PC1, PC2, PC3) |>
+        dplyr::select(F1, F2, F3) |>
         cov()
 }
 
@@ -362,9 +409,9 @@ round(sqrt(diag(S1)) / sqrt(diag(S0)), 3) # razón de desviaciones estándar
 c(det_no_excede = det(S0), det_excede = det(S1))
 ```
 
-Las razones son 0.883, 0.694 y 0.924: los días de excedencia son **menos
-dispersos** que los de no excedencia, sobre todo en el eje fotoquímico (PC2),
-y la varianza generalizada cae de 19.6 a 6.1. El supuesto de covarianzas
+Las razones son 0.895, 0.888 y 0.746: los días de excedencia son **menos
+dispersos** que los de no excedencia, sobre todo en el eje fotoquímico (`F3`),
+y la varianza generalizada cae de 1.077 a 0.349. El supuesto de covarianzas
 iguales no se cumple estrictamente. Se declara aquí y se retoma al comparar los
 dos modelos, en vez de sustituirlo por un discriminante cuadrático: la issue
 pide el lineal como contraste de la logística, y cambiar de técnica a medio
@@ -407,8 +454,9 @@ coef_lda
 
 El orden y el signo reproducen los de la logística: primavera y otoño pesan
 más que verano, el Noroeste y el Suroeste son las zonas de mayor riesgo, y
-entre las componentes manda el forzamiento fotoquímico (PC2) sobre la carga
-primaria (PC1) y el estancamiento (PC3). Los coeficientes no son razones de
+entre los factores manda el forzamiento fotoquímico (`F3`, 0.799) sobre la
+combustión primaria (`F1`, 0.506), con la ventilación (`F2`, −0.107) en contra,
+que es el signo correcto para un eje que mide dispersión. Los coeficientes no son razones de
 momios y no se leen como tales; son la dirección en la que las dos clases se
 separan al máximo.
 
@@ -468,7 +516,7 @@ comparacion
 Ambos superan el criterio de logro del issue (AUC ≥ 0.75) con holgura. La
 diferencia de AUC se contrasta con la prueba de DeLong, que es la adecuada
 porque las dos curvas están correlacionadas — se calculan sobre las mismas
-1,340 observaciones de validación:
+1,325 observaciones de validación con respuesta observada:
 
 ```{r}
 roc.test(roc_log, roc_lda, method = "delong")
@@ -479,13 +527,14 @@ cor(p_valid, p_valid_lda) # correlación de los puntajes
 mean((p_valid >= umbral_log) == (p_valid_lda >= umbral_lda)) # concordancia
 ```
 
-Las dos técnicas son indistinguibles en estos datos: los AUC coinciden hasta el
-cuarto decimal (0.8928 contra 0.8928, DeLong $p = 0.99$), los puntajes
-correlacionan a 0.997 y las clasificaciones coinciden en el 98.1 % de los días
-de validación. Donde difieren es en el reparto de errores: el discriminante
-detecta ocho excedencias más (sensibilidad 0.845 contra 0.831) a cambio de diez
-falsas alarmas más (especificidad 0.811 contra 0.824), un intercambio dentro del
-ruido de muestreo.
+Las dos técnicas son indistinguibles en estos datos: los AUC difieren en el
+cuarto decimal (0.8995 contra 0.8997, DeLong $p = 0.80$), los puntajes
+correlacionan a 0.998 y las clasificaciones coinciden en el 97.0 % de los días
+de validación. Donde difieren es en el reparto de errores, y aquí el
+intercambio se invierte respecto de la versión con componentes: ahora es la
+**logística** la que detecta más excedencias (sensibilidad 0.851 contra 0.827) a
+cambio de más falsas alarmas (especificidad 0.819 contra 0.839). Sigue siendo un
+intercambio dentro del ruido de muestreo.
 
 **Esa coincidencia es el resultado, no un anticlímax.** La heterocedasticidad
 documentada arriba es real y aun así no mueve el desempeño: la frontera que
@@ -599,13 +648,140 @@ ggsave("../reports/figuras/matriz_confusion.pdf", fig_matrices,
 )
 ```
 
+## Contraste con las componentes principales
+
+El cambio de insumo hay que justificarlo con desempeño, no solo con el argumento
+conceptual de que un eje con nombre es una afirmación factorial. La pregunta
+concreta: ¿pierde o gana el modelo al pasar de las tres componentes de #54 a los
+tres factores comunes?
+
+Se ajustan ambos bloques **sobre exactamente las mismas filas** —la intersección
+de los dos conjuntos de puntajes, ya que la poda de `NOX` y `RH_min_diurna`
+cambió ligeramente qué días quedan completos— para que la prueba de DeLong sea
+pareada y la comparación no confunda desempeño con cobertura.
+
+```{r}
+pca_scores <- read_parquet("../data/processed/pca_puntuaciones_diarias.parquet")
+attr(pca_scores$fecha, "tzone") <- "UTC"
+
+comp <- pca_scores |>
+    dplyr::select(estacion, fecha, PC1, PC2, PC3) |>
+    inner_join(sima_disc, by = c("estacion", "fecha"))
+
+# mismo reescalado que se aplicó a los factores, con momentos de entrenamiento
+tr_c <- comp$particion == "entrenamiento"
+for (v in c("PC1", "PC2", "PC3")) {
+    comp[[v]] <- (comp[[v]] - mean(comp[[v]][tr_c])) / sd(comp[[v]][tr_c])
+}
+
+comp_train <- comp |> filter(particion == "entrenamiento")
+comp_valid <- comp |> filter(particion == "validacion")
+c(filas_totales = nrow(comp), entrenamiento = nrow(comp_train),
+  validacion = nrow(comp_valid))
+```
+
+```{r}
+dummies_nom <- grep("^zona_|^tipo_dia_|^temporada_", names(comp), value = TRUE)
+
+ajusta <- function(ejes) {
+    fml <- reformulate(c(ejes, dummies_nom), response = "excede_anio_5")
+    g <- glm(fml, data = comp_train, family = binomial)
+    d <- lda(fml, data = comp_train)
+    list(
+        log = roc(comp_valid$excede_anio_5,
+                  predict(g, comp_valid, type = "response"), quiet = TRUE),
+        lda = roc(comp_valid$excede_anio_5,
+                  predict(d, comp_valid)$posterior[, "1"], quiet = TRUE)
+    )
+}
+
+r_fac <- ajusta(c("F1", "F2", "F3"))
+r_pca <- ajusta(c("PC1", "PC2", "PC3"))
+
+data.frame(
+    insumo = c("Factores comunes", "Componentes principales"),
+    auc_logistica = c(as.numeric(auc(r_fac$log)), as.numeric(auc(r_pca$log))),
+    auc_discriminante = c(as.numeric(auc(r_fac$lda)), as.numeric(auc(r_pca$lda)))
+)
+```
+
+```{r}
+roc.test(r_fac$log, r_pca$log, method = "delong")
+```
+
+Los factores ganan, y la ganancia es real pero pequeña: **0.9001 contra 0.8928**
+de AUC en la logística, siete milésimas, con DeLong $p = 0.006$. Con 1,325
+observaciones de validación la prueba detecta una diferencia de ese tamaño, así
+que el resultado es que los factores **no cuestan desempeño** y lo mejoran
+marginalmente. El discriminante se comporta igual (0.9004 contra 0.8928).
+
+Esto confirma por la vía empírica lo que el solapamiento de subespacios ya
+anticipaba en `docs/09_extraccion_factorial.pdf`: las correlaciones canónicas
+entre ambos conjuntos de puntajes valen 0.996, 0.976 y 0.804, de modo que los
+dos bloques cargan casi la misma información. **El argumento para cambiar de
+insumo no es el desempeño, es la interpretación** — y el desempeño confirma que
+cambiar no cuesta nada.
+
+Donde sí hay diferencia grande es en cómo se leen los coeficientes. La tabla
+siguiente pone las razones de momios por desviación estándar de ambos bloques;
+las filas **no están pareadas**, son dos listas independientes puestas lado a
+lado, porque los ejes de un método no corresponden uno a uno con los del otro.
+
+```{r}
+# razones de momios por desviación estándar, lado a lado
+momios_de <- function(ejes, nombres) {
+    fml <- reformulate(c(ejes, dummies_nom), response = "excede_anio_5")
+    tidy(glm(fml, data = comp_train, family = binomial),
+         exponentiate = TRUE) |>
+        filter(term %in% ejes) |>
+        transmute(eje = nombres[term], momios = round(estimate, 3))
+}
+
+fac <- momios_de(c("F1", "F2", "F3"), nombres_factor)
+pca <- momios_de(c("PC1", "PC2", "PC3"),
+                 c(PC1 = "Carga primaria de combustión",
+                   PC2 = "Forzamiento fotoquímico",
+                   PC3 = "Estancamiento atmosférico"))
+
+data.frame(
+    factor = fac$eje, momios_af = fac$momios,
+    componente = pca$eje, momios_pca = pca$momios
+)
+```
+
+Tres lecturas de esa tabla:
+
+**Los momios del PCA que están hoy en el reporte están mal escalados.** Por
+desviación estándar valen 2.154, 2.210 y 1.275, no 1.47, 1.58 y 1.22. Esas
+últimas son por unidad de puntuación, y como las tres componentes tienen
+desviaciones estándar distintas (1.98, 1.72 y 1.23), tampoco eran comparables
+entre sí como el texto afirmaba. Hay que corregirlo en
+`reports/secciones/regresion_logistica.tex` se cambie de insumo o no.
+
+**La ventilación sale por debajo de 1** (0.902, IC 95 % de 0.860 a 0.947): más
+viento, menores momios de excedencia. Es el mismo fenómeno que el eje de
+estancamiento del PCA describía con un momio de 1.275, leído con el eje
+orientado al revés. Que el intervalo no cruce el 1 confirma que el efecto
+existe, aunque sea el más débil de los tres.
+
+**El forzamiento fotoquímico domina con claridad** (2.771 contra 1.926 de la
+combustión primaria). Con las componentes esa jerarquía no se veía: 2.210 contra
+2.154 las dejaba prácticamente empatadas. La estructura simple del análisis
+factorial separa mejor los dos mecanismos, y la consecuencia sustantiva es que
+la condición meteorológica pesa más que la carga de precursores — lo cual, sin
+mediciones de COV, se describe pero no se explica.
+
 ## Limitaciones
 
 **Autocorrelación.** Las 15 estaciones de un mismo día comparten el clima
 sinóptico y los días consecutivos correlacionan entre sí, de modo que las
-17,002 filas día-estación que entran al ajuste y la validación no son
-observaciones independientes: la n efectiva está mucho más cerca de los 1,642
-días distintos que cubre la serie. Los errores
+17,029 filas día-estación que entran al ajuste y la validación no son
+observaciones independientes: la n efectiva está mucho más cerca de los 1,641
+días distintos que cubre la serie. Medida sobre los puntajes factoriales, la
+correlación entre estaciones dentro de un mismo día promedia 0.53 en la
+respuesta y llega a 0.86 en el factor fotoquímico, mientras que la
+autocorrelación de la respuesta a un día de distancia es de 0.44: la dependencia
+transversal es la mayor de las dos. Los errores
 estándar de `momios_log` y los $p$-valores de `summary(modelo_log)`
 son, por lo tanto, optimistas — los intervalos de confianza reales son más
 anchos que los reportados. No se corrige: agregar a día-AMM devolvería la
@@ -617,8 +793,8 @@ vio, y no depende de ningún error estándar.
 
 **Sin COV, ninguna afirmación de mecanismo.** El SIMA no mide compuestos
 orgánicos volátiles, así que los ejes se describen como *consistentes con*
-combustión primaria, forzamiento fotoquímico o estancamiento, nunca como una
-atribución de régimen NOx–COV. Una razón de momios de 1.58 sobre PC2 dice que
+combustión primaria, ventilación o forzamiento fotoquímico, nunca como una
+atribución de régimen NOx–COV. Una razón de momios de 2.77 sobre `F3` dice que
 los días con más forzamiento fotoquímico tienen mayores momios de excedencia;
 no dice cuál de los dos precursores limita la formación de ozono, y esa
 pregunta no es contestable con estos datos.
