@@ -914,6 +914,37 @@ preestablecido— pero es el extremo optimista de un rango, y presentarlo solo
 daría una impresión falsa de precisión. La diferencia entre 0.93 y 0.88 es la
 magnitud del efecto de año, la limitación principal de este modelo.
 
+### 8.8 ¿Depende el resultado del umbral?
+
+La sección 0.1 fijó `frac >= 0.5` como definición de día de excedencia y la
+presentó como decisión sustantiva. Falta saber si el modelo cambia de historia
+con otra definición.
+
+```{r}
+sensibilidad <- do.call(rbind, lapply(c(1e-9, 0.25, 0.5, 0.75), function(u) {
+  S <- A
+  S$y  <- as.integer(S$frac >= u)
+  S$y1 <- lag(S$y, 1)
+  tr <- filter(S, anio <= 2024, !is.na(y1)); va <- filter(S, anio == 2025)
+  g  <- glm(F_final, binomial, tr)
+  pv <- predict(g, va, type = "response")
+  data.frame(umbral = if (u < 0.01) "frac > 0" else sprintf("frac >= %.2f", u),
+             prevalencia = round(mean(tr$y), 3),
+             AUC_2025 = round(as.numeric(auc(roc(va$y, pv, quiet = TRUE))), 3),
+             OR_y1 = round(exp(coef(g)["y1"]), 2),
+             OR_foto = round(exp(coef(g)["foto"]), 2),
+             OR_vent = round(exp(coef(g)["vent"]), 2))
+}))
+print(sensibilidad, row.names = FALSE)
+```
+
+**No depende.** El AUC va de 0.901 a 0.945 según el umbral, y las razones de
+momios conservan signo y orden de magnitud: el rezago entre 3.2 y 6.7, el
+forzamiento fotoquímico entre 2.4 y 4.0, la ventilación siempre protectora. El
+umbral cambia la prevalencia del evento, no lo que el modelo dice de él. La
+elección de 0.5 queda como decisión de definición, no como supuesto del que
+dependa el resultado.
+
 ## 9. Criterios de aceptación
 
 ```
@@ -946,6 +977,8 @@ OK       Se distingue el desempeno en la particion (0.927) de la estimacion de
          generalizacion (0.878 [0.860, 0.897])
 OK       La subprediccion en 2025 se cuantifica y se explica, no se corrige
          recalibrando contra los datos de prueba
+OK       El umbral de dicotomizacion se somete a sensibilidad: AUC 0.90-0.95 y
+         razones de momios estables en cuatro definiciones
 ```
 
 ## 10. Qué se lleva el reporte

@@ -424,6 +424,72 @@ fig.colorbar(im, ax=bx, fraction=.09, pad=.35).ax.tick_params(labelsize=6)
 fig.savefig(FIGS / "af_cargas.pdf", bbox_inches="tight"); plt.show()
 ```
 
+El mapa de calor da los números; el diagrama de trayectorias da la estructura.
+Cada flecha factor → variable es una entrada de la matriz de cargas y cada
+flecha corta que entra a la variable es su unicidad, la parte que ningún factor
+explica. Solo se dibujan cargas con |λ| ≥ 0.30, la convención para llamar a una
+carga *saliente*.
+
+```{python}
+#| label: fig-diagrama-cargas
+#| fig-cap: "Diagrama de trayectorias del modelo factorial. Flechas sólidas: cargas positivas; punteadas: negativas; el grosor es proporcional a |λ|. Se omiten las cargas con |λ| < 0.30. La flecha gris a la izquierda de cada variable lleva su unicidad."
+from matplotlib.patches import Ellipse, FancyBboxPatch, FancyArrowPatch
+
+UMBRAL = .30
+M = cargas[NOMBRES].to_numpy()
+# Variables ordenadas por el factor donde cargan más, para que las flechas
+# crucen lo menos posible.
+orden_v = sorted(range(len(PRED)),
+                 key=lambda i: (int(np.abs(M[i]).argmax()), -abs(M[i]).max()))
+
+fig, ax = plt.subplots(figsize=(6.3, 6.6))
+ax.set_xlim(0, 10); ax.set_ylim(-.5, len(PRED) - .5); ax.axis("off")
+
+y_var = {i: len(PRED) - 1 - k for k, i in enumerate(orden_v)}
+y_fac = {j: np.mean([y_var[i] for i in range(len(PRED))
+                     if np.abs(M[i]).argmax() == j]) for j in range(K)}
+XV, XF = 3.2, 8.2
+
+for i, v in enumerate(PRED):
+    y = y_var[i]
+    ax.add_patch(FancyBboxPatch((XV - 1.5, y - .33), 3.0, .66,
+                                boxstyle="round,pad=0.02,rounding_size=0.08",
+                                fc="white", ec="#1a1a1a", lw=.7))
+    ax.text(XV, y, v, ha="center", va="center", fontsize=6.5)
+    ax.add_patch(FancyArrowPatch((XV - 2.7, y), (XV - 1.55, y),
+                                 arrowstyle="-|>", mutation_scale=6,
+                                 color=GRIS, lw=.6))
+    ax.text(XV - 2.8, y, f"{1 - h2[i]:.2f}", ha="right", va="center",
+            fontsize=5.8, color=GRIS)
+
+for j, nom in enumerate(NOMBRES):
+    ax.add_patch(Ellipse((XF, y_fac[j]), 2.9, 1.5, fc="#eef3f9", ec=AZUL, lw=1))
+    ax.text(XF, y_fac[j], nom.replace(" ", "\n"), ha="center", va="center",
+            fontsize=7, color=AZUL, weight="bold")
+
+for i in range(len(PRED)):
+    for j in range(K):
+        lam = M[i, j]
+        if abs(lam) < UMBRAL:
+            continue
+        ax.add_patch(FancyArrowPatch((XF - 1.45, y_fac[j]), (XV + 1.55, y_var[i]),
+                                     arrowstyle="-|>", mutation_scale=7,
+                                     lw=.4 + 2.2 * abs(lam),
+                                     color=AZUL if lam > 0 else ROJO,
+                                     ls="-" if lam > 0 else (0, (3, 2)),
+                                     alpha=.85, shrinkA=0, shrinkB=0))
+        t = .5
+        xt = XF - 1.45 + t * (XV + 1.55 - (XF - 1.45))
+        yt = y_fac[j] + t * (y_var[i] - y_fac[j])
+        ax.text(xt, yt, f"{lam:+.2f}", ha="center", va="center", fontsize=5.6,
+                color=AZUL if lam > 0 else ROJO,
+                bbox=dict(fc="white", ec="none", pad=.6, alpha=.9))
+
+ax.text(XV - 2.8, len(PRED) - .2, "unicidad", ha="right", va="bottom",
+        fontsize=6.5, color=GRIS, style="italic")
+fig.savefig(FIGS / "af_diagrama_cargas.pdf", bbox_inches="tight"); plt.show()
+```
+
 ## 5. Ajuste del modelo
 
 El modelo factorial afirma que `R = LL' + U`. Esa afirmación es falsable: se
