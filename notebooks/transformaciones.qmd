@@ -37,7 +37,9 @@ Se hace una complot de los datos para comparación visual
 
 ```{r}
 #| fig-format: png
-sima_horario_quant <- sima_horario %>% dplyr::select(-c("estacion","fecha","anio","hora","mes","dia_semana","fin_de_semana","temporada","outlier_O3","outlier_CO","outlier_NO2","outlier_NOX","outlier_PM10","outlier_PM2.5","outlier_TOUT","outlier_PRS","outlier_WSR"))
+# Las banderas outlier_* son 0/1 y no se transforman. Con 2025 completo
+# outlier_RH queda toda en cero, y una columna constante rompe scale().
+sima_horario_quant <- sima_horario %>% dplyr::select(-c("estacion","fecha","anio","hora","mes","dia_semana","fin_de_semana","temporada"), -starts_with("outlier_"))
 head(sima_horario_quant)
 boxplot(sima_horario_quant)
 
@@ -60,7 +62,7 @@ sk <- sima_horario_quant |> apply(2,skewness,na.rm = TRUE)
 sk
 ```
 
-La mayoría de las variables no cumplen con la regla propuesta, se convierten en candidatos a transformar, a excepción de `RAINF`,que tiene un sesgo de  238.46, debido a la naturaleza de la precipitación, es una variable inflada de zeros, ni Box-Cox ni Yeo-Johnson funcionaran con esta variable. Para esta variable sera mejor crear una nueva `llovio` que sea la dicotomizacion de la variable original `RAINF`
+La mayoría de las variables no cumplen con la regla propuesta, se convierten en candidatos a transformar, a excepción de `RAINF`,que tiene un sesgo de  144.85, debido a la naturaleza de la precipitación, es una variable inflada de zeros, ni Box-Cox ni Yeo-Johnson funcionaran con esta variable. Para esta variable sera mejor crear una nueva `llovio` que sea la dicotomizacion de la variable original `RAINF`
 
 ```{r}
 sima_horario$llovio <- (as.integer(sima_horario$RAINF > 0))
@@ -153,7 +155,7 @@ graficar_qqplots()
 dev.off()
 ```
 
-`viento_u` y `viento_v` quedan mucho mas leptocurticas que el resto (curtosis de exceso ≈38 y ≈39, contra valores cercanos a 0 en casi todas las demas, ej. `PM10` ≈1.2, `PM2.5` ≈0.1). Esto no lo corrige Box-Cox: el metodo optimiza simetria (tercer momento), no curtosis (cuarto momento), y el `λ` estimado para estas dos variables fue alto (1.9 y 1.5), lo que amplifica en vez de comprimir los valores alejados del centro. Tiene sentido fisico: la mayoria de las horas el viento es tranquilo y con direccion similar (pico central angosto), pero hay rafagas raras con magnitudes mucho mayores (colas pesadas) que Box-Cox no aplana. Junto con que ya eran las unicas variables que no bajaron de `|sesgo|<0.5` tras la transformacion, quedan marcadas como caso a vigilar si el metodo de #15 es sensible a colas pesadas (ej. distancia de Mahalanobis para outliers).
+`viento_u` y `viento_v` quedan mucho mas leptocurticas que el resto (curtosis de exceso ≈37 y ≈37, contra valores cercanos a 0 en casi todas las demas, ej. `PM10` ≈1.1, `PM2.5` ≈0.1). Esto no lo corrige Box-Cox: el metodo optimiza simetria (tercer momento), no curtosis (cuarto momento), y el `λ` estimado para estas dos variables fue alto (1.9 y 1.5), lo que amplifica en vez de comprimir los valores alejados del centro. Tiene sentido fisico: la mayoria de las horas el viento es tranquilo y con direccion similar (pico central angosto), pero hay rafagas raras con magnitudes mucho mayores (colas pesadas) que Box-Cox no aplana. Junto con que, con `SR` (sesgo 1.02, por el bloque de ceros nocturnos), son las unicas variables que no bajaron de `|sesgo|<0.5` tras la transformacion, quedan marcadas como caso a vigilar si el metodo de #15 es sensible a colas pesadas (ej. distancia de Mahalanobis para outliers).
 
 ```{r}
 sima_horario_transformado <- sima_horario
