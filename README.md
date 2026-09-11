@@ -1,5 +1,99 @@
 # MA2003B.102.07
 
+> ## ⚠️ Pendiente: actualizar el reporte al 2025 completo
+>
+> El 11 de septiembre de 2026 se recibió la versión completa de `BD 2025.xlsx`
+> (antes cortaba el 30 de junio). La rama `anio_2025` regeneró **todo** el
+> pipeline, las notebooks y sus PDF en `docs/`, y los parquets versionados.
+> Los `.tex` de `reports/secciones/` **no se tocaron**: cada uno tiene dueño y
+> se corrige en su propia issue. Lo que hay que cambiar, con la cifra vieja →
+> nueva y la notebook de donde sale:
+>
+> **Cambios de fondo (no solo de número):**
+>
+> - **Ya no existe el "desbalance estacional" de la validación.** 2025 completo
+>   reparte 24.6 / 25.4 / 24.0 / 26.0 % por temporada, igual que el
+>   entrenamiento. Lo que sí persiste es que 2025 es el año de ozono más alto
+>   de la serie (tasa base 42.2 % día-estación contra 29.3 %); es un efecto de
+>   año, no de calendario (`docs/05_estacionalidad_ozono.pdf` §5). Todo párrafo
+>   que diga "le sobra primavera y le falta otoño" se reescribe.
+> - **Los AUC de validación bajan.** Logística 0.893 → 0.850, discriminante
+>   0.893 → 0.846 (`docs/analisis_discriminante.pdf`); nowcasting 0.927 → 0.898
+>   (`docs/autorregresivo_logistico.pdf`). El AUC esperado en un año cualquiera
+>   sigue siendo 0.80 (panel) y 0.878 (área), y ahora 2025 cae dentro de ese
+>   rango en vez de en su extremo.
+> - **Los tres factores son estables fuera del ajuste**: congruencia de Tucker
+>   0.973 / 0.939 / 0.924 en 2025 (antes la ventilación daba 0.826 y se
+>   atribuía a la ventana estacional; `docs/09_extraccion_factorial.pdf` §7.2).
+> - **El pronóstico a un día queda firme**: 0.779 contra 0.667 de climatología,
+>   p < 10⁻⁴ (antes 0.814 vs 0.760 con p = 0.09; `docs/pronostico_excedencia.pdf`).
+>
+> **Por archivo:**
+>
+> - `seleccion_datos.tex` (l. 70): quitar "con la salvedad de que 2025 cubre
+>   únicamente hasta el 30 de junio". Cobertura 2021-01-01 → 2025-12-31.
+> - `diccionario_datos.tex`: tabla de faltantes por estación y año (l. 293+),
+>   columna 2025; "NO3 con 30.3 % en 2025" (l. 114). Cifras en
+>   `docs/01_verificacion_calidad.pdf` §2. Los conteos por estación (CE 52,605…)
+>   no cambian.
+> - `diccionario_transformadas.tex` (l. 6): 574,343 → 640,583 filas horarias.
+> - `diccionario_datos_transformadas.tex` (l. 8–9): 23,931 → 26,691 día-estación;
+>   "30 de junio" → "31 de diciembre de 2025". Tabla de parámetros Box-Cox
+>   (l. 159+): regenerar desde `data/processed/transformacion_diaria_parametros.csv`
+>   — `SR_acum` ahora sí se transforma (sesgo 0.53, λ = 0.755); son 13
+>   candidatas, no 12.
+> - `transformaciones.tex` (tabla de sesgo l. 61): recalcular desde
+>   `docs/transformaciones.pdf`; `RAINF` pasa de 238 a 145 de sesgo y `SR`
+>   queda en 1.02 tras Box-Cox.
+> - `descript_quant.tex`: toda la tabla de estadísticos horarios (l. 66 y
+>   vecinas) y el n listwise (l. 157: 14,719 de 23,931 → recalcular; con las 16
+>   continuas es 15,856 de 26,691, 59.4 %). Correlaciones diarias:
+>   `WSR_media`–`WSR_min` 0.72 → 0.71, `PM10`–`PM2.5` 0.69 → 0.70; KMO 0.661 →
+>   0.660 y `TOUT_max` (0.596) se suma a las variables bajo 0.6
+>   (`docs/06_correlacion_diaria.pdf` §4–5).
+> - `eda_cualitativas.tex`: n = 574,343 → 640,583 (l. 10, 23); l. 62 quitar
+>   "la serie termina el 30 de junio de 2025"; l. 120 cobertura → 2025-12-31;
+>   tabla de excedencias (l. 93, 103): 65 ppb 2,400 (10.65 %) → 2,825
+>   (11.25 %), 60 ppb → 4,236 (16.88 %), 51 ppb 6,917 (30.70 %) → 8,021
+>   (31.96 %) sobre 25,100 válidos; l. 205, 209 los mismos porcentajes.
+>   `NO3` cobertura 22,631 h → ver `docs/04_eda_cualitativas.pdf` §2.
+> - `objetivo_tecnicas.tex` (l. 21, 25): 10.65 % → 11.25 %; 30.70 % → 31.96 %.
+> - `pca.tex`: eigenvalores y cargas (`docs/07_pca.pdf` §3–4): 3 componentes,
+>   55.9 % (igual); distancia al codo PC4 1.843/PC3 1.786 → 1.839/1.783;
+>   curvatura 1.133/0.259 → 1.121/0.267; `SR_acum` +0.65 → +0.64,
+>   `PRS_media` +0.39 → +0.40. El párrafo de "2025 termina el 30 de junio"
+>   sobre las medias de validación se sustituye por el efecto de año.
+> - `regresion_logistica.tex` — es la sección con más cambios:
+>   - tasa base de validación 41.50 % → 43.97 % (l. 85);
+>   - AUC 0.893 → 0.850, umbral de Youden 0.288 → 0.282, sensibilidad 0.831 →
+>     0.698, especificidad 0.824 → 0.853 (l. 87); con umbral 0.5: sensibilidad
+>     0.518 → 0.326, especificidad 0.942 → 0.964 (l. 89);
+>   - discriminante: AUC 0.846, umbral 0.249, sensibilidad 0.758, especificidad
+>     0.788; coeficientes LD1 (l. 123+) desde `docs/analisis_discriminante.pdf`;
+>   - l. 147 "indistinguibles… DeLong p = 0.80" → AUC 0.850 vs 0.846, DeLong
+>     p = 0.0002, diferencia estadísticamente real y sin consecuencia práctica;
+>     concordancia 93.8 %; l. 165 ahora el discriminante detecta más
+>     excedencias (0.758 vs 0.698) a cambio de menos especificidad;
+>   - l. 171 autocorrelación: 17,029 filas / 1,641 días → 18,631 / 1,826;
+>   - l. 177 **eliminar "Desbalance estacional de la partición"** y sustituir
+>     por "Validación en un año atípico" (44 % vs 29 % de tasa base);
+>   - tabla de momios (l. 54–56): siguen siendo los del PCA por unidad
+>     (1.47/1.58/1.22). Por desviación estándar valen 2.173/2.188/1.278; si se
+>     migra a factores, 1.92/0.90/2.78 (`docs/analisis_discriminante.pdf`,
+>     "Contraste con las componentes principales"). Los IC corregidos por
+>     conglomerado de día: ventilación [0.84, 0.97], forzamiento [2.48, 3.10].
+> - Sección de nowcasting (si ya existe en `secciones/`): AUC 0.927 → 0.898,
+>   IC [0.867, 0.929]; sensibilidad 88.7 → 75.9 %, especificidad 81.2 → 84.1 %;
+>   skill de Brier 0.572 → 0.436; climatología 0.762 → 0.668, persistencia
+>   0.737 → 0.717; generalización 0.878 [0.859, 0.897], rango 0.840–0.915;
+>   subpredicción: media predicha 0.338 vs 0.466 observada; OR foto 3.66 →
+>   3.69, comb 2.35 → 2.37, y₍t−1₎ 3.84 → 3.83. Pronóstico: a un día 0.779 vs
+>   0.667 (p < 10⁻⁴), a dos 0.704 vs 0.665 (p = 0.03), oráculo a 7 días 0.868.
+> - Figuras: todas las de `reports/figuras/` ya están regeneradas; basta
+>   recompilar `reports/`.
+>
+> Cuando una sección quede corregida, borra su viñeta de esta lista.
+
 Este es un repositorio dedicado a la realización del proyecto del curso de Aplicación de Métodos Multivariados en ciencia de datos por parte del equipo 7 del grupo 102 del Tecnológico de Monterrey.
 
 > Toma en cuenta que este `README.md` deberá ser reescrito para escribir resumen del proyecto y del repositorio, esta guía de colaboración será movida a un `CONTRIBUTING.md`.
