@@ -148,8 +148,8 @@ print(vif_tab.round(3).to_string())
 ```
 
 La convención más usada marca 5 como preocupante y 10 como severo. Aquí el
-resultado no está repartido: se concentra. `NOX` alcanza 47.2, lo que equivale a
-decir que el 97.9 % de su varianza es predecible desde las otras catorce
+resultado no está repartido: se concentra. `NOX` alcanza 45.7, lo que equivale a
+decir que el 97.8 % de su varianza es predecible desde las otras catorce
 variables; las diez últimas de la tabla viven por debajo de 2.6.
 
 ```{python}
@@ -238,7 +238,7 @@ print(f"KMO global = {kmo_global:.3f}")
 La escala convencional de Kaiser: <0.50 inaceptable, 0.50–0.60 pobre,
 0.60–0.70 mediocre, 0.70–0.80 aceptable, 0.80–0.90 meritorio, >0.90 admirable.
 
-**0.646 cae en «mediocre».** Pasa el umbral mínimo, y no es un resultado que
+**0.647 cae en «mediocre».** Pasa el umbral mínimo, y no es un resultado que
 convenga adornar: el bloque admite factorización, pero sin holgura. El KMO por
 variable dice dónde se pierde.
 
@@ -266,14 +266,14 @@ Establecido lo anterior, la extracción de factores queda para el siguiente
 documento, y entra con dos decisiones ya justificadas por lo que se midió aquí:
 
 1. **`NOX_06_09` sale del bloque.** Es la suma de `NO` y `NO2` (r = 0.985 contra
-   la suma), tiene el VIF más alto y un KMO individual de 0.580. No aporta
+   la suma), tiene el VIF más alto y un KMO individual de 0.581. No aporta
    información que `NO` y `NO2` no tengan; sí aporta el caso Heywood que impide
    ajustar el modelo. La poda no pierde señal, quita una identidad contable.
 2. **`RH_min_diurna` queda en observación.** Correlaciona 0.892 con `RH_media` y
    es la otra fuente de comunalidad inadmisible. A diferencia de `NOX` no es una
    identidad, así que la decisión se toma con el ajuste en la mano y no antes.
 
-El KMO de 0.646 se arrastra como limitación declarada del enfoque, no como
+El KMO de 0.647 se arrastra como limitación declarada del enfoque, no como
 trámite aprobado. Y queda pendiente la pregunta que decide si el análisis
 factorial puede además sustituir al PCA en su papel instrumental: **si los
 puntajes factoriales sirven como predictores no colineales para #55**. Los

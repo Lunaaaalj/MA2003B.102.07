@@ -102,7 +102,7 @@ print(f"n listwise: {X.shape[0]:,} de {D.shape[0]:,} "
       f"({X.shape[0]/D.shape[0]*100:.1f} %)")
 ```
 
-Es menor que las 22,529 filas con MDA8 válido (`docs/log_agregacion_diaria.md`
+Es menor que las 25,100 filas con MDA8 válido (`docs/log_agregacion_diaria.md`
 §5): ese conteo solo exige el objetivo, no los 16 predictores simultáneamente.
 No se imputa nada aquí; es la misma decisión de #51 aplicada a este análisis.
 
@@ -175,7 +175,7 @@ comp = pd.DataFrame([
 print(comp.to_string(index=False))
 ```
 
-`PM10`--`PM2.5` sube de forma clara (+0.07) y `viento_u`--`WSR` sube en
+`PM10`--`PM2.5` sube de forma clara (+0.08) y `viento_u`--`WSR` sube en
 magnitud (+0.03); ambas consistentes con la hipótesis de la issue: promediar a
 día cancela ruido de medición y las correlaciones reales se acentúan.
 `NO2`--`NOX` es la excepción: prácticamente sin cambio (diferencia < 0.01,
@@ -190,9 +190,9 @@ señalada sin resolver (`docs/checklist_seleccion_variables.md`, criterio C3:
 `NOX` $\approx$ `NO` + `NO2`) y que solo se vuelve visible ahora porque `NO`
 entra al dataset por primera vez (#46). El segundo es la misma variable
 (`RH`) resumida dos veces sobre ventanas distintas del día, no dos fenómenos
-independientes. `WSR_media`--`WSR_min` ($r=0.72$) es el mismo caso para
+independientes. `WSR_media`--`WSR_min` ($r=0.71$) es el mismo caso para
 viento. Estas tres son redundancia de construcción, no relación física nueva
-entre contaminantes; es `PM10`--`PM2.5` ($r=0.69$) la que repite la lectura ya
+entre contaminantes; es `PM10`--`PM2.5` ($r=0.70$) la que repite la lectura ya
 dada a resolución horaria (material particulado de origen común).
 
 ## 5. Diagnósticos previos al PCA
@@ -223,13 +223,14 @@ print("\nKMO por variable (ascendente):")
 print(kmo_tabla.round(3).to_string())
 ```
 
-Determinante cercano a 0 y número de condición de 324 son evidencia de
+Determinante cercano a 0 y número de condición de 323 son evidencia de
 multicolinealidad fuerte — la contraparte numérica de los pares de la sección
 4. Bartlett rechaza esfericidad ($p < 0.001$: la matriz de correlación no es
-la identidad, hay estructura que reducir) y el KMO total (0.661) libra el
-umbral convencional de 0.6. A nivel variable, `RH_media` (0.589) y `PRS_media`
-(0.590) quedan justo debajo de ese umbral — no arrastran el total por debajo
-del corte, pero quedan documentadas como las más débiles del conjunto.
+la identidad, hay estructura que reducir) y el KMO total (0.660) libra el
+umbral convencional de 0.6. A nivel variable, `RH_media` (0.587), `PRS_media`
+(0.589) y `TOUT_max` (0.596) quedan justo debajo de ese umbral — no arrastran
+el total por debajo del corte, pero quedan documentadas como las más débiles
+del conjunto.
 
 ## 6. Criterios de aceptación
 

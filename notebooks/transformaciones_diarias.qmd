@@ -148,17 +148,17 @@ print(f"\ncandidatas: {len(CANDIDATAS)} de {len(CONTINUAS)}")
 print("ya cumplen:", list(base.index[~base.candidata]))
 ```
 
-Doce de dieciséis incumplen. Las cuatro que no —`SR_acum`, `PRS_media`,
-`RH_media`, `RH_min_diurna`— son justamente las que la agregación diaria dejó
-bien portadas: presión y humedad varían poco dentro del día, y el acumulado de
-radiación es una suma sobre 24 h, que por el teorema del límite central tiende a
-simetría.
+Trece de dieciséis incumplen. Las tres que no —`PRS_media`, `RH_media`,
+`RH_min_diurna`— son justamente las que la agregación diaria dejó bien
+portadas: presión y humedad varían poco dentro del día.
 
-`SR_acum` merece una nota: tiene 1,830 ceros (días sin insolación registrada) y
-aun así sale con sesgo 0.30. **No repite el caso de `RAINF`**, que a resolución
-horaria llegaba a 238 y hubo que dicotomizar. El acumulado diario diluye la
-inflación de ceros lo suficiente como para que la variable entre al modelado en
-escala continua.
+`SR_acum` merece una nota: tiene 2,231 ceros (días sin insolación registrada) y
+sale con sesgo 0.53, apenas por encima del umbral; con la primera versión de
+2025 (cortada a junio) quedaba en 0.30 y no se transformaba. **No repite el caso
+de `RAINF`**, que a resolución horaria llegaba a 145 y hubo que dicotomizar. El
+acumulado diario, que es una suma sobre 24 h, diluye la inflación de ceros lo
+suficiente como para que la variable entre al modelado en escala continua, y
+Box-Cox la deja en −0.004.
 
 ## 3. Box-Cox con desplazamiento
 
@@ -205,9 +205,9 @@ params["cumple"] = params.sesgo_despues.abs() < UMBRAL
 print(params.round(3).to_string())
 ```
 
-Las doce candidatas bajan de `|sesgo| < 0.5`, y las cuatro no transformadas ya
+Las trece candidatas bajan de `|sesgo| < 0.5`, y las tres no transformadas ya
 estaban dentro. **Ninguna variable queda fuera del criterio**, a diferencia del
-horario, donde `viento_u` y `viento_v` se quedaron en 0.78 y 0.65.
+horario, donde `viento_u`, `viento_v` y `SR` se quedaron en 0.75, 0.62 y 1.02.
 
 ## 4. Estandarización z
 
@@ -234,7 +234,7 @@ La issue predice que, al promediar a día, las colas de ráfaga de `viento_u` y
 a medias.**
 
 ```{python}
-CURT_HORARIA = {"viento_u_media": 37.487, "viento_v_media": 38.660}
+CURT_HORARIA = {"viento_u_media": 40.462, "viento_v_media": 40.078}
 comp = pd.DataFrame({
     "curtosis_horaria": CURT_HORARIA,
     "curtosis_diaria": base.loc[list(CURT_HORARIA), "curtosis"],
@@ -246,14 +246,14 @@ comp = pd.DataFrame({
 print(comp.round(3).to_string())
 ```
 
-Agregar a día baja la curtosis de exceso de 37.5 a 27.4 y de 38.7 a 28.3: una
-caída de apenas 27 %, que deja las dos variables tan leptocúrticas que ninguna
+Agregar a día baja la curtosis de exceso de 40.5 a 27.2 y de 40.1 a 27.7: una
+caída de apenas un tercio, que deja las dos variables tan leptocúrticas que ninguna
 técnica las trataría como normales. **La agregación por sí sola no resuelve el
 problema.**
 
 Lo que sí cambia es que Box-Cox ahora funciona. A resolución horaria el sesgo era
 positivo y el `λ` estimado (1.9 y 1.5) amplificaba las colas; a resolución diaria
-el sesgo es **negativo** (−1.82 y −1.58, porque la media vectorial concentra masa
+el sesgo es **negativo** (−1.74 y −1.52, porque la media vectorial concentra masa
 en el lado negativo de `u`) y un `λ` ≈ 3 es exactamente la corrección que pide una
 cola izquierda. El resultado: sesgo dentro del criterio y curtosis de ~28 a ~5.
 
@@ -273,14 +273,14 @@ print(f"\ndías-estación con WSR_min > 20: {len(extremos)}")
 print(extremos.estacion.value_counts().to_dict())
 ```
 
-`WSR_min` tiene curtosis 343 y `WSR_media` 142, muy por encima del viento
+`WSR_min` tiene curtosis 348 y `WSR_media` 150, muy por encima del viento
 vectorial. El origen son 15 días-estación —11 de ellos SO2 en 2021— con
 velocidades de viento que #13 **conservó a propósito**: caen fuera del rango de
 operación anual del sensor pero dentro del rango de fabricante (0–180 km/h), y la
 política de limpieza fue marcarlos, no borrarlos.
 
 No se tocan aquí: cambiar esa decisión es alcance de #13, no de #52. Box-Cox los
-comprime bien (curtosis 343 → 0.93 y 142 → 4.02) y quedan documentados para que
+comprime bien (curtosis 348 → 0.94 y 150 → 3.94) y quedan documentados para que
 #54 y #55 decidan con el número delante.
 
 ## 6. Distribuciones resultantes
@@ -381,7 +381,7 @@ for nombre, ok in chk:
 ## 9. Qué queda para el diccionario
 
 `reports/secciones/diccionario_transformadas.tex` describe hoy el conjunto
-**horario** (574,343 × 30). Debe reescribirse para el diario: 23,931 × 34, la
+**horario** (640,583 × 30). Debe reescribirse para el diario: 26,691 × 34, la
 tabla de sesgo y curtosis antes/después de §3, y la distinción entre las 16
 continuas estandarizadas y las 18 columnas que se conservan en escala original.
 Los números están en `transformacion_diaria_parametros.csv`.
@@ -398,7 +398,7 @@ que #35 escribió en R —equivalencias de `moments`/`MASS` a `scipy.stats.skew`
 `kurtosis` y `boxcox`—, conservando el criterio y el desplazamiento originales
 para que las dos notebooks sean comparables; (2) explorar el dataset diario antes
 de escribir la narrativa, que es de donde salieron los tres hallazgos que no
-estaban en la issue: que solo 12 de las 16 continuas incumplen el criterio, que
+estaban en la issue: que no todas las continuas incumplen el criterio, que
 la predicción sobre el viento se cumple a medias, y que la cola más pesada de la
 tabla es `WSR_min` y no el viento vectorial; y (3) redactar las figuras y los
 chequeos de §8. Cada cifra citada en el texto se verificó corriendo el código

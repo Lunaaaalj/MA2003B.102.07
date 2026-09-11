@@ -21,7 +21,7 @@ jupyter: python3
 ---
 
 **Issue #11.** Auditoría del consolidado `data/processed/sima_horario.parquet`
-(688,184 observaciones horarias, 2020-01-01 a 2025-06-30, 15 estaciones).
+(754,603 observaciones horarias, 2020-01-01 a 2025-12-31, 15 estaciones).
 
 No se limpió nada, solamente se dieron insights.
 
@@ -29,7 +29,7 @@ No se limpió nada, solamente se dieron insights.
 
 La issue #9 dejó documentado en [`data/README.md`](../data/README.md):
 
-- El porcentaje de faltantes por parámetro (de 3.7 % en `SR` a 24.6 % en `PM2.5`).
+- El porcentaje de faltantes por parámetro (de 3.7 % en `SR` a 25.2 % en `PM2.5`).
 - Sin fechas nulas y sin pares `(estación, fecha)` duplicados.
 - Cobertura temporal continua, sin huecos de días completos.
 - Las **23 banderas de calidad** de `Etiquetas.xlsx` no aparecen en ninguno de los
@@ -68,8 +68,8 @@ print(f"parametros       : {len(PARAMETROS)}")
 
 ## 1. Cuántas observaciones aporta cada estación
 
-La rejilla temporal tiene **48,192 horas** (2,008 días × 24). Si las 15 estaciones
-hubieran reportado siempre, habría 722,880 filas; hay 688,184. Pero no es ruido, solo dice cuándo entró en operación cada estación y dónde faltan renglones enteros.
+La rejilla temporal tiene **52,608 horas** (2,192 días × 24). Si las 15 estaciones
+hubieran reportado siempre, habría 789,120 filas; hay 754,603. Pero no es ruido, solo dice cuándo entró en operación cada estación y dónde faltan renglones enteros.
 
 ```{python}
 #| label: obs-por-estacion
@@ -79,11 +79,12 @@ sima['estacion'].value_counts()
 
 **IMPORTANTE: hay huecos que no son nulos, son renglones enteros ausentes.**
 
-Dos estaciones entraron en operación tarde, que son: `NE3` y `NO3`. Lo que explica la diferencia que hay. 39,378 horas (arranca en 2021) y solo 22,606 (arranca a media hoja de
+Dos estaciones entraron en operación tarde, que son: `NE3` y `NO3`. Lo que explica la diferencia que hay. 43,817 horas (arranca en 2021) y solo 27,045 (arranca a media hoja de
 2022, como ya documentaba `data/README.md`).
 
-Pero el resto de las estaciones tampoco llega a las 48,192 horas: `SO` se queda en
-48,041 —le faltan **151 renglones**— y las demás pierden entre 2 y 16. Eso es una
+Pero el resto de las estaciones tampoco llega a las 52,608 horas: pierden entre 3
+(`CE`) y 16 (`SUR`) renglones cada una. Con la primera versión de `BD 2025.xlsx`
+(cortada al 30 de junio) `SO` perdía 151; la versión completa cerró ese hueco. Eso es una
 categoría de faltante distinta a la que mide `pct_nulo`:
 
 > Un renglón ausente **no aparece como nulo**, porque la fila no existe. El porcentaje
@@ -268,21 +269,28 @@ pd.Series(centinelas, name="n_observaciones").rename_axis(["parametro", "centine
 
 ### Hallazgos de la sección 3
 
-**`-9999` es un código de "sin dato", no una medición.** Aparece como mínimo de `RH`,
-`TOUT` y `SR`. Entró al parquet como número real, así que **cualquier media o desviación
+**`-9999` es un código de "sin dato", no una medición.** Son 26 celdas repartidas en
+`SR`, `RH`, `NOX`, `TOUT`, `WSR`, `WDR` y `RAINF`. Entró al parquet como número real, así que **cualquier media o desviación
 calculada sin quitarlo sale disparatada**. Es el hallazgo más accionable para la #13.
 
-**Fuera del rango de operación** (11,762 observaciones, sospechosas):
+**Fuera del rango de operación** (12,452 observaciones, sospechosas):
 
 | | total | se concentra en |
 |---|---|---|
-| `PRS` | 8,088 | 2022 (6,305) |
-| `WSR` | 1,700 | 2021 (1,184) |
-| `SR` | 1,101 | 2022 (717) |
+| `PRS` | 8,172 | 2022 (6,305) |
+| `WSR` | 1,704 | 2021 (1,184) |
+| `SR` | 1,186 | 2022 (717) |
 | `TOUT` | 517 | 2020 (450) |
-| `RH` | 278 | 2022 (155) |
+| `RH` | 294 | 2022 (155) |
+| `NO` | 284 | 2025 (269) |
+| `NOX` | 223 | 2025 (207) |
 
-**Fuera del rango del fabricante** (imposibles, 1757 en total): `SR` 1,007 · `TOUT` 405 · `RH` 278 · `WSR` 39 · `NOX` 12 · `NO` 11, más una observación suelta en `PM10`, `PM2.5`, `O3`, `CO` y `PRS`. `WDR` y `NO2` salen limpios.
+`NO` y `NOX` son novedad del segundo semestre de 2025: el rango de operación de ese
+año baja el tope a 350 y 400 ppb, y la estación `SO` acumula 220 y 159 lecturas por
+encima. Son picos de precursores, no imposibles físicamente, así que se marcan y se
+conservan, igual que el resto de esta tabla.
+
+**Fuera del rango del fabricante** (imposibles, 1,879 en total): `SR` 1,091 · `TOUT` 405 · `RH` 294 · `WSR` 41 · `NOX` 30 · `NO` 11 · `PRS` 2, más una observación suelta en `PM10`, `PM2.5`, `O3`, `CO` y `WDR`. `NO2` sale limpio.
 
 **Sospecha de unidades en `SR`.** Llega a 501 cuando el tope del sensor es 1.4 kW/m².
 501 W/m² es radiación solar normal, así que parte de las lecturas parecen venir en
@@ -290,7 +298,8 @@ W/m² y no en kW/m². Hay que confirmarlo con SIMA antes de afirmarlo.
 
 **Las fallas son por estación, no por sensor.** `2020-11-10 19:00` en `SE` tiene `SR=64`
 y `PRS=0.0` a la vez; `NO` y `NOX` comparten los mismos timestamps del 2022-03-15 en la
-estación `NO`. Conviene descartar la observación completa, no el valor suelto.
+estación `NO`; `SE2` reporta `RH` de 725 % nueve veces entre septiembre y noviembre de
+2025. Conviene descartar la observación completa, no el valor suelto.
 
 ## 4. ¿Hay texto donde debería haber número?
 
@@ -425,7 +434,7 @@ Aun resolviendo eso, el cruce sería débil:
 
 - El **inventario es de 2018** y el SIMA arranca en 2020: no hay traslape temporal.
 - El **padrón no tiene fecha**, así que entraría como una constante por municipio — la
-  misma cifra repetida en las 48,192 horas. No aporta varianza al análisis multivariado.
+  misma cifra repetida en las 52,608 horas. No aporta varianza al análisis multivariado.
 - El padrón lista **104 municipios** y Nuevo León tiene 51: los nombres no están
   normalizados y habría que limpiarlos antes de cualquier cruce.
 
@@ -436,14 +445,14 @@ cuántos vehículos hay por municipio), no como variables del modelo.
 
 Lo que esta auditoría agrega a lo ya documentado por la issue #9:
 
-1. **`-9999` está guardado como si fuera una medición** en `RH`, `TOUT` y `SR`. Es el
+1. **`-9999` está guardado como si fuera una medición** en siete parámetros (26 celdas). Es el
    hallazgo más urgente: contamina cualquier media o desviación. Quitarlo es lo primero
    que debe hacer la #13.
-2. **11,762 observaciones caen fuera del rango de operación** de SIMA, concentradas en
-   `PRS` (8,088) y `WSR` (1,700). De esas, **1,757 son físicamente imposibles** según el
+2. **12,452 observaciones caen fuera del rango de operación** de SIMA, concentradas en
+   `PRS` (8,172) y `WSR` (1,704). De esas, **1,879 son físicamente imposibles** según el
    rango del fabricante.
-3. **Faltan renglones enteros, no solo valores.** `SO` pierde 151 horas y el resto entre
-   2 y 16. Un renglón ausente no cuenta como nulo, así que el % de faltantes reportado
+3. **Faltan renglones enteros, no solo valores.** Cada estación pierde entre 3 y 16
+   horas de la rejilla. Un renglón ausente no cuenta como nulo, así que el % de faltantes reportado
    está subestimado.
 4. **El catálogo de estaciones está desactualizado:** le faltan `NE3`, `NO3` y `SUR`, y
    tiene `SE` duplicada.

@@ -31,7 +31,7 @@ knitr:
 
 `autorregresivo_logistico.pdf` construyó un modelo de *nowcasting*: decide si
 **hoy** es un día de excedencia usando lo que se midió **hoy**. Alcanza un AUC de
-0.928 y su límite está escrito en su propio nombre — no dice nada sobre mañana.
+0.898 y su límite está escrito en su propio nombre — no dice nada sobre mañana.
 
 Este documento hace la pregunta siguiente: **¿cuántos días hacia adelante sirve?**
 No se revisan supuestos, ya se verificaron ahí; se reutiliza la misma
@@ -277,22 +277,23 @@ fig_hor
 
 La caída es abrupta y luego se aplana:
 
-- **Hoy mismo (h = 0)**, el *nowcasting*: AUC 0.928. Es la referencia.
-- **A un día**: 0.814 contra 0.760. Es la única ventaja de tamaño apreciable
-  que sobrevive, aunque conviene no exagerarla: con 181 días de validación la
-  prueba de DeLong la deja en $p = 0.09$, al filo de lo convencional.
-- **A dos y tres días**: 0.772 y 0.782, contra 0.757 y 0.754 de la climatología.
-  Un par de centésimas, indistinguibles del azar.
-- **De cuatro días en adelante**: el pronóstico y la climatología son la misma
-  cosa. A siete días el modelo es incluso **peor** (0.733 contra 0.744): arrastra
-  información vieja que ya no sirve y que sólo agrega ruido.
+- **Hoy mismo (h = 0)**, el *nowcasting*: AUC 0.898. Es la referencia.
+- **A un día**: 0.779 contra 0.667. Es la única ventaja de tamaño apreciable
+  que sobrevive, y con 365 días de validación la prueba de DeLong la declara
+  firme ($p < 10^{-4}$). Con la primera versión de 2025, de 181 días, quedaba
+  en $p = 0.09$; el año completo la confirma.
+- **A dos días**: 0.704 contra 0.665. Cuatro centésimas, al filo de lo
+  convencional ($p = 0.03$): queda un rastro, no un pronóstico.
+- **De tres días en adelante**: el pronóstico y la climatología son la misma
+  cosa. A seis y siete días el modelo es incluso **peor** (0.653 contra 0.656):
+  arrastra información vieja que ya no sirve y que sólo agrega ruido.
 
-El *skill score* de Brier cuenta la misma historia en otra escala: de 0.573 el
-mismo día a 0.319 al día siguiente, y de ahí en adelante se estanca cerca de
-0.22 — que es esencialmente el mérito de conocer la estación del año, no de
-tener un modelo.
+El *skill score* de Brier cuenta la misma historia en otra escala: de 0.436 el
+mismo día a 0.252 al día siguiente y 0.139 al segundo, y de ahí en adelante se
+estanca cerca de 0.10 — que es esencialmente el mérito de conocer la estación
+del año, no de tener un modelo.
 
-**Conclusión operativa: el modelo pronostica un día. A partir del segundo, la
+**Conclusión operativa: el modelo pronostica un día. A partir del tercero, la
 recomendación honesta es usar la climatología, que es más simple y no es peor.**
 
 ## 5. Dónde está el cuello de botella
@@ -316,9 +317,9 @@ data.frame(horizonte = tabla$h,
            brecha = round(tabla$oraculo - tabla$AUC, 3)) |> print(row.names = FALSE)
 ```
 
-**El oráculo no decae.** A siete días de distancia mantiene un AUC de 0.914,
-prácticamente el mismo 0.925 que tiene el mismo día. La brecha con el pronóstico
-real crece de 0 a 0.18 y esa brecha **es** la explicación completa.
+**El oráculo no decae.** A siete días de distancia mantiene un AUC de 0.868,
+cerca del 0.891 que tiene el mismo día. La brecha con el pronóstico real crece
+de 0 a 0.21 y esa brecha **es** la explicación completa.
 
 La respuesta, entonces, es la segunda: el proceso no es impredecible. Un día de
 excedencia se explica muy bien por las condiciones meteorológicas de ese día
@@ -337,23 +338,24 @@ este proyecto.
 
 ## 6. Qué se lleva el reporte
 
-- **El pronóstico útil llega a un día**: AUC 0.814 contra 0.760 de la
-  climatología, y aun así con $p = 0.09$ — es la única ventaja apreciable, pero
-  el tamaño de la validación no alcanza para declararla firme. Del segundo día
-  en adelante no hay ventaja, y al séptimo el modelo es peor que el calendario.
+- **El pronóstico útil llega a un día**: AUC 0.779 contra 0.667 de la
+  climatología, $p < 10^{-4}$. Al segundo día queda un rastro (0.704 contra
+  0.665, $p = 0.03$); del tercero en adelante no hay ventaja, y al séptimo el
+  modelo es peor que el calendario.
 - **La memoria de la cadena se agota en tres días.** La brecha entre salir de un
   día con excedencia y salir de uno limpio cae de 0.458 a 0.096, siguiendo
   exactamente $|\lambda_2|^h$ con $\lambda_2 = 0.458$.
 - **El límite no es del modelo, es del insumo.** Con meteorología perfecta el AUC
-  se mantendría en 0.914 a siete días. Todo el deterioro viene de no conocer el
+  se mantendría en 0.868 a siete días. Todo el deterioro viene de no conocer el
   clima futuro.
 - **Recomendación**: reportar el *nowcasting* como el producto del proyecto y el
   pronóstico a un día como extensión. Presentar horizontes más largos sería
   ofrecer como modelo algo que no supera a un promedio estacional.
 
 Una advertencia que se hereda de `autorregresivo_logistico.pdf` y aplica igual
-aquí: la validación de 2025 llega sólo hasta el 30 de junio y pertenece a un
-régimen de excedencia más alto que el promedio del ajuste. Las cifras absolutas
-de esta tabla son optimistas por la misma razón y en la misma magnitud; las
-comparaciones **entre** horizontes, que es lo que este documento concluye, no se
-ven afectadas porque todas comparten la misma validación.
+aquí: la validación de 2025 pertenece a un régimen de excedencia más alto que
+el promedio del ajuste (0.466 contra 0.301) y el desempeño varía de un año a
+otro en unas cuatro centésimas de AUC. Las cifras absolutas de esta tabla se
+leen con eso presente; las comparaciones **entre** horizontes, que es lo que
+este documento concluye, no se ven afectadas porque todas comparten la misma
+validación.

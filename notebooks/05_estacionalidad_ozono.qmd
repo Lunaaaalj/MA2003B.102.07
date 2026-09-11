@@ -116,9 +116,9 @@ No. **El invierno es la temporada con el ozono más bajo de las cuatro**, en las
 tres medidas: media, mediana y percentil 95. La primavera es la más alta.
 
 El contraste es grande, no marginal: el MDA8 medio de primavera supera al de
-invierno en 12.6 ppb, y la tasa de excedencia del umbral de 51 ppb pasa de
-15.8 % en invierno a 45.7 % en primavera, casi el triple. Al umbral vigente de
-65 ppb la razón es todavía mayor, de 4.0 % a 17.6 %.
+invierno en 12.5 ppb, y la tasa de excedencia del umbral de 51 ppb pasa de
+16.3 % en invierno a 45.6 % en primavera, casi el triple. Al umbral vigente de
+65 ppb la razón es todavía mayor, de 4.2 % a 17.6 %.
 
 El orden completo es primavera > verano > otoño > invierno, consistente con el
 mecanismo fotoquímico: el ozono troposférico se forma por reacción de sus
@@ -128,12 +128,13 @@ esperar y no una anomalía.
 ## 2. Control del artefacto de ventana
 
 El resultado anterior podría deberse a la ventana de observación y no al
-fenómeno: la serie termina el 30 de junio de 2025, así que el periodo contiene
-cinco tramos enero–marzo pero solo cuatro noviembre–diciembre. El invierno está
-sobrerrepresentado y con una composición de años distinta a la del otoño.
+fenómeno. Con los cinco años completos (2021–2025) cada temporada aparece el
+mismo número de veces, pero el invierno cruza el cambio de año y los paros de
+estación no se reparten parejo, así que la composición de años detrás de cada
+temporada puede diferir de todas formas.
 
 La forma de descartarlo es calcular la estacionalidad **dentro de cada año**, que
-elimina la mezcla desigual.
+elimina cualquier mezcla desigual.
 
 ```{python}
 piv = V.pivot_table(index="anio", columns="temporada", values="MDA8",
@@ -204,13 +205,13 @@ razon
 ```
 
 La supresión invernal existe y **varía entre zonas**, pero nunca cambia de
-signo: la razón invierno/primavera del MDA8 medio va de 0.661 en el Suroeste a
-0.832 en el Noreste. En todas las zonas el invierno queda por debajo de la
+signo: la razón invierno/primavera del MDA8 medio va de 0.669 en el Suroeste a
+0.830 en el Noreste. En todas las zonas el invierno queda por debajo de la
 primavera. La afirmación tampoco se sostiene en su versión relativa.
 
 Lo que sí aparece es un ordenamiento espacial nítido y estable: el poniente
-—Noroeste y Suroeste— concentra las tasas de excedencia más altas (41.4 % y
-40.1 %) y el Noreste la más baja (19.0 %), un rango de más del doble.
+—Noroeste y Suroeste— concentra las tasas de excedencia más altas (43.3 % y
+42.1 %) y el Noreste la más baja (19.5 %), un rango de más del doble.
 
 ```{python}
 #| label: fig-zona-temporada
@@ -252,7 +253,7 @@ print(f"r(msnm, MDA8 medio)      = {est.msnm.corr(est.MDA8):.3f}")
 print(f"r(msnm, tasa excedencia) = {est.msnm.corr(est.exc):.3f}")
 ```
 
-La correlación entre elevación y tasa de excedencia es 0.806 sobre las 15
+La correlación entre elevación y tasa de excedencia es 0.827 sobre las 15
 estaciones. Es una asociación fuerte para una variable puramente geográfica,
 fijada sin mirar los datos de ozono, y respalda la decisión de agrupar por zona:
 las zonas no son etiquetas arbitrarias, separan estaciones que efectivamente se
@@ -294,15 +295,15 @@ fig.savefig(FIGS / "elevacion_vs_excedencia.pdf", bbox_inches="tight"); plt.show
 ```
 
 `NE2` es el caso que se aparta de la recta: a 432 msnm registra la tasa de
-excedencia más baja de la red, 10.0 %. Vale la pena tenerlo presente al leer los
+excedencia más baja de la red, 10.1 %. Vale la pena tenerlo presente al leer los
 coeficientes de zona del modelo, porque queda dentro del Noreste y arrastra el
 promedio de esa zona hacia abajo.
 
 ## 5. Composición estacional de la partición de validación
 
-El equipo decidió entrenar con 2021–2024 y validar con 2025. Como 2025 termina
-el 30 de junio, conviene cuantificar qué tan parecidos son los dos conjuntos
-antes de interpretar cualquier métrica de desempeño.
+El equipo decidió entrenar con 2021–2024 y validar con 2025. Con 2025 completo
+la composición estacional de ambos conjuntos debería ser casi la misma; conviene
+comprobarlo antes de interpretar cualquier métrica de desempeño.
 
 ```{python}
 V["particion"] = np.where(V.anio == 2025, "validación (2025)",
@@ -317,15 +318,17 @@ V.groupby("particion").agg(n=("MDA8", "size"), MDA8_medio=("MDA8", "mean"),
                           ).round(2)
 ```
 
-Los dos conjuntos no son comparables en composición. El de entrenamiento está
-repartido casi por igual entre las cuatro temporadas (23.1 % a 26.0 %); el de
-validación es **52.3 % primavera, 32.2 % invierno, 15.5 % verano y 0 % otoño**.
+En composición los dos conjuntos sí son comparables: entrenamiento reparte
+23.1 / 26.0 / 25.7 / 25.3 % y validación 24.6 / 25.4 / 24.0 / 26.0 %. Con la
+primera versión de `BD 2025.xlsx`, cortada al 30 de junio, la validación era
+52 % primavera y 0 % otoño; ese sesgo ya no existe.
 
-La consecuencia es cuantificable: la tasa base de excedencia es 29.31 % en
-entrenamiento y 41.50 % en validación, una diferencia de 12.2 puntos que no
-proviene del modelo sino del calendario. Como la primavera es la temporada de
-ozono más alto, la validación sobrerrepresenta justo los días fáciles de
-clasificar como excedencia.
+Lo que **no** desaparece es la diferencia de tasa base: 29.31 % de excedencia en
+entrenamiento contra 42.22 % en validación, 12.9 puntos. Ya no se puede
+atribuir al calendario. La tabla de la sección 2 lo explica: 2025 es el año de
+MDA8 más alto en primavera, verano y otoño, y su tasa anual (42.2 %) supera a
+la de 2024 (35.5 %) y con holgura a la de 2021–2023 (25–29 %). La validación
+cae en un año atípicamente alto, y eso es un efecto de año, no de ventana.
 
 A modo de referencia, la misma cuenta con 2024 como año de validación:
 
@@ -334,14 +337,13 @@ V["p2024"] = np.where(V.anio == 2024, "validación (2024)", "resto")
 (pd.crosstab(V.p2024, V.temporada, normalize="index")[ORD] * 100).round(1)
 ```
 
-Un año completo reparte 24.3 / 25.5 / 25.1 / 25.1, prácticamente la misma
-composición que el entrenamiento.
+2024 reparte 24.3 / 25.5 / 25.1 / 25.1, lo mismo que 2025 completo.
 
 Esto no invalida la partición elegida, que se conserva. Sí obliga a dos cosas al
-reportar resultados: declarar la composición como limitación, y no comparar la
-métrica de validación contra la de entrenamiento como si midieran lo mismo. El
-AUC es menos sensible a la tasa base que la exactitud, lo que amortigua el
-problema pero no lo elimina.
+reportar resultados: declarar que la validación es un año de ozono alto, y no
+comparar la métrica de validación contra la de entrenamiento como si midieran
+lo mismo. El AUC es menos sensible a la tasa base que la exactitud, lo que
+amortigua el problema pero no lo elimina.
 
 ## 6. Conclusiones
 
@@ -353,11 +355,12 @@ problema pero no lo elimina.
    con la formación fotoquímica y con lo reportado para el AMM en la literatura
    reciente.
 3. **La agrupación por zona tiene respaldo empírico**: las tasas de excedencia
-   van de 19.0 % en el Noreste a 41.4 % en el Noroeste, y la correlación entre
-   elevación y excedencia es 0.806 sobre las 15 estaciones.
-4. La partición de validación elegida tiene una composición estacional muy
-   distinta a la de entrenamiento y 12.2 puntos más de tasa base. Se conserva la
-   decisión y se declara la limitación.
+   van de 19.5 % en el Noreste a 43.3 % en el Noroeste, y la correlación entre
+   elevación y excedencia es 0.827 sobre las 15 estaciones.
+4. La partición de validación tiene la misma composición estacional que el
+   entrenamiento, pero 12.9 puntos más de tasa base porque 2025 es el año de
+   ozono más alto de la serie. Se conserva la decisión y se declara la
+   limitación.
 
 Para `secciones/objetivo.tex`: el párrafo que atribuye al invierno las
 concentraciones más altas se sustituye por la estacionalidad medida, citando
@@ -382,7 +385,7 @@ chk = [
    (pz[ORD].idxmin(axis=1) == "invierno").all()),
   ("Las excedencias son nulas exactamente donde el MDA8 es nulo",
    D.MDA8.isna().equals(D.excede_anio_5.isna())),
-  (f"Total de días-estación válidos = 22,529 (obtenido {len(V):,})",
+  (f"Total de días-estación válidos = 25,100 (obtenido {len(V):,})",
    len(V) == 22529),
 ]
 for nombre, ok in chk:

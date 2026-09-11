@@ -153,7 +153,7 @@ construcción de los ejes.
 
 Hay un detalle que corregir aquí. Las continuas ya vienen estandarizadas de #52,
 pero la media y la desviación se estimaron sobre **todo** el periodo: sobre las
-23,931 filas dan exactamente 0 y 1, y restringidas a entrenamiento no. Como el
+26,691 filas dan exactamente 0 y 1, y restringidas a entrenamiento no. Como el
 PCA sobre la matriz de correlación es sensible al centrado y la escala, el
 bloque se re-estandariza con los momentos de entrenamiento.
 
@@ -224,12 +224,12 @@ print(pd.Series(curv.round(3), index=scree.index[1:-1]).head(5).to_string())
 print("\ncaídas sucesivas:", np.round(-np.diff(lam), 3)[:6])
 ```
 
-La distancia máxima cae en PC4 (1.843) pero PC3 queda a 1.786: un margen de 3 %,
-que no decide. La curvatura sí es concluyente —1.133 en PC3 contra 0.259 en
+La distancia máxima cae en PC4 (1.839) pero PC3 queda a 1.783: un margen de 3 %,
+que no decide. La curvatura sí es concluyente —1.121 en PC3 contra 0.267 en
 PC4, cuatro veces— y es además la lectura literal de «codo»: el punto donde la
 curva se dobla. Las caídas sucesivas lo confirman; el tramo empinado
-(0.94, 1.47) termina en PC3 y a partir de ahí la pendiente se aplana
-(0.34, 0.08).
+(0.95, 1.46) termina en PC3 y a partir de ahí la pendiente se aplana
+(0.34, 0.07).
 
 **Se retienen tres componentes, 55.9 % de la varianza.**
 
@@ -294,12 +294,12 @@ for j, nom in enumerate(NOMBRES):
 Es la emisión vehicular de la ventana matutina acumulándose: los precursores
 suben juntos y lo hacen más cuando el aire no los dispersa.
 
-**Forzamiento fotoquímico (19.8 %).** `TOUT_max` +0.72 y `SR_acum` +0.65 contra
+**Forzamiento fotoquímico (19.8 %).** `TOUT_max` +0.72 y `SR_acum` +0.64 contra
 `RH_min_diurna` −0.77 y `RH_media` −0.70. Días calurosos, soleados y secos: la
 firma `TOUT`+, `SR`+, `RH`− que se anticipaba, encontrada sin imponerla.
 
 **Estancamiento atmosférico (10.0 %).** `WSR_min` −0.50, `WSR_media` −0.41,
-`PRS_media` +0.39, `RH_min_diurna` −0.37. Viento débil con presión alta, el
+`PRS_media` +0.40, `RH_min_diurna` −0.37. Viento débil con presión alta, el
 patrón anticiclónico. Este es el eje que la issue prohibía construir a mano, y
 apareció solo: nadie le indicó a la descomposición que viento bajo y presión
 alta van juntos.
@@ -428,10 +428,12 @@ print(PUNT.groupby("particion")[["PC1", "PC2", "PC3"]]
           .agg(["mean", "std"]).round(3).to_string())
 ```
 
-Las medias de validación no son cero, y no deberían serlo: 2025 termina el 30 de
-junio, así que le sobra primavera y le falta otoño. El desplazamiento es el
-calendario, no un error de ajuste; es la misma limitación estacional que #55
-declara para su partición.
+Las medias de validación no son cero, y no tendrían por qué serlo: 2025 es el
+año de ozono más alto de la serie (`05_estacionalidad_ozono.qmd`, §5), con
+menos carga primaria (PC1 −0.39) y más estancamiento (PC3 +0.35) que el
+promedio de 2021–2024. El desplazamiento es un efecto de año, no un error de
+ajuste; con la primera versión de 2025, cortada a junio, se atribuía al
+calendario, y eso ya no aplica.
 
 ```{python}
 PUNT.to_parquet(PROC / "pca_puntuaciones_diarias.parquet", index=False)

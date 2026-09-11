@@ -116,14 +116,14 @@ print(cobertura.round(1).to_string())
 print(f"\nestaciones con cobertura >= 85%: {(cobertura >= 85).sum()} de {len(cobertura)}")
 ```
 
-Solo 3 de 15 estaciones (`SO2`, `CE`, `SE3`) libran el 85 %; la peor (`NO3`)
-está en 19 %. El filtro por estación dejaría un análisis de tres series con
-huecos residuales de todos modos — no resuelve el problema, lo esconde en las
-tres estaciones que sobrevivieron el corte.
+Solo 2 de 15 estaciones (`CE`, `SE3`) libran el 85 % (`SO2` se queda en 84.9);
+la peor (`NO3`) está en 25 %. El filtro por estación dejaría un análisis de dos
+series con huecos residuales de todos modos — no resuelve el problema, lo
+esconde en las estaciones que sobrevivieron el corte.
 
 ```{python}
 #| label: fig-cobertura-estaciones
-#| fig-cap: "Cobertura de dia-estacion valido (factores + excede_anio_5) por estacion, sobre el calendario 2021-01-01 a 2025-06-30."
+#| fig-cap: "Cobertura de dia-estacion valido (factores + excede_anio_5) por estacion, sobre el calendario 2021-01-01 a 2025-12-31."
 fig, ax = plt.subplots(figsize=(5.5, 3.2))
 colores = [ROJO if v < 85 else AZUL for v in cobertura.values]
 ax.barh(cobertura.index, cobertura.values, color=colores)
@@ -156,13 +156,13 @@ print("correlacion entre estaciones, mismo dia (pares estacion-estacion):")
 print(transversal.round(3).to_string())
 ```
 
-La correlación media entre estaciones va de 0.49 (ventilación) a 0.86
+La correlación media entre estaciones va de 0.50 (ventilación) a 0.85
 (forzamiento fotoquímico), y ningún par cae cerca de cero. Esto es exactamente
 lo que exige la física: la temperatura y la radiación solar (forzamiento
 fotoquímico) son fenómenos de escala regional y por eso su correlación entre
-estaciones es la más alta y la más uniforme (0.37 a 0.97); el viento
+estaciones es la más alta y la más uniforme (0.36 a 0.97); el viento
 (ventilación) depende de la topografía local del valle y por eso su rango es
-el más amplio, incluyendo un par con correlación ligeramente negativa (-0.19).
+el más amplio, incluyendo un par con correlación ligeramente negativa (-0.16).
 Es la violación de independencia más grande del conjunto de datos: cualquier
 modelo que trate cada fila día-estación como una observación independiente
 —incluyendo la regresión logística y el discriminante de #55— está
@@ -172,7 +172,7 @@ para que #55 la considere.
 **Decisión: se agrega a nivel área metropolitana**, promediando las
 estaciones que reportan cada día, en vez de analizar estaciones por separado.
 Dos razones, no una: la cobertura por estación es insuficiente (85 % lo
-libran solo 3 de 15) y la correlación entre estaciones el mismo día es lo
+libran solo 2 de 15) y la correlación entre estaciones el mismo día es lo
 bastante alta para que promediar sea agregación razonable y no una mezcla de
 señales independientes.
 
@@ -207,7 +207,7 @@ print("fecha(s) faltante(s):", list(full_days[huecos].date))
 ```
 
 Un solo día, `2021-02-16`, se queda sin ninguna estación. Promediar resolvió
-la irregularidad casi por completo: de 69.1 % de cobertura día-estación a
+la irregularidad casi por completo: de 68.0 % de cobertura día-estación a
 99.94 % de cobertura del calendario diario de área. MSTL no admite NaN, así
 que ese único día se imputa — **solo porque STL/MSTL lo exige**, no porque el
 hueco deje de existir: queda documentado aquí y no se trata como si nunca
@@ -227,7 +227,7 @@ print(area_imp.describe().round(3).to_string())
 
 `MSTL` de `statsmodels` exige periodos enteros — `365.25` no es un entero
 válido y falla con `period must be a positive integer >= 2`. Se usa 365
-en vez de 365.25: sobre 4.5 años de datos el corrimiento acumulado del ciclo
+en vez de 365.25: sobre 5 años de datos el corrimiento acumulado del ciclo
 anual es de aproximadamente un día, despreciable frente al horizonte de la
 serie. Se documenta la desviación en vez de forzar el valor pedido.
 
@@ -396,16 +396,16 @@ tabla_lb = pd.DataFrame(filas_lb)
 print(tabla_lb.round(4).to_string(index=False))
 ```
 
-**Con n = 1,642 la prueba rechaza casi por construcción**, igual que ya se
+**Con n = 1,826 la prueba rechaza casi por construcción**, igual que ya se
 documentó para Bartlett en `08_analisis_factorial.pdf`: el estadístico de
 Ljung-Box crece con `n`, y con más de mil observaciones diarias cualquier
 autocorrelación no trivial, por pequeña que sea, produce un p-valor
 indistinguible de cero. Los p-valores de esta tabla son todos < 0.001 y no
 discriminan nada — rechazan tanto la serie cruda (donde se espera) como el
 residual MSTL (donde la estacionalidad ya se quitó). Lo que sí informa es la
-**magnitud de la ACF**: cae de 0.41 a valores entre -0.15 y 0.08 en el lag 7
+**magnitud de la ACF**: cae de 0.19–0.45 a valores entre -0.15 y 0.05 en el lag 7
 tras MSTL (la estacionalidad semanal casi desaparece), pero el lag 1 se queda
-entre 0.54 y 0.71 en las cuatro series incluso después de la descomposición
+entre 0.49 y 0.71 en las cuatro series incluso después de la descomposición
 — esa persistencia de un día para otro no es estacionalidad, es
 autocorrelación genuina de corto plazo que MSTL no está diseñado para quitar.
 
@@ -416,7 +416,7 @@ descriptiva, no modelado — pero si #55 los necesita a partir de aquí, la
 regla es: se calculan sobre `area_imp`, que ya tiene índice `DatetimeIndex`
 diario regular (sin huecos, tras la imputación de la sección 2), así que un
 `.shift()` sobre esa tabla sí corresponde a "un día calendario antes". Nunca
-sobre `m` (la tabla día-estación original): con 22 % de días ausentes por
+sobre `m` (la tabla día-estación original): con 32 % de días ausentes por
 estación, la fila anterior de un `.sort_values("fecha")` puede estar a una
 semana de distancia y no a un día.
 
@@ -446,19 +446,19 @@ for nombre, ok in chk:
 
 ## 8. Qué queda para el reporte
 
-Cuatro hallazgos con lugar en el reporte: (1) solo 3 de 15 estaciones superan
+Cuatro hallazgos con lugar en el reporte: (1) solo 2 de 15 estaciones superan
 85 % de cobertura día-estación, pero promediar a nivel área metropolitana y
 reindexar contra el calendario completo recupera 99.94 % de cobertura (un
 solo día sin ninguna estación, 2021-02-16); (2) la correlación entre
 estaciones el mismo día es alta y no está documentada en ningún otro
-análisis — media de 0.49 (ventilación) a 0.86 (forzamiento fotoquímico), con
+análisis — media de 0.50 (ventilación) a 0.85 (forzamiento fotoquímico), con
 un mínimo ligeramente negativo solo en ventilación — y es la violación de
 independencia más grande del conjunto de datos, relevante para cualquier
 modelo que trate las filas día-estación como independientes; (3) MSTL separa
 un ciclo semanal real y de amplitud dispar entre variables (más fuerte en
 combustión primaria, más débil en la fracción que excede el umbral); y (4) la
 autocorrelación de lag 1 sobrevive a la descomposición MSTL en las cuatro
-series (0.54–0.71 en el residual), mientras que la de lag 7 casi desaparece
+series (0.49–0.71 en el residual), mientras que la de lag 7 casi desaparece
 — evidencia de que la dependencia temporal día-a-día de este panel no es un
 artefacto de estacionalidad y debe considerarse en cualquier modelo que
 suponga observaciones independientes.
