@@ -55,8 +55,8 @@ preguntas, más dos que salieron del propio diagnóstico:
 `09_extraccion_factorial.pdf` produjo los puntajes y `serie_tiempo_factores.pdf`
 fijó la decisión que este documento hereda sin reabrir: **se trabaja sobre la
 serie de área metropolitana**, no sobre el panel día-estación. La razón es doble
-— la cobertura por estación es insuficiente (3 de 15 superan 85 %) y la
-correlación entre estaciones el mismo día es alta (0.49 a 0.86), así que
+— la cobertura por estación es insuficiente (2 de 15 superan 85 %) y la
+correlación entre estaciones el mismo día es alta (0.50 a 0.85), así que
 promediar es agregación legítima y no mezcla de señales independientes.
 
 ## 0. Construcción de la serie de área metropolitana
@@ -145,11 +145,11 @@ round(sapply(umbrales, \(u) mean(A$frac >= u)), 3)
 ```
 
 Se adopta **`frac >= 0.5`**: el día es de excedencia si la mayoría de las
-estaciones que reportaron excedieron. La prevalencia resultante, 0.316, es
-prácticamente la del panel día-estación (0.3035), así que el evento agregado
+estaciones que reportaron excedieron. La prevalencia resultante, 0.334, es
+cercana a la del panel día-estación (0.317), así que el evento agregado
 conserva la tasa base del original; y al ser una proporción no premia a los días
 con más estaciones reportando, como sí haría un conteo. El corte "cualquiera
-excede" subiría la prevalencia a 0.570 y cambiaría la pregunta a si *alguna*
+excede" subiría la prevalencia a 0.586 y cambiaría la pregunta a si *alguna*
 estación tuvo un mal día, un evento más frecuente y menos informativo.
 
 ```{r}
@@ -195,15 +195,15 @@ print(transform(tabla, AIC = round(AIC, 1), BIC = round(BIC, 1),
       row.names = FALSE)
 ```
 
-**Se cumple, con $p = 1$.** La PACF cae de 0.464 a 0.101 en el lag 2 y a ruido
+**Se cumple, con $p = 1$.** La PACF cae de 0.463 a 0.100 en el lag 2 y a ruido
 de ahí en adelante: corta después del primer rezago, la firma de un AR(1). El
 BIC coincide y se minimiza en $p=1$; el AIC está empatado entre $p=1$ y $p=2$,
-pero el segundo rezago no alcanza significancia ($z = 1.74$) y del tercero en
+pero el segundo rezago no alcanza significancia ($z = 1.73$) y del tercero en
 adelante los coeficientes son indistinguibles de cero.
 
 Más importante que el orden: el rezago **sobrevive a las covariables
 contemporáneas**. Con los factores y los armónicos ya dentro, agregar $y_{t-1}$
-da $LR = 71.7$ sobre 1 grado de libertad y un coeficiente de $+1.35$
+da $LR = 71.4$ sobre 1 grado de libertad y un coeficiente de $+1.35$
 ($z = 8.4$). La persistencia día a día no es un reflejo de que la meteorología
 sea persistente: es dependencia genuina, y es lo que justifica la parte
 autorregresiva.
@@ -254,8 +254,8 @@ round(tapply(A$y, format(A$fecha, "%m"), mean), 3)
 round(tapply(A$y, A$anio, mean), 3)
 ```
 
-De 0.090 en diciembre a 0.561 en mayo: un factor de seis dentro del año. Y un
-escalón entre 2023 (0.249) y 2024–2025 (0.396, 0.442). Ninguno invalida el
+De 0.090 en enero a 0.561 en mayo: un factor de seis dentro del año. Y un
+escalón entre 2023 (0.249) y 2024–2025 (0.396, 0.466). Ninguno invalida el
 modelo, pero ambos obligan a que el ciclo esté **en el predictor**: la
 estacionariedad que se necesita es la de $y_t \mid x_t$, no la de $y_t$.
 
@@ -285,11 +285,11 @@ cat(sprintf("\nb(y_t-1): 2021-2023 = %+.3f ; 2024 = %+.3f\n",
 
 **Se cumple a medias, y hay que declararlo.** La *dinámica* es homogénea: el
 coeficiente autorregresivo pasa de $+1.25$ a $+1.42$ entre los dos periodos, una
-diferencia que no es significativa ($p = 0.63$). La estructura de dependencia
+diferencia que no es significativa ($p = 0.64$). La estructura de dependencia
 temporal que el modelo supone es la misma en 2021 que en 2024.
 
 Lo que sí cambia es el **nivel**: la indicadora de 2024 en adelante aporta
-$LR = 10.51$, $p = 0.0012$. Es un escalón, no una deriva —una tendencia lineal
+$LR = 10.38$, $p = 0.0013$. Es un escalón, no una deriva —una tendencia lineal
 no resulta significativa ($p = 0.77$) porque el cambio es abrupto—, y los
 factores no lo absorben. Con estos datos no se puede decidir si es un cambio de
 emisiones, de instrumentación, o un par de años atípicos. Queda como limitación,
@@ -324,7 +324,7 @@ round(sapply(c("comb", "vent", "foto"), \(v) {
 ```
 
 **Se cumple, con margen amplio.** Convergió en 6 iteraciones; el coeficiente
-mayor es 1.800 y el error estándar mayor 0.209, lejos de la firma de separación
+mayor es 1.803 y el error estándar mayor 0.207, lejos de la firma de separación
 (coeficientes por encima de 10 con errores del mismo orden). Las cuatro celdas
 de la tabla de transición están pobladas y los factores se traslapan entre 3.3 y
 4.5 desviaciones estándar. No hace falta Firth ni verosimilitud penalizada.
@@ -348,10 +348,10 @@ cat(sprintf("linktest: coef(eta^2) = %+.4f   LR = %.2f   p = %.4f\n",
             pchisq(g0$deviance - g2$deviance, 1, lower.tail = FALSE)))
 ```
 
-El logit gana: por poco frente al probit (1129.26 contra 1129.49), como es
+El logit gana: por poco frente al probit (1128.57 contra 1128.75), como es
 habitual salvo en las colas, y por 34 puntos de AIC frente al `cloglog`.
 
-Pero el *linktest* **rechaza** ($p = 0.0028$). No es el *link*: el *linktest* es
+Pero el *linktest* **rechaza** ($p = 0.0029$). No es el *link*: el *linktest* es
 una prueba de especificación global y detecta cualquier no linealidad omitida,
 venga de donde venga. Se separan las hipótesis probando primero la curvatura en
 los factores.
@@ -382,7 +382,7 @@ cat(sprintf("Hosmer-Lemeshow: X2 = %.2f   gl = 8   p = %.4f\n",
 
 **Se cumple: el *link* logit es correcto; lo que faltaba era curvatura en el
 predictor.** Agregar los cuadrados de los tres factores mejora el ajuste
-($LR = 18.90$, $p = 0.0003$), con la contribución concentrada en el forzamiento
+($LR = 18.94$, $p = 0.0003$), con la contribución concentrada en el forzamiento
 fotoquímico ($z = -3.62$) y la ventilación ($z = -2.21$). Y el diagnóstico
 decisivo: **una vez incluida esa curvatura, el *linktest* deja de rechazar**
 ($p = 0.60$). Si el problema hubiera sido el *link*, seguiría rechazando.
@@ -390,7 +390,7 @@ decisivo: **una vez incluida esa curvatura, el *linktest* deja de rechazar**
 Los signos negativos son físicamente coherentes: el efecto de ambos factores se
 satura —duplicar el viento cuando ya sopla fuerte no vuelve a dividir la
 probabilidad. La calibración global nunca estuvo en duda: Hosmer-Lemeshow no
-rechaza ($p = 0.45$) ni siquiera sin curvatura.
+rechaza ($p = 0.39$) ni siquiera sin curvatura.
 
 **Consecuencia para el modelo final: los términos cuadráticos de `vent` y `foto`
 deben entrar.**
@@ -476,7 +476,7 @@ rbind(
 ```
 
 El rezago hace su trabajo sobre el lag 1: la autocorrelación residual cae de
-0.212 a 0.025. Pero **queda un residuo en el lag 2** (0.098) y Ljung-Box sigue
+0.212 a 0.025. Pero **queda un residuo en el lag 2** (0.099) y Ljung-Box sigue
 rechazando en el lag 7.
 
 La curvatura de la sección 4 **no ayuda aquí**: arregla el *linktest* pero deja
@@ -486,7 +486,7 @@ residuales.
 
 El rechazo de Ljung-Box se lee con la misma cautela que en
 `serie_tiempo_factores.pdf`: con $n = 1{,}454$ detecta autocorrelaciones
-triviales, así que lo informativo es la magnitud. Un 0.098 es pequeño pero no
+triviales, así que lo informativo es la magnitud. Un 0.099 es pequeño pero no
 cero. El AR(1) captura casi toda la dependencia y sobra un residuo de segundo
 orden que no justifica un segundo rezago, pero sí deja espacio para un término
 de media móvil sobre los residuales — lo que agregaría un modelo GLARMA.
@@ -532,10 +532,10 @@ cat(sprintf("\nagregar I(comb^2): LR = %.2f  gl = 1  p = %.4f -> se omite\n",
             pchisq(modelo$deviance - con_comb2$deviance, 1, lower.tail = FALSE)))
 ```
 
-La validación llega hasta el 30 de junio de 2025, la misma partición de #54 y
-#55. **Su prevalencia es 0.442 contra 0.301 del ajuste**: al cortarse a mitad de
-año le sobra primavera —la temporada de ozono— y le falta otoño. Toda métrica
-que dependa de la tasa base hay que leerla con eso presente.
+La validación es 2025 completo, la misma partición de #54 y #55. **Su
+prevalencia es 0.466 contra 0.301 del ajuste**: 2025 es el año de ozono más
+alto de la serie, en las cuatro temporadas (`05_estacionalidad_ozono.qmd`,
+§5). Toda métrica que dependa de la tasa base hay que leerla con eso presente.
 
 ### 8.1 Cuánto aporta cada pieza
 
@@ -567,17 +567,18 @@ comparacion <- do.call(rbind, lapply(names(escalera), function(nm) {
 print(comparacion, row.names = FALSE)
 ```
 
-Cada bloque aporta. Las líneas base rondan 0.74–0.76 en 2025, el piso contra el
-que hay que medir. **Los factores son el salto grande**: de 0.762 a 0.919,
+Cada bloque aporta. Las líneas base quedan en 0.67–0.72 en 2025, el piso contra
+el que hay que medir. **Los factores son el salto grande**: de 0.717 a 0.872,
 porque son observaciones del mismo día — ahí está la ventaja del *nowcasting*
-sobre el pronóstico. La curvatura agrega poco al AUC (0.919 a 0.923) pero mejora
+sobre el pronóstico. La curvatura agrega poco al AUC (0.872 a 0.882) pero mejora
 el Brier, lo esperable de una corrección de forma: reordena poco y calibra
-mejor. El AR(1) llega a 0.927 y sube el *skill* de 0.533 a 0.572.
+mejor. El AR(1) llega a 0.898 y sube el *skill* de 0.331 a 0.436.
 
-Que el AUC de 2025 (0.927) supere al de ajuste (0.892) llama la atención. La
-sección 8.7 descarta la explicación intuitiva —el desbalance estacional— y lo
-atribuye a un efecto de año, además de estimar cuánto de ese 0.927 sobrevive a
-un año completo.
+El AUC de 2025 (0.898) queda a la par del de ajuste (0.892). Con la primera
+versión de `BD 2025.xlsx`, cortada al 30 de junio, la validación daba 0.927 y
+superaba al ajuste; la sección 8.7 muestra por qué —el primer semestre de 2025
+es el tramo más fácil de ese año— y acota cuánto vale el modelo en un año
+cualquiera.
 
 ```{r}
 comp_auc <- function(nombre, formula_base) {
@@ -607,11 +608,11 @@ round(data.frame(OR = exp(coef(modelo)), IC_inf = exp(ic[, 1]), IC_sup = exp(ic[
 Los tres factores apuntan en la dirección que la física predice, y ningún
 intervalo cruza el 1:
 
-- **Forzamiento fotoquímico**, OR 3.66 por desviación estándar: el efecto más
+- **Forzamiento fotoquímico**, OR 3.69 por desviación estándar: el efecto más
   grande de los tres. Más temperatura y radiación, más ozono.
-- **Combustión primaria**, OR 2.35: más precursores, más excedencia.
+- **Combustión primaria**, OR 2.37: más precursores, más excedencia.
 - **Ventilación**, OR 0.32: el viento dispersa. Es el único protector.
-- **$y_{t-1}$**, OR 3.84: haber excedido ayer casi cuadruplica los momios de
+- **$y_{t-1}$**, OR 3.83: haber excedido ayer casi cuadruplica los momios de
   exceder hoy. Es lo que justifica que el modelo sea autorregresivo.
 
 Los dos cuadráticos quedan por debajo de 1 (0.70 y 0.69), la saturación que la
@@ -690,14 +691,14 @@ cat("matriz de confusion en 2025, umbral de Youden:\n")
 print(table(prediccion = as.integer(p_va >= umbral), observado = VA$y))
 ```
 
-**El modelo clasifica 2025 con 88.7 % de sensibilidad y 81.2 % de
-especificidad.** De 80 días de excedencia, detecta 71 y se le escapan 9; de 101
-días limpios, acierta 82 y da 19 falsas alarmas.
+**El modelo clasifica 2025 con 75.9 % de sensibilidad y 84.1 % de
+especificidad.** De 170 días de excedencia, detecta 129 y se le escapan 41; de
+195 días limpios, acierta 164 y da 31 falsas alarmas.
 
 Los dos cortes representan políticas distintas y vale la pena verlos juntos. Con
-0.5 la especificidad sube a 0.901 pero la sensibilidad cae a 0.787: nueve falsas
-alarmas menos, a cambio de ocho días de excedencia más sin detectar, 17 en vez
-de 9. Para una aplicación de calidad del aire, donde
+0.5 la especificidad sube a 0.908 pero la sensibilidad cae a 0.624: trece falsas
+alarmas menos, a cambio de veintitrés días de excedencia más sin detectar, 64 en
+vez de 41. Para una aplicación de calidad del aire, donde
 el costo de no avisar de un día malo supera al de una alerta de más, el corte de
 Youden es el defendible. La decisión es de política pública, no estadística, y se
 deja explícita en vez de esconderla en un `0.5` por omisión.
@@ -740,14 +741,14 @@ cat(sprintf("media predicha %.3f   vs   prevalencia observada %.3f\n",
 ```
 
 **El modelo subpredice en 2025, y de forma sistemática.** La media predicha es
-0.380 contra 0.442 observado, y los quintiles centrales son los peores: donde el
-modelo dice 0.295, la frecuencia real es 0.444. Los extremos están bien —el
-quintil bajo predice 0.004 y observa 0.000; el alto predice 0.895 y observa
-0.917.
+0.338 contra 0.466 observado, y los quintiles centrales son los peores: donde el
+modelo dice 0.253, la frecuencia real es 0.548. Los extremos están mejor —el
+quintil bajo predice 0.008 y observa 0.000; el alto predice 0.821 y observa
+0.904.
 
 La causa está diagnosticada desde la sección 2: **es el escalón de 2024**. El
 ajuste promedia el régimen bajo (2021–2023, tasa base 0.25–0.28) con el alto, y
-2025 pertenece al alto; el desbalance estacional empuja en la misma dirección.
+2025 pertenece al alto, con la prevalencia más alta de la serie (0.466).
 
 No se corrige: recalibrar el intercepto contra 2025 mejoraría el número y
 destruiría la validación. La discriminación, que no depende de la tasa base, no
@@ -760,8 +761,9 @@ está afectada.
 #| fig-cap: "Probabilidad predicha por el modelo contra la excedencia observada, validacion 2025. La linea roja es el umbral de Youden fijado en el ajuste."
 #| fig-width: 6
 #| fig-height: 2.8
-MESES <- c("ene", "feb", "mar", "abr", "may", "jun", "jul")
-cortes <- as.POSIXct(paste0("2025-", sprintf("%02d", 1:7), "-01"), tz = "UTC")
+MESES <- c("ene", "feb", "mar", "abr", "may", "jun", "jul",
+           "ago", "sep", "oct", "nov", "dic")
+cortes <- as.POSIXct(paste0("2025-", sprintf("%02d", 1:12), "-01"), tz = "UTC")
 serie  <- data.frame(fecha = VA$fecha, p = p_va, y = VA$y)
 
 fig_serie <- ggplot(serie, aes(fecha)) +
@@ -784,15 +786,20 @@ fig_serie
 
 Enero y la primera mitad de febrero son limpios y el modelo los da por limpios;
 de marzo a mayo la probabilidad oscila entre casi 0 y casi 1 día con día, no en
-una meseta estacional; junio baja. Esas oscilaciones rápidas son el aporte de
+una meseta estacional; junio baja, y de julio a noviembre el evento vuelve a
+ocurrir uno de cada dos días, sin el descanso de verano de otros años, hasta
+que diciembre cierra limpio. Esas oscilaciones rápidas son el aporte de
 los factores contemporáneos: el modelo no predice la temporada, distingue días
 dentro de la temporada — lo que la climatología no puede hacer.
 
-### 8.7 ¿Cuánto de ese 0.927 es real?
+### 8.7 ¿Cuánto de ese 0.898 es real?
 
-Un AUC de 0.927 sobre 181 días hay que auditarlo antes de reportarlo. Dos
-sospechas que conviene no confundir: **ruido de muestreo** (80 eventos es poco)
-y artefacto de la **ventana estacional** (2025 se corta el 30 de junio).
+Un AUC de 0.898 sobre 365 días hay que auditarlo antes de reportarlo. Dos
+sospechas que conviene no confundir: **ruido de muestreo** (170 eventos) y
+**efecto de año** (la sección 2 encontró un escalón entre 2023 y 2024). Se
+conserva además la partición por semestres, porque la primera versión de 2025
+—cortada al 30 de junio— daba 0.927 y conviene saber si eso era la ventana o
+el año.
 
 ```{r}
 ic_auc <- ci.auc(roc(VA$y, p_va, quiet = TRUE), method = "delong")
@@ -837,17 +844,16 @@ cat(sprintf("\nefecto de la ventana ene-jun sobre el anio completo: %+.3f\n",
             mean(cmp$AUC_ene_jun) - mean(cmp$AUC_completo)))
 ```
 
-(El renglón de 2025 da 0.928 y no el 0.927 de la sección 8.1 porque aquí el
-ajuste sólo requiere `y1` y entran seis días más. La diferencia es de una
-milésima.)
+**En 2021–2024 la ventana enero–junio deprime el AUC** (−0.021 en promedio):
+el segundo semestre trae noviembre y diciembre con prevalencia de 0.09, días
+tan sistemáticamente limpios que el modelo los ordena sin dificultad. 2025 es
+la excepción: su primer semestre (0.922) es más fácil que el segundo (0.877),
+porque de julio a noviembre el evento ocurre uno de cada dos días y las
+oscilaciones son más difíciles de ordenar. Eso explica el 0.927 de la versión
+truncada: no era un artefacto de la ventana en general, era que el semestre
+disponible de 2025 resultó ser el fácil.
 
-**La ventana estacional no infla el AUC; lo deprime ligeramente.** Restringirse
-a enero–junio cuesta 0.022 puntos en promedio, porque el segundo semestre trae
-noviembre y diciembre con prevalencia de 0.09 — días tan sistemáticamente
-limpios que el modelo los ordena sin dificultad. La intuición de que "a 2025 le
-sobra primavera y por eso es más fácil" resulta falsa al medirla.
-
-Lo que sí distingue a 2025 es **el año**, no el calendario:
+Lo que queda por separar es **el año**:
 
 ```{r}
 agrupado <- do.call(rbind, lapply(fuera_de_muestra[1:4],
@@ -859,8 +865,10 @@ cat(sprintf("AUC agrupado 2021-2024 (%d dias, 4 anios completos, fuera de muestr
 cat(sprintf("  = %.3f   IC 95%% [%.3f, %.3f]\n", ic_ag[2], ic_ag[1], ic_ag[3]))
 ```
 
-Los años 2021–2023 quedan entre 0.846 y 0.881; 2024 y 2025 en 0.920 y 0.928 — el
-corte coincide con el escalón de la sección 2. Antes de aceptarlo como efecto
+Los años 2021–2023 quedan entre 0.840 y 0.881; 2024 sube a 0.915 y 2025
+completo queda en 0.898, dentro del intervalo agrupado. El escalón de la
+sección 2 se refleja en 2024, pero con 2025 completo el efecto de año es más
+chico de lo que la versión truncada sugería. Antes de aceptarlo como efecto
 real hay que descartar la explicación mecánica: que la mayor prevalencia de
 2024–25 facilite la clasificación.
 
@@ -880,39 +888,21 @@ cat(sprintf("AUC 2024 original %.3f -> submuestreado a la prevalencia de 2021: %
 
 No es la prevalencia: el AUC de 2024 no se mueve al igualarle la tasa base de
 2021. La cobertura tampoco —2025 es el año con **menos** estaciones reportando
-por día y aun así el de AUC más alto. El efecto de año queda como observación
-empírica sin mecanismo identificado, igual que el escalón que lo acompaña.
-
-Falta la pregunta directa: **qué habría dado 2025 completo.** No se observa,
-pero se acota pegando sus meses con el segundo semestre de cada año disponible,
-todos fuera de muestra.
-
-```{r}
-e25 <- fuera_de_muestra[[5]]
-do.call(rbind, lapply(fuera_de_muestra[1:4], function(o) {
-  k <- o$mes >= 7
-  data.frame(anio_sintetico = sprintf("ene-jun 2025 + jul-dic %d", o$anio),
-             n = length(e25$y) + sum(k),
-             AUC = round(as.numeric(auc(roc(c(e25$y, o$y[k]),
-                                            c(e25$p, o$p[k]), quiet = TRUE))), 3))
-})) |> print(row.names = FALSE)
-```
-
-Los cuatro años sintéticos caen entre 0.916 y 0.933. **Completar el calendario no
-baja el AUC de 2025**, lo confirma alrededor de 0.92.
+por día y su AUC queda en el rango de los demás. El efecto de año queda como
+observación empírica sin mecanismo identificado, igual que el escalón que lo
+acompaña.
 
 Salen dos cifras, según la pregunta:
 
-- **Un año completo en condiciones como las de 2024–2025: ≈ 0.92.** La ventana
-  truncada no infla nada.
-- **Un año futuro cualquiera: 0.878, IC 95 % [0.860, 0.897]**, con rango año a
-  año de 0.846 a 0.928.
+- **El año de validación, 2025 completo: 0.898, IC 95 % [0.867, 0.929].**
+- **Un año futuro cualquiera: 0.878, IC 95 % [0.859, 0.897]**, con rango año a
+  año de 0.840 a 0.915.
 
 **La segunda es la que debe reportarse como estimación de generalización.** El
-0.927 no es incorrecto —es el desempeño sobre el periodo de validación
-preestablecido— pero es el extremo optimista de un rango, y presentarlo solo
-daría una impresión falsa de precisión. La diferencia entre 0.93 y 0.88 es la
-magnitud del efecto de año, la limitación principal de este modelo.
+0.898 no es incorrecto —es el desempeño sobre el periodo de validación
+preestablecido— y esta vez cae dentro del rango, no en su extremo. La
+diferencia entre 0.92 (2024) y 0.84 (2021) es la magnitud del efecto de año,
+la limitación principal de este modelo.
 
 ### 8.8 ¿Depende el resultado del umbral?
 
@@ -938,7 +928,7 @@ sensibilidad <- do.call(rbind, lapply(c(1e-9, 0.25, 0.5, 0.75), function(u) {
 print(sensibilidad, row.names = FALSE)
 ```
 
-**No depende.** El AUC va de 0.901 a 0.945 según el umbral, y las razones de
+**No depende.** El AUC va de 0.888 a 0.938 según el umbral, y las razones de
 momios conservan signo y orden de magnitud: el rezago entre 3.2 y 6.7, el
 forzamiento fotoquímico entre 2.4 y 4.0, la ventilación siempre protectora. El
 umbral cambia la prevalencia del evento, no lo que el modelo dice de él. La
@@ -953,8 +943,8 @@ OK       El orden autorregresivo se decide con PACF y con BIC condicionado a las
          covariables, sobre filas identicas (p = 1)
 OK       La estacionariedad se prueba donde corresponde: raiz unitaria en los
          factores continuos, homogeneidad temporal en la cadena binaria
-PARCIAL  La dinamica es homogenea (persistencia estable, p = 0.63) pero el nivel
-         da un escalon en 2024 (p = 0.0012) que los factores no absorben
+PARCIAL  La dinamica es homogenea (persistencia estable, p = 0.64) pero el nivel
+         da un escalon en 2024 (p = 0.0013) que los factores no absorben
 OK       No hay separacion perfecta: convergencia en 6 iteraciones, |b| max 1.80,
          cuatro celdas de transicion pobladas, traslape > 3 sd en los tres factores
 OK       El link logit es correcto; el rechazo del linktest se atribuye a
@@ -970,26 +960,25 @@ OK       La especificacion se deriva de los diagnosticos, no se elige a mano
 OK       Se compara contra dos lineas base de nowcasting (climatologia y
          persistencia), con prueba de DeLong sobre la validacion
 OK       El umbral de decision se fija en el ajuste, nunca en la validacion
-OK       Se reporta discriminacion (AUC 0.927) y calibracion por separado
+OK       Se reporta discriminacion (AUC 0.898) y calibracion por separado
 OK       El AUC se audita: IC de DeLong, validacion cruzada por anio, y anios
          completos sinteticos para aislar el efecto de la ventana estacional
-OK       Se distingue el desempeno en la particion (0.927) de la estimacion de
-         generalizacion (0.878 [0.860, 0.897])
+OK       Se distingue el desempeno en la particion (0.898) de la estimacion de
+         generalizacion (0.878 [0.859, 0.897])
 OK       La subprediccion en 2025 se cuantifica y se explica, no se corrige
          recalibrando contra los datos de prueba
-OK       El umbral de dicotomizacion se somete a sensibilidad: AUC 0.90-0.95 y
+OK       El umbral de dicotomizacion se somete a sensibilidad: AUC 0.89-0.94 y
          razones de momios estables en cuatro definiciones
 ```
 
 ## 10. Qué se lleva el reporte
 
-**El modelo funciona.** Sobre 2025, que no vio, alcanza un AUC de 0.927 con
-88.7 % de sensibilidad y 81.2 % de especificidad, y supera de forma
-significativa a la climatología (0.762, $p = 1.4\times10^{-6}$) y a la
-persistencia (0.737, $p = 5.1\times10^{-12}$). El *skill score* de Brier es
-0.572. **Pero la cifra que debe reportarse como generalización es 0.878, IC 95 %
-[0.860, 0.897]**: el 0.927 es el extremo optimista de un rango que va de 0.846 a
-0.928 según el año (§8.7).
+**El modelo funciona.** Sobre 2025, que no vio, alcanza un AUC de 0.898 con
+75.9 % de sensibilidad y 84.1 % de especificidad, y supera de forma
+significativa a la climatología (0.668, $p < 10^{-15}$) y a la persistencia
+(0.717, $p < 10^{-15}$). El *skill score* de Brier es 0.436. **La cifra que
+debe reportarse como generalización es 0.878, IC 95 % [0.859, 0.897]**, con un
+rango año a año de 0.840 a 0.915 (§8.7); el 0.898 de 2025 cae dentro de él.
 
 Tres decisiones de especificación salidas de los diagnósticos, no del tanteo:
 
@@ -997,24 +986,25 @@ Tres decisiones de especificación salidas de los diagnósticos, no del tanteo:
 2. **Los armónicos anual y semianual son obligatorios** (§2): sin ellos la
    marginal varía por un factor de seis dentro del año.
 3. **Los cuadrados de `vent` y `foto` entran, el de `comb` no** (§4 y §8): los
-   dos primeros hacen pasar el *linktest*; el tercero no aporta ($p = 0.52$).
+   dos primeros hacen pasar el *linktest*; el tercero no aporta ($p = 0.55$).
 
 Y cinco limitaciones que se declaran en vez de corregirse:
 
 **El escalón de 2024 y la subpredicción que produce.** El nivel de excedencia
 sube abruptamente desde 2024 y los factores no lo explican. El ajuste promedia
-dos regímenes y 2025 pertenece al alto: media predicha 0.380 contra 0.442
+dos regímenes y 2025 pertenece al alto: media predicha 0.338 contra 0.466
 observado. No se corrige con una indicadora ni recalibrando el intercepto,
 porque sería ajustar un parámetro al periodo de validación.
 
-**El efecto de año.** Los años 2024–25 son genuinamente más predecibles que
-2021–2023, y no por prevalencia ni por cobertura: ambas explicaciones se
-descartan en §8.7. Es la limitación principal, y la que separa el 0.93 del 0.88.
+**El efecto de año.** El AUC fuera de muestra va de 0.84 (2021) a 0.92 (2024),
+y no por prevalencia ni por cobertura: ambas explicaciones se descartan en
+§8.7. Es la limitación principal: el desempeño en un año dado puede quedar
+cuatro centésimas arriba o abajo del 0.88 agrupado.
 
-**La partición está estacionalmente desbalanceada.** 2025 termina el 30 de junio,
-así que le sobra primavera y le falta otoño, lo que contribuye a la
-subpredicción. Lo que **no** explica es el AUC alto: restringirse a enero–junio
-cuesta 0.022 puntos en lugar de regalarlos.
+**La validación cae en el año de prevalencia más alta.** 2025 tiene 0.466 de
+días de excedencia contra 0.301 del ajuste, y eso es lo que produce la
+subpredicción de §8.5. No es un artefacto de ventana: con 2025 completo la
+composición estacional de la validación es la de cualquier año.
 
 **La dimensión espacial se perdió.** Agregar a área metropolitana devuelve la
 independencia temporal y la rejilla regular, pero elimina el contraste entre
