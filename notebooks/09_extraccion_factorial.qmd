@@ -19,9 +19,9 @@ jupyter: python3
 ---
 
 `08_analisis_factorial.pdf` estableció que la matriz de correlación de los quince
-predictores admite factorización, pero sin holgura: KMO de 0.646, *mediocre* en
+predictores admite factorización, pero sin holgura: KMO de 0.647, *mediocre* en
 la escala de Kaiser, con `NO`, `NOX` y `NO2` encabezando tanto el VIF como los
-KMO individuales más bajos, y con `NOX` en un VIF de 47.2 por ser la suma de las
+KMO individuales más bajos, y con `NOX` en un VIF de 45.7 por ser la suma de las
 otras dos.
 
 Este documento extrae. Tiene tres tareas y conviene separarlas porque se juzgan
@@ -112,10 +112,10 @@ print(f"\nVIF con NOX:  {vif_de(P15, NITRO)}")
 print(f"VIF sin NOX:  {vif_de(P14, NITRO)}")
 ```
 
-El efecto confirma el diagnóstico: `NO` cae de un VIF de 21.79 a 2.29 y `NO2` de
-10.30 a 2.45. Toda la colinealidad severa del bloque era esa identidad — lo que
-queda en 8.36 es ya el otro par redundante, `RH_min_diurna` con `RH_media`. El
-KMO mejora de 0.646 a 0.670 —sigue en el tramo mediocre, y eso se arrastra como
+El efecto confirma el diagnóstico: `NO` cae de un VIF de 21.14 a 2.29 y `NO2` de
+10.11 a 2.46. Toda la colinealidad severa del bloque era esa identidad — lo que
+queda en 8.37 es ya el otro par redundante, `RH_min_diurna` con `RH_media`. El
+KMO mejora de 0.647 a 0.669 —sigue en el tramo mediocre, y eso se arrastra como
 limitación, no se maquilla.
 
 ```{python}
@@ -177,7 +177,7 @@ print(f"\nretiene - reducida: {(obs_red > p95_red).sum()}   "
 
 **El análisis paralelo retiene siete factores, y no hay que creerle.** El umbral
 simulado sobre la matriz reducida se sitúa en 0.06, y sobre la completa en 1.06.
-Ese es el problema: con 16,008 observaciones los eigenvalores del ruido se
+Ese es el problema: con 16,028 observaciones los eigenvalores del ruido se
 concentran fortísimo alrededor de su valor esperado, la banda de simulación se
 angosta casi a un punto y **cualquier** eigenvalor apenas positivo la supera. El
 criterio pierde poder discriminante justo por tener muchos datos.
@@ -215,8 +215,8 @@ K = int(np.nanargmin(mapv))
 print(f"\nmínimo de MAP en m = {K}")
 ```
 
-**MAP retiene tres.** La curva baja de 0.0656 a 0.0467 y en el cuarto factor
-repunta a 0.0545: a partir de ahí se está extrayendo varianza específica, no
+**MAP retiene tres.** La curva baja de 0.0652 a 0.0470 y en el cuarto factor
+repunta a 0.0560: a partir de ahí se está extrayendo varianza específica, no
 común. Es el mismo número que el codo del scree plot dio en #54 por un camino
 distinto, lo cual no lo prueba pero sí lo hace menos frágil.
 
@@ -261,7 +261,7 @@ print(f"\ncomunalidad máxima = {h14.max():.3f}  "
       f"casos Heywood (h^2>1) = {(h14 > 1).sum()}")
 ```
 
-`RH_min_diurna` da una comunalidad de 1.089. Es imposible: la comunalidad es una
+`RH_min_diurna` da una comunalidad de 1.093. Es imposible: la comunalidad es una
 proporción de varianza y no puede exceder 1. Es el segundo **caso Heywood** del
 análisis, y su causa es la misma de `NOX`: correlaciona 0.892 con `RH_media`,
 así que el modelo no le deja unicidad que repartir.
@@ -362,7 +362,7 @@ sin cargas cruzadas.
 Aire en movimiento. El signo es el opuesto del estancamiento: valores altos
 significan buena dispersión.
 
-**Forzamiento fotoquímico.** `TOUT_max` +0.73 y `SR_acum` +0.63 contra
+**Forzamiento fotoquímico.** `TOUT_max` +0.72 y `SR_acum` +0.63 contra
 `RH_media` −0.48. Días calurosos, soleados y secos — las condiciones que
 favorecen la formación de ozono.
 
@@ -377,7 +377,7 @@ print(cargas.loc[["PRS_media", "viento_v_media", "SO2_media"],
                  ["comunalidad", "unicidad"]].round(3).to_string())
 ```
 
-`PRS_media` tiene una comunalidad de 0.134: **casi el 87 % de la varianza de la
+`PRS_media` tiene una comunalidad de 0.132: **casi el 87 % de la varianza de la
 presión barométrica es específica de la presión** y no la comparte con ninguna
 otra variable del bloque. El factor existe, pero es de viento, no de anticiclón;
 la presión participa poco y no le da el nombre. Nombrarlo *estancamiento
@@ -390,7 +390,7 @@ tercero con una carga de 0.39 que se leyó como participación. Al separar
 comunalidad de unicidad, el análisis factorial dice cuánta de esa aparición era
 estructura compartida: poca.
 
-`viento_v_media` (h² = 0.045) y `SO2_media` (h² = 0.157) son los otros dos casos
+`viento_v_media` (h² = 0.045) y `SO2_media` (h² = 0.158) son los otros dos casos
 de varianza casi puramente idiosincrática. Ninguno se poda —una comunalidad baja
 es un resultado, no un defecto— pero conviene saber que aportan poco al espacio
 común.
@@ -424,13 +424,79 @@ fig.colorbar(im, ax=bx, fraction=.09, pad=.35).ax.tick_params(labelsize=6)
 fig.savefig(FIGS / "af_cargas.pdf", bbox_inches="tight"); plt.show()
 ```
 
+El mapa de calor da los números; el diagrama de trayectorias da la estructura.
+Cada flecha factor → variable es una entrada de la matriz de cargas y cada
+flecha corta que entra a la variable es su unicidad, la parte que ningún factor
+explica. Solo se dibujan cargas con |λ| ≥ 0.30, la convención para llamar a una
+carga *saliente*.
+
+```{python}
+#| label: fig-diagrama-cargas
+#| fig-cap: "Diagrama de trayectorias del modelo factorial. Flechas sólidas: cargas positivas; punteadas: negativas; el grosor es proporcional a |λ|. Se omiten las cargas con |λ| < 0.30. La flecha gris a la izquierda de cada variable lleva su unicidad."
+from matplotlib.patches import Ellipse, FancyBboxPatch, FancyArrowPatch
+
+UMBRAL = .30
+M = cargas[NOMBRES].to_numpy()
+# Variables ordenadas por el factor donde cargan más, para que las flechas
+# crucen lo menos posible.
+orden_v = sorted(range(len(PRED)),
+                 key=lambda i: (int(np.abs(M[i]).argmax()), -abs(M[i]).max()))
+
+fig, ax = plt.subplots(figsize=(6.3, 6.6))
+ax.set_xlim(0, 10); ax.set_ylim(-.5, len(PRED) - .5); ax.axis("off")
+
+y_var = {i: len(PRED) - 1 - k for k, i in enumerate(orden_v)}
+y_fac = {j: np.mean([y_var[i] for i in range(len(PRED))
+                     if np.abs(M[i]).argmax() == j]) for j in range(K)}
+XV, XF = 3.2, 8.2
+
+for i, v in enumerate(PRED):
+    y = y_var[i]
+    ax.add_patch(FancyBboxPatch((XV - 1.5, y - .33), 3.0, .66,
+                                boxstyle="round,pad=0.02,rounding_size=0.08",
+                                fc="white", ec="#1a1a1a", lw=.7))
+    ax.text(XV, y, v, ha="center", va="center", fontsize=6.5)
+    ax.add_patch(FancyArrowPatch((XV - 2.7, y), (XV - 1.55, y),
+                                 arrowstyle="-|>", mutation_scale=6,
+                                 color=GRIS, lw=.6))
+    ax.text(XV - 2.8, y, f"{1 - h2[i]:.2f}", ha="right", va="center",
+            fontsize=5.8, color=GRIS)
+
+for j, nom in enumerate(NOMBRES):
+    ax.add_patch(Ellipse((XF, y_fac[j]), 2.9, 1.5, fc="#eef3f9", ec=AZUL, lw=1))
+    ax.text(XF, y_fac[j], nom.replace(" ", "\n"), ha="center", va="center",
+            fontsize=7, color=AZUL, weight="bold")
+
+for i in range(len(PRED)):
+    for j in range(K):
+        lam = M[i, j]
+        if abs(lam) < UMBRAL:
+            continue
+        ax.add_patch(FancyArrowPatch((XF - 1.45, y_fac[j]), (XV + 1.55, y_var[i]),
+                                     arrowstyle="-|>", mutation_scale=7,
+                                     lw=.4 + 2.2 * abs(lam),
+                                     color=AZUL if lam > 0 else ROJO,
+                                     ls="-" if lam > 0 else (0, (3, 2)),
+                                     alpha=.85, shrinkA=0, shrinkB=0))
+        t = .5
+        xt = XF - 1.45 + t * (XV + 1.55 - (XF - 1.45))
+        yt = y_fac[j] + t * (y_var[i] - y_fac[j])
+        ax.text(xt, yt, f"{lam:+.2f}", ha="center", va="center", fontsize=5.6,
+                color=AZUL if lam > 0 else ROJO,
+                bbox=dict(fc="white", ec="none", pad=.6, alpha=.9))
+
+ax.text(XV - 2.8, len(PRED) - .2, "unicidad", ha="right", va="bottom",
+        fontsize=6.5, color=GRIS, style="italic")
+fig.savefig(FIGS / "af_diagrama_cargas.pdf", bbox_inches="tight"); plt.show()
+```
+
 ## 5. Ajuste del modelo
 
 El modelo factorial afirma que `R = LL' + U`. Esa afirmación es falsable: se
 reconstruye la matriz de correlación desde las cargas y se mira el residuo.
 
 No se usa la chi-cuadrada de bondad de ajuste, por la misma razón que #08 dio
-para la prueba de Bartlett — con `n` = 16,008 rechaza cualquier modelo. El RMSR
+para la prueba de Bartlett — con `n` = 16,028 rechaza cualquier modelo. El RMSR
 no lleva `n` en la fórmula.
 
 ```{python}
@@ -442,10 +508,10 @@ print(f"pares con residuo > 0.05: {(np.abs(fuera) > .05).sum() // 2} "
       f"de {len(PRED) * (len(PRED) - 1) // 2}")
 ```
 
-RMSR de 0.055 pasa la convención sin margen amplio, y 24 de 78 pares quedan con
+RMSR de 0.056 pasa la convención sin margen amplio, y 26 de 78 pares quedan con
 residuo por encima de 0.05. Tres factores reproducen la estructura de
 correlación de forma razonable pero no exhaustiva — coherente con un KMO
-mediocre y con el 40.4 % de varianza común. Es un ajuste utilizable, no
+mediocre y con el 40.3 % de varianza común. Es un ajuste utilizable, no
 excelente, y así debe reportarse.
 
 ## 6. Puntajes: ¿pueden reemplazar a las componentes?
@@ -477,7 +543,7 @@ for nom, v in zip(NOMBRES, vif_f):
 absoluta máxima entre ellos es 0.097. No son ortogonales por construcción como
 las componentes, pero son incorrelados en la práctica hasta un grado que ninguna
 regresión logística va a notar — muy lejos del umbral de 5 que marca
-preocupación, y muy lejos también del VIF de 47.2 que tenía `NOX` en el bloque
+preocupación, y muy lejos también del VIF de 45.7 que tenía `NOX` en el bloque
 original.
 
 Vale la pena notar de dónde viene: la solución **rotada por varimax** conserva la
@@ -500,9 +566,10 @@ print(PUNT.groupby("particion")[[f"F{i+1}" for i in range(K)]]
           .agg(["mean", "std"]).round(3).to_string())
 ```
 
-Las medias de validación no son cero por la misma razón que en #54: 2025 termina
-el 30 de junio, así que le sobra primavera y le falta otoño. El desplazamiento es
-el calendario, no un error de ajuste.
+Las medias de validación no son cero por la misma razón que en #54: 2025 es un
+año de ozono alto, con menos combustión primaria y menos ventilación que el
+promedio de 2021–2024 (`05_estacionalidad_ozono.qmd`, §5). El desplazamiento
+es un efecto de año, no un error de ajuste.
 
 ```{python}
 PUNT.to_parquet(PROC / "af_puntajes_diarios.parquet", index=False)
@@ -534,7 +601,7 @@ for nom, r in zip(NOMBRES, rho):
 ```
 
 Los tres superan 0.80, que es el umbral utilizable, y solo la ventilación pasa
-de 0.90. El forzamiento fotoquímico es el más débil con 0.835: su ρ² de 0.698
+de 0.90. El forzamiento fotoquímico es el más débil con 0.833: su ρ² de 0.694
 significa que **el puntaje comparte cerca del 70 % de su varianza con el factor
 que representa**, y el resto es error de estimación. Es una limitación real que
 hay que declarar, y es el precio de trabajar con variables latentes en vez de
@@ -567,17 +634,17 @@ for i, nom in enumerate(NOMBRES):
     print(f"  {nom:<26} -> 2025-f{j+1}   |phi| = {abs(C[i, j]):.3f}")
 ```
 
-Los tres factores reaparecen, y en 2025 el orden sale distinto —la ventilación y
-el forzamiento fotoquímico intercambian lugares— justamente lo que obliga a
-emparejar por congruencia.
+Los tres factores reaparecen en el mismo orden y con el mismo signo. El
+emparejamiento por congruencia sigue siendo el procedimiento correcto —nada
+garantiza el orden a priori—, pero aquí no cambia nada.
 
-Combustión primaria (0.930) y forzamiento fotoquímico (0.940) caen en el tramo
-de similitud razonable. **La ventilación es la más débil con 0.826**, por debajo
-del 0.85 convencional. Conviene no sobreinterpretarlo: 2025 termina el 30 de
-junio y solo cubre de enero a junio, así que el reajuste se hace sobre 1,341
-observaciones sin verano ni otoño, y el régimen de viento es precisamente el que
-más cambia con la estación. La cifra mide estabilidad y cobertura estacional
-mezcladas, y no hay forma de separarlas con estos datos.
+**Los tres superan 0.90**: combustión primaria 0.973, ventilación 0.939 y
+forzamiento fotoquímico 0.924, todos por encima del 0.85 convencional. Con la
+primera versión de `BD 2025.xlsx`, cortada al 30 de junio, la ventilación caía
+a 0.826 y el reajuste se hacía sobre 1,341 días sin verano ni otoño; la duda de
+entonces —si la cifra medía inestabilidad o cobertura estacional— queda
+resuelta con el año completo: era cobertura. La estructura es estable fuera
+del periodo de ajuste.
 
 ### 7.3 Cuánto difiere esto del PCA de #54
 
@@ -604,9 +671,9 @@ print(f"correlaciones canónicas: {np.round(cc, 4)}")
 print(f"ángulos principales:     {np.round(ang, 1)} grados")
 ```
 
-**Dos de las tres direcciones son prácticamente la misma**: 5.3 y 12.7 grados de
-separación, con correlaciones canónicas de 0.996 y 0.976. La tercera difiere de
-verdad, a 36.5 grados.
+**Dos de las tres direcciones son prácticamente la misma**: 5.3 y 12.8 grados de
+separación, con correlaciones canónicas de 0.996 y 0.975. La tercera difiere de
+verdad, a 35.7 grados.
 
 Y es la que tenía que diferir: es el eje donde #54 puso la presión barométrica
 junto al viento y lo llamó estancamiento, y donde este análisis encuentra que la
@@ -623,7 +690,7 @@ justificación, no las predicciones.
 ## 8. Cierre
 
 Tres factores, elegidos por MAP de Velicer tras descartar el análisis paralelo
-por inflación con `n`, explican el 40.4 % de la varianza de trece predictores y
+por inflación con `n`, explican el 40.3 % de la varianza de trece predictores y
 admiten lectura física completa: combustión primaria, ventilación y forzamiento
 fotoquímico. Los tres ejes que #54 encontró aparecen otra vez por un camino
 distinto, con estructura simple más limpia — cada variable carga en un factor y
@@ -632,7 +699,7 @@ casi en ninguno más.
 Dos resultados que el PCA no podía entregar:
 
 1. **El eje de estancamiento era un eje de viento.** La presión barométrica tiene
-   una comunalidad de 0.134, así que casi toda su varianza es específica. El
+   una comunalidad de 0.132, así que casi toda su varianza es específica. El
    nombre *estancamiento atmosférico* de #54 atribuía a estructura común algo que
    el modelo identifica como varianza única.
 2. **La redundancia dejó de ser invisible.** El PCA absorbió `NOX` y
@@ -645,11 +712,12 @@ sustituir al PCA también en su papel instrumental** y no solo en el
 interpretativo. Lo que #55 consumiría es `af_puntajes_diarios.parquet` en lugar
 de `pca_puntuaciones_diarias.parquet`.
 
-Queda declarado como limitación lo que no mejoró: el KMO de 0.679 sigue siendo
-mediocre, el RMSR de 0.055 pasa la convención sin holgura, 24 de 78 residuos
-exceden 0.05, el puntaje del forzamiento fotoquímico comparte solo el 70 % de su
-varianza con el factor que representa, y la ventilación reaparece en 2025 con una
-congruencia de 0.826, por debajo del umbral convencional. Y persiste la fuga no supervisada de #52 —el λ de Box-Cox se
+Queda declarado como limitación lo que no mejoró: el KMO de 0.677 sigue siendo
+mediocre, el RMSR de 0.056 pasa la convención sin holgura, 26 de 78 residuos
+exceden 0.05, y el puntaje del forzamiento fotoquímico comparte solo el 69 % de
+su varianza con el factor que representa. La estabilidad fuera del periodo de
+ajuste ya no está en esa lista: los tres factores reaparecen en 2025 con
+congruencia superior a 0.90. Y persiste la fuga no supervisada de #52 —el λ de Box-Cox se
 estimó sobre el periodo completo— idéntica a la que #54 declaró y por la misma
 razón: revertirla exigiría rehacer el dataset transformado.
 

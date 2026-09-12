@@ -1,0 +1,1024 @@
+---
+title: "Modelación autorregresiva logística: supuestos y nowcasting"
+subtitle: "MA2003B, equipo 7 — nowcasting de excedencia diaria"
+lang: es
+format:
+  pdf:
+    papersize: letter
+    geometry: margin=2.5cm
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    fig-pos: "H"
+    include-in-header:
+      # Sin esto las tablas y los prints anchos se salen del margen.
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+        \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
+# Motor knitr: los chunks son de R. Requiere rmarkdown, ya en renv.lock.
+engine: knitr
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    message: false
+    warning: false
+    fig.width: 6
+    fig.height: 3.6
+    dpi: 150
+    dev: "pdf"
+---
+
+El objetivo de modelado es la **clasificación contemporánea** (*nowcasting*): dado
+lo que se observó hoy —los tres puntajes factoriales del día— decidir si hoy es
+un día de excedencia. El modelo candidato es la logística autorregresiva
+
+$$\operatorname{logit} P(y_t = 1 \mid \mathcal{F}_{t-1}, x_t)
+  = x_t'\beta + \sum_{i=1}^{p} \alpha_i\, y_{t-i},$$
+
+donde $x_t$ son los factores del mismo día más los armónicos del calendario, y el
+pasado observado entra directo por los rezagos $y_{t-i}$. El pronóstico a días
+futuros queda para después; es otro modelo y otra validación.
+
+Antes de ajustarlo se verifica que sus supuestos se sostengan. Son cinco
+preguntas, más dos que salieron del propio diagnóstico:
+
+1. cuántos rezagos de $y_t$ entran al predictor,
+2. estacionariedad,
+3. ausencia de separación perfecta,
+4. especificación correcta del *link*,
+5. ergodicidad de la cadena subyacente,
+6. si la respuesta puede ser la fracción de estaciones o tiene que ser binaria,
+7. si queda dependencia serial después del término autorregresivo.
+
+`09_extraccion_factorial.pdf` produjo los puntajes y `serie_tiempo_factores.pdf`
+fijó la decisión que este documento hereda sin reabrir: **se trabaja sobre la
+serie de área metropolitana**, no sobre el panel día-estación. La razón es doble
+— la cobertura por estación es insuficiente (2 de 15 superan 85 %) y la
+correlación entre estaciones el mismo día es alta (0.50 a 0.85), así que
+promediar es agregación legítima y no mezcla de señales independientes.
+
+## 0. Construcción de la serie de área metropolitana
+
+Se reconstruye la serie de `serie_tiempo_factores.pdf` §2: ese documento no la
+persistió y rehacerla cuesta segundos.
+
+```{r}
+library(nanoparquet)
+library(dplyr)
+
+af <- read_parquet("../data/processed/af_puntajes_diarios.parquet")
+di <- read_parquet("../data/processed/sima_transformado_diario.parquet")
+
+# Hora local de pared sin zona: fijar el atributo, no convertir (ver CLAUDE.md).
+attr(af$fecha, "tzone") <- "UTC"
+attr(di$fecha, "tzone") <- "UTC"
+
+# F1/F2/F3 en el orden de NOMBRES de 09_extraccion_factorial.qmd.
+af <- rename(af, comb = F1, vent = F2, foto = F3)
+
+m <- inner_join(af, select(di, estacion, fecha, excede_anio_5),
+                by = c("estacion", "fecha")) |>
+  filter(if_all(c(comb, vent, foto, excede_anio_5), \(v) !is.na(v)))
+
+cat(sprintf("dia-estacion completos: %s\nprevalencia dia-estacion: %.4f\n",
+            format(nrow(m), big.mark = ","), mean(m$excede_anio_5)))
+```
+
+La respuesta de origen, `excede_anio_5`, es el escenario principal de modelado:
+MDA8 por encima de 51 ppb. Al agregar por día quedan el conteo de estaciones que
+exceden (`k`) y el de estaciones que reportan (`n`), que no es constante.
+
+```{r}
+area <- m |>
+  group_by(fecha) |>
+  summarise(comb = mean(comb), vent = mean(vent), foto = mean(foto),
+            k = sum(excede_anio_5), n = n_distinct(estacion), .groups = "drop")
+
+# Reindexar deja los huecos explicitos; si no, los rezagos saltarian sobre ellos.
+cal <- data.frame(fecha = seq(min(m$fecha), max(m$fecha), by = "day"))
+A   <- left_join(cal, area, by = "fecha")
+A$frac <- A$k / A$n
+
+cat(sprintf("dias de calendario: %s\ndias sin ninguna estacion: %d (%s)\n",
+            format(nrow(A), big.mark = ","), sum(is.na(A$comb)),
+            paste(format(A$fecha[is.na(A$comb)], "%Y-%m-%d"), collapse = ", ")))
+```
+
+Un solo día, 2021-02-16, queda sin cobertura (0.06 % del calendario). Se
+interpola linealmente porque los rezagos exigen rejilla regular, y se deja
+documentado.
+
+```{r}
+interp <- function(v) {
+  i <- which(!is.na(v))
+  approx(i, v[i], seq_along(v), rule = 2)$y
+}
+for (v in c("comb", "vent", "foto", "frac")) A[[v]] <- interp(A[[v]])
+
+A$anio <- as.integer(format(A$fecha, "%Y"))
+doy    <- as.integer(format(A$fecha, "%j"))
+A$s1 <- sin(2 * pi * doy / 365.25);  A$c1 <- cos(2 * pi * doy / 365.25)
+A$s2 <- sin(4 * pi * doy / 365.25);  A$c2 <- cos(4 * pi * doy / 365.25)
+
+round(sapply(A[c("comb", "vent", "foto", "frac", "n")],
+             \(v) c(media = mean(v, na.rm = TRUE), sd = sd(v, na.rm = TRUE),
+                    min = min(v, na.rm = TRUE), max = max(v, na.rm = TRUE))), 3)
+```
+
+Los armónicos anual y semianual entran como covariables desde ahora: la sección
+2 muestra que sin ellos no se cumple la estacionariedad.
+
+### 0.1 La respuesta binaria y el umbral
+
+`frac` es la **fracción** de estaciones que exceden, no una indicadora. La
+sección 6 muestra por qué no puede usarse directamente. Para el modelo binario
+hay que dicotomizarla, y el corte es una decisión sustantiva —qué cuenta como
+"día de excedencia para el área metropolitana"— no estadística.
+
+```{r}
+umbrales <- c("cualquiera (frac > 0)" = 1e-9,
+              "un cuarto (frac >= 0.25)" = 0.25,
+              "mayoria (frac >= 0.5)" = 0.5)
+round(sapply(umbrales, \(u) mean(A$frac >= u)), 3)
+```
+
+Se adopta **`frac >= 0.5`**: el día es de excedencia si la mayoría de las
+estaciones que reportaron excedieron. La prevalencia resultante, 0.334, es
+cercana a la del panel día-estación (0.317), así que el evento agregado
+conserva la tasa base del original; y al ser una proporción no premia a los días
+con más estaciones reportando, como sí haría un conteo. El corte "cualquiera
+excede" subiría la prevalencia a 0.586 y cambiaría la pregunta a si *alguna*
+estación tuvo un mal día, un evento más frecuente y menos informativo.
+
+```{r}
+A$y <- as.integer(A$frac >= 0.5)
+for (p in 1:7) A[[paste0("y", p)]] <- dplyr::lag(A$y, p)
+
+# Particion 2021-2024 / 2025, igual que #54 y #55. Se exigen los 7 rezagos para
+# que la seccion 1 compare AIC sobre filas identicas.
+TR <- filter(A, anio <= 2024, !is.na(y7))
+cat(sprintf("entrenamiento: %s dias (%d-%d), prevalencia %.3f\n",
+            format(nrow(TR), big.mark = ","), min(TR$anio), max(TR$anio),
+            mean(TR$y)))
+```
+
+## 1. Cuántos rezagos de $y_t$ entran al predictor
+
+La PACF sugiere el orden por la vía descriptiva; el criterio de información lo
+confirma **condicionando a las covariables**, que es lo que importa: parte de la
+persistencia de $y_t$ podría ser sólo la de la meteorología que la produce.
+
+```{r}
+round(pacf(A$y, lag.max = 10, plot = FALSE)$acf[1:10], 3)
+```
+
+```{r}
+base  <- "y ~ comb + vent + foto + s1 + c1 + s2 + c2"
+tabla <- NULL
+anterior <- NULL
+for (p in 0:7) {
+  f <- if (p == 0) base else paste(base, "+", paste0("y", 1:p, collapse = " + "))
+  g <- glm(as.formula(f), binomial, TR)
+  s <- coef(summary(g))
+  tabla <- rbind(tabla, data.frame(
+    p   = p,
+    AIC = AIC(g), BIC = BIC(g),
+    coef = if (p == 0) NA else s[paste0("y", p), 1],
+    z    = if (p == 0) NA else s[paste0("y", p), 3],
+    LR   = if (p == 0) NA else anterior$deviance - g$deviance))
+  anterior <- g
+}
+print(transform(tabla, AIC = round(AIC, 1), BIC = round(BIC, 1),
+                coef = round(coef, 3), z = round(z, 2), LR = round(LR, 2)),
+      row.names = FALSE)
+```
+
+**Se cumple, con $p = 1$.** La PACF cae de 0.463 a 0.100 en el lag 2 y a ruido
+de ahí en adelante: corta después del primer rezago, la firma de un AR(1). El
+BIC coincide y se minimiza en $p=1$; el AIC está empatado entre $p=1$ y $p=2$,
+pero el segundo rezago no alcanza significancia ($z = 1.73$) y del tercero en
+adelante los coeficientes son indistinguibles de cero.
+
+Más importante que el orden: el rezago **sobrevive a las covariables
+contemporáneas**. Con los factores y los armónicos ya dentro, agregar $y_{t-1}$
+da $LR = 71.4$ sobre 1 grado de libertad y un coeficiente de $+1.35$
+($z = 8.4$). La persistencia día a día no es un reflejo de que la meteorología
+sea persistente: es dependencia genuina, y es lo que justifica la parte
+autorregresiva.
+
+## 2. Estacionariedad
+
+Una serie **binaria y acotada** no puede tener raíz unitaria —un paseo aleatorio
+es no acotado por construcción—, así que aplicarle Dickey-Fuller a $y_t$ responde
+una pregunta ya resuelta. Lo que sí puede fallar es que el proceso sea
+**homogéneo en el tiempo**: que $P(y_t \mid y_{t-1}, x_t)$ no cambie a lo largo
+de los cuatro años. Sobre los tres factores, continuos y no acotados, la prueba
+de raíz unitaria sí corresponde.
+
+```{r}
+# ADF a mano (constante, sin tendencia) para no agregar `tseries` al lockfile:
+#   dx_t = a + rho*x_{t-1} + sum_i gamma_i dx_{t-i};  H0: rho = 0.
+# El t de rho se compara contra Dickey-Fuller (-2.86 al 5 %), no contra Student.
+adf <- function(x, max_lag = 12) {
+  mejor <- NULL
+  for (L in 0:max_lag) {
+    d   <- diff(x)
+    idx <- (L + 1):length(d)
+    X   <- cbind(rezago = x[idx],
+                 if (L > 0) sapply(1:L, \(i) d[idx - i]) else NULL)
+    fit <- lm(d[idx] ~ X)
+    if (is.null(mejor) || AIC(fit) < mejor$aic)
+      mejor <- list(aic = AIC(fit), L = L, t = coef(summary(fit))[2, 3])
+  }
+  mejor
+}
+
+VC5 <- -2.86
+do.call(rbind, lapply(c("comb", "vent", "foto", "frac"), \(v) {
+  r <- adf(A[[v]])
+  data.frame(serie = v, t_ADF = round(r$t, 2), rezagos = r$L,
+             veredicto = ifelse(r$t < VC5, "rechaza raiz unitaria", "NO rechaza"))
+})) |> print(row.names = FALSE)
+```
+
+Las cuatro series rechazan la raíz unitaria con holgura. No hay que diferenciar
+nada.
+
+La marginal, en cambio, **no es estacionaria**, y por un margen que no se puede
+ignorar:
+
+```{r}
+round(tapply(A$y, format(A$fecha, "%m"), mean), 3)
+round(tapply(A$y, A$anio, mean), 3)
+```
+
+De 0.090 en enero a 0.561 en mayo: un factor de seis dentro del año. Y un
+escalón entre 2023 (0.249) y 2024–2025 (0.396, 0.466). Ninguno invalida el
+modelo, pero ambos obligan a que el ciclo esté **en el predictor**: la
+estacionariedad que se necesita es la de $y_t \mid x_t$, no la de $y_t$.
+
+Queda probar que, ya condicionando, el proceso sea homogéneo.
+
+```{r}
+A$tardio <- as.integer(A$anio >= 2024)
+TR$tardio <- as.integer(TR$anio >= 2024)
+
+F0 <- y ~ comb + vent + foto + s1 + c1 + s2 + c2 + y1
+g0 <- glm(F0, binomial, TR)
+
+# Nivel (mas dias de excedencia) y persistencia (cadena mas pegajosa) son cosas
+# distintas y se prueban por separado.
+gn <- glm(update(F0, . ~ . + tardio), binomial, TR)
+gi <- glm(update(F0, . ~ . + tardio + y1:tardio), binomial, TR)
+
+data.frame(
+  hipotesis = c("cambio de nivel (tardio)", "cambio de persistencia (y1:tardio)"),
+  LR = round(c(g0$deviance - gn$deviance, gn$deviance - gi$deviance), 2),
+  p  = round(pchisq(c(g0$deviance - gn$deviance, gn$deviance - gi$deviance),
+                    1, lower.tail = FALSE), 4)) |> print(row.names = FALSE)
+
+cat(sprintf("\nb(y_t-1): 2021-2023 = %+.3f ; 2024 = %+.3f\n",
+            coef(gi)["y1"], coef(gi)["y1"] + coef(gi)["y1:tardio"]))
+```
+
+**Se cumple a medias, y hay que declararlo.** La *dinámica* es homogénea: el
+coeficiente autorregresivo pasa de $+1.25$ a $+1.42$ entre los dos periodos, una
+diferencia que no es significativa ($p = 0.64$). La estructura de dependencia
+temporal que el modelo supone es la misma en 2021 que en 2024.
+
+Lo que sí cambia es el **nivel**: la indicadora de 2024 en adelante aporta
+$LR = 10.38$, $p = 0.0013$. Es un escalón, no una deriva —una tendencia lineal
+no resulta significativa ($p = 0.77$) porque el cambio es abrupto—, y los
+factores no lo absorben. Con estos datos no se puede decidir si es un cambio de
+emisiones, de instrumentación, o un par de años atípicos. Queda como limitación,
+no como impedimento: el ajuste promedia los dos regímenes y la validación dirá
+cuánto cuesta.
+
+## 3. Ausencia de separación perfecta
+
+La separación se delata sola: el algoritmo no converge, o lo hace con
+coeficientes que crecen sin límite y errores estándar que explotan igual. Se
+revisan esas firmas y el traslape empírico, que es la causa y no el síntoma.
+
+```{r}
+cat(sprintf("convergio: %s   iteraciones: %d\n", g0$converged, g0$iter))
+round(coef(summary(g0)), 4)
+```
+
+```{r}
+p_aj <- fitted(g0)
+cat(sprintf("|coef| maximo      : %.3f\n", max(abs(coef(g0)))))
+cat(sprintf("error estandar max : %.3f\n", max(coef(summary(g0))[, 2])))
+cat(sprintf("prob. ajustadas en : [%.4f, %.4f]\n", min(p_aj), max(p_aj)))
+
+cat("\ntabla y_t x y_t-1 (una celda vacia implicaria separacion):\n")
+print(table(`y_{t-1}` = TR$y1, y_t = TR$y))
+
+cat("\ntraslape de cada factor entre clases (en desviaciones estandar):\n")
+round(sapply(c("comb", "vent", "foto"), \(v) {
+  r0 <- range(TR[[v]][TR$y == 0]); r1 <- range(TR[[v]][TR$y == 1])
+  min(r0[2], r1[2]) - max(r0[1], r1[1])
+}), 2)
+```
+
+**Se cumple, con margen amplio.** Convergió en 6 iteraciones; el coeficiente
+mayor es 1.803 y el error estándar mayor 0.207, lejos de la firma de separación
+(coeficientes por encima de 10 con errores del mismo orden). Las cuatro celdas
+de la tabla de transición están pobladas y los factores se traslapan entre 3.3 y
+4.5 desviaciones estándar. No hace falta Firth ni verosimilitud penalizada.
+
+## 4. Especificación correcta del *link*
+
+La comparación entre familias dice si el logit es la mejor opción disponible; el
+*linktest* de Pregibon, si es adecuado en términos absolutos.
+
+```{r}
+round(sapply(c("logit", "probit", "cloglog", "cauchit"),
+             \(lk) AIC(glm(F0, binomial(link = lk), TR))), 2)
+```
+
+```{r}
+# Linktest de Pregibon: si el link es correcto, eta^2 no aporta nada.
+eta <- predict(g0)
+g2  <- glm(update(F0, . ~ . + I(eta^2)), binomial, TR)
+cat(sprintf("linktest: coef(eta^2) = %+.4f   LR = %.2f   p = %.4f\n",
+            coef(g2)["I(eta^2)"], g0$deviance - g2$deviance,
+            pchisq(g0$deviance - g2$deviance, 1, lower.tail = FALSE)))
+```
+
+El logit gana: por poco frente al probit (1128.57 contra 1128.75), como es
+habitual salvo en las colas, y por 34 puntos de AIC frente al `cloglog`.
+
+Pero el *linktest* **rechaza** ($p = 0.0029$). No es el *link*: el *linktest* es
+una prueba de especificación global y detecta cualquier no linealidad omitida,
+venga de donde venga. Se separan las hipótesis probando primero la curvatura en
+los factores.
+
+```{r}
+gq <- glm(update(F0, . ~ . + I(comb^2) + I(vent^2) + I(foto^2)), binomial, TR)
+cat(sprintf("cuadrados de los factores: LR = %.2f  gl = 3  p = %.4f\n",
+            g0$deviance - gq$deviance,
+            pchisq(g0$deviance - gq$deviance, 3, lower.tail = FALSE)))
+round(coef(summary(gq))[c("I(comb^2)", "I(vent^2)", "I(foto^2)"), 3], 2)
+
+# Si ahora no rechaza, el problema era el predictor y no el link.
+eq  <- predict(gq)
+gq2 <- glm(update(formula(gq), . ~ . + I(eq^2)), binomial, TR)
+cat(sprintf("\nlinktest DESPUES de la curvatura: LR = %.2f   p = %.4f\n",
+            gq$deviance - gq2$deviance,
+            pchisq(gq$deviance - gq2$deviance, 1, lower.tail = FALSE)))
+```
+
+```{r}
+# Hosmer-Lemeshow por deciles de riesgo, a mano por la misma razon que el ADF.
+gr <- cut(p_aj, quantile(p_aj, 0:10 / 10), include.lowest = TRUE)
+HL <- sum((tapply(TR$y, gr, sum) - tapply(p_aj, gr, sum))^2 /
+          tapply(p_aj * (1 - p_aj), gr, sum))
+cat(sprintf("Hosmer-Lemeshow: X2 = %.2f   gl = 8   p = %.4f\n",
+            HL, pchisq(HL, 8, lower.tail = FALSE)))
+```
+
+**Se cumple: el *link* logit es correcto; lo que faltaba era curvatura en el
+predictor.** Agregar los cuadrados de los tres factores mejora el ajuste
+($LR = 18.94$, $p = 0.0003$), con la contribución concentrada en el forzamiento
+fotoquímico ($z = -3.62$) y la ventilación ($z = -2.21$). Y el diagnóstico
+decisivo: **una vez incluida esa curvatura, el *linktest* deja de rechazar**
+($p = 0.60$). Si el problema hubiera sido el *link*, seguiría rechazando.
+
+Los signos negativos son físicamente coherentes: el efecto de ambos factores se
+satura —duplicar el viento cuando ya sopla fuerte no vuelve a dividir la
+probabilidad. La calibración global nunca estuvo en duda: Hosmer-Lemeshow no
+rechaza ($p = 0.39$) ni siquiera sin curvatura.
+
+**Consecuencia para el modelo final: los términos cuadráticos de `vent` y `foto`
+deben entrar.**
+
+## 5. Ergodicidad de la cadena subyacente
+
+La cadena de dos estados debe ser irreducible (todos los estados alcanzables),
+aperiódica (sin ciclos deterministas) y sin estados absorbentes de facto. Se
+verifican las tres sobre la matriz de transición empírica.
+
+```{r}
+P <- prop.table(table(`y_{t-1}` = TR$y1, y_t = TR$y), 1)
+round(P, 3)
+
+lambda <- sort(abs(eigen(P)$values), decreasing = TRUE)
+cat(sprintf("\n|lambda| = %s\n", paste(round(lambda, 3), collapse = ", ")))
+cat(sprintf("tiempo de mezcla -1/log|lambda_2| = %.1f dias\n", -1 / log(lambda[2])))
+
+# La distribucion estacionaria es el eigenvector izquierdo de lambda = 1.
+e  <- eigen(t(P))$vectors[, 1]
+pi <- Re(e / sum(e))
+cat(sprintf("estacionaria P(y=1) = %.3f   vs empirica %.3f\n",
+            pi[2], mean(TR$y)))
+cat(sprintf("probabilidades ajustadas del modelo en [%.4f, %.4f]\n",
+            min(p_aj), max(p_aj)))
+```
+
+**Se cumple, y con holgura.** Las cuatro transiciones se observan (irreducible),
+la diagonal es estrictamente positiva —0.837 y 0.622— (aperiódica), y el segundo
+eigenvalor $|\lambda_2| = 0.459 < 1$ da ergodicidad geométrica. La confirmación
+numérica: la estacionaria implicada, $P(y=1) = 0.302$, coincide con la empírica
+(0.301) hasta la milésima, así que la cadena ya está en equilibrio dentro de la
+ventana de datos.
+
+El tiempo de mezcla, $-1/\log|\lambda_2| \approx 1.3$ días, es la cifra que más
+dice sobre el alcance del modelo: la memoria es cortísima. Explica que el
+segundo rezago no aportara nada en la sección 1, y adelanta que un pronóstico a
+más de dos o tres días convergerá a la climatología del mes.
+
+## 6. Por qué la respuesta tiene que ser binaria y no la fracción
+
+Sería tentador modelar `frac` como binomial: $k$ excedencias de $n$ estaciones,
+con $n$ variable. Eso supondría que las estaciones de un día son ensayos
+Bernoulli independientes, y `serie_tiempo_factores.pdf` documentó que no lo son
+—la correlación entre estaciones el mismo día promedia 0.53. Se cuantifica el
+costo.
+
+```{r}
+B     <- filter(A, anio <= 2024, !is.na(k), n > 0)
+p_bar <- sum(B$k) / sum(B$n)
+X2    <- sum((B$k - B$n * p_bar)^2 / (B$n * p_bar * (1 - p_bar)))
+cat(sprintf("X2 / gl = %.2f    (1.0 = binomial exacta)\n", X2 / (nrow(B) - 1)))
+cat(sprintf("factor de inflacion de los errores estandar = %.2f\n",
+            sqrt(X2 / (nrow(B) - 1))))
+```
+
+**Sobredispersión de casi 6 a 1.** Tratar $k$ de $n$ como binomial subestimaría
+los errores estándar por un factor de $\sqrt{5.97} \approx 2.4$: intervalos a
+menos de la mitad de su ancho real. Es la correlación transversal reapareciendo
+como varianza inflada, y por eso el modelo usa la indicadora dicotomizada de la
+sección 0.1.
+
+## 7. ¿Alcanza el AR(1) o queda dependencia serial?
+
+Falta ver si el AR(1) resuelve toda la dependencia que hay: si los residuales
+siguen autocorrelacionados, la parte temporal está mal especificada.
+
+```{r}
+resumen_residual <- function(modelo, etiqueta) {
+  ph <- fitted(modelo)
+  r  <- (TR$y - ph) / sqrt(ph * (1 - ph))          # residual de Pearson
+  data.frame(modelo = etiqueta,
+             acf1 = round(acf(r, lag.max = 5, plot = FALSE)$acf[2], 3),
+             acf2 = round(acf(r, lag.max = 5, plot = FALSE)$acf[3], 3),
+             LB7  = round(Box.test(r, lag = 7, type = "Ljung-Box")$p.value, 4),
+             LB14 = round(Box.test(r, lag = 14, type = "Ljung-Box")$p.value, 4))
+}
+rbind(
+  resumen_residual(glm(y ~ comb + vent + foto + s1 + c1 + s2 + c2, binomial, TR),
+                   "factores + estacionalidad"),
+  resumen_residual(g0, "+ y_{t-1}"),
+  resumen_residual(gq, "+ y_{t-1} + curvatura")) |> print(row.names = FALSE)
+```
+
+El rezago hace su trabajo sobre el lag 1: la autocorrelación residual cae de
+0.212 a 0.025. Pero **queda un residuo en el lag 2** (0.099) y Ljung-Box sigue
+rechazando en el lag 7.
+
+La curvatura de la sección 4 **no ayuda aquí**: arregla el *linktest* pero deja
+el lag 2 igual o algo peor (0.116). No es contradictorio — la curvatura corrige
+la **forma** de la media condicional, no la **dependencia temporal** de los
+residuales.
+
+El rechazo de Ljung-Box se lee con la misma cautela que en
+`serie_tiempo_factores.pdf`: con $n = 1{,}454$ detecta autocorrelaciones
+triviales, así que lo informativo es la magnitud. Un 0.099 es pequeño pero no
+cero. El AR(1) captura casi toda la dependencia y sobra un residuo de segundo
+orden que no justifica un segundo rezago, pero sí deja espacio para un término
+de media móvil sobre los residuales — lo que agregaría un modelo GLARMA.
+
+Conviene anticipar una confusión frecuente: GLARMA **no** pone $y_{t-1}$ en el
+predictor. Su estado se construye sobre los *residuales* predictivos,
+$Z_t = \sum_i \phi_i (Z_{t-i} + e_{t-i}) + \sum_j \theta_j e_{t-j}$, así que es
+un modelo distinto y no una extensión de éste. Sus supuestos también son otros:
+la estacionariedad pasa a ser una condición sobre las raíces del polinomio ARMA,
+revisable sólo después de ajustar.
+
+## 8. El modelo de nowcasting
+
+Las siete secciones anteriores no dejaron la especificación abierta: la fijaron.
+
+$$\operatorname{logit} P(y_t = 1) = \beta_0
+  + \underbrace{\beta_1 s_1 + \beta_2 c_1 + \beta_3 s_2 + \beta_4 c_2}_{\text{§2: sin esto no hay estacionariedad}}
+  + \underbrace{\beta_5\,\mathrm{comb} + \beta_6\,\mathrm{vent} + \beta_7\,\mathrm{foto}}_{\text{factores del mismo día}}
+  + \underbrace{\beta_8\,\mathrm{vent}^2 + \beta_9\,\mathrm{foto}^2}_{\text{§4: sin esto el linktest rechaza}}
+  + \underbrace{\alpha\, y_{t-1}}_{\text{§1: } p=1}$$
+
+El cuadrado de la combustión primaria se deja fuera: en la sección 4 fue el único
+que no aportó ($z = -0.65$). Se confirma sobre la especificación final.
+
+```{r}
+library(pROC)
+library(ggplot2)
+
+AZUL <- "#3b6ea5"; ROJO <- "#b5443a"; GRIS <- "#8c8c8c"; CLARO <- "#d9d9d9"
+
+VA <- filter(A, anio == 2025, !is.na(y1))
+cat(sprintf("ajuste 2021-2024: %s dias (prevalencia %.3f)\n",
+            format(nrow(TR), big.mark = ","), mean(TR$y)))
+cat(sprintf("validacion 2025 : %s dias (prevalencia %.3f)\n",
+            format(nrow(VA), big.mark = ","), mean(VA$y)))
+
+F_final <- y ~ s1 + c1 + s2 + c2 + comb + vent + foto + I(vent^2) + I(foto^2) + y1
+modelo  <- glm(F_final, binomial, TR)
+
+con_comb2 <- glm(update(F_final, . ~ . + I(comb^2)), binomial, TR)
+cat(sprintf("\nagregar I(comb^2): LR = %.2f  gl = 1  p = %.4f -> se omite\n",
+            modelo$deviance - con_comb2$deviance,
+            pchisq(modelo$deviance - con_comb2$deviance, 1, lower.tail = FALSE)))
+```
+
+La validación es 2025 completo, la misma partición de #54 y #55. **Su
+prevalencia es 0.466 contra 0.301 del ajuste**: 2025 es el año de ozono más
+alto de la serie, en las cuatro temporadas (`05_estacionalidad_ozono.qmd`,
+§5). Toda métrica que dependa de la tasa base hay que leerla con eso presente.
+
+### 8.1 Cuánto aporta cada pieza
+
+Un AUC alto no dice si el modelo sirve; hay que compararlo contra lo que se
+obtendría sin él. Las dos líneas base del *nowcasting* son la **climatología**
+(sólo el calendario) y la **persistencia** (hoy será como ayer). Se agrega el
+*skill score* de Brier: 0 es no aportar nada, 1 es predicción perfecta.
+
+```{r}
+escalera <- list(
+  "1 climatologia"  = y ~ s1 + c1 + s2 + c2,
+  "2 persistencia"  = y ~ y1,
+  "3 + factores"    = y ~ s1 + c1 + s2 + c2 + comb + vent + foto,
+  "4 + curvatura"   = update(F_final, . ~ . - y1),
+  "5 + AR(1) final" = F_final)
+
+comparacion <- do.call(rbind, lapply(names(escalera), function(nm) {
+  g   <- glm(escalera[[nm]], binomial, TR)
+  pva <- predict(g, VA, type = "response")
+  # Skill score de Brier contra predecir siempre la tasa base.
+  brier <- mean((pva - VA$y)^2)
+  base  <- mean((mean(TR$y) - VA$y)^2)
+  data.frame(modelo = nm, par = length(coef(g)), AIC = round(AIC(g), 1),
+             AUC_ajuste = round(as.numeric(auc(roc(TR$y, fitted(g), quiet = TRUE))), 3),
+             AUC_2025   = round(as.numeric(auc(roc(VA$y, pva, quiet = TRUE))), 3),
+             Brier_2025 = round(brier, 4),
+             skill      = round(1 - brier / base, 3))
+}))
+print(comparacion, row.names = FALSE)
+```
+
+Cada bloque aporta. Las líneas base quedan en 0.67–0.72 en 2025, el piso contra
+el que hay que medir. **Los factores son el salto grande**: de 0.717 a 0.872,
+porque son observaciones del mismo día — ahí está la ventaja del *nowcasting*
+sobre el pronóstico. La curvatura agrega poco al AUC (0.872 a 0.882) pero mejora
+el Brier, lo esperable de una corrección de forma: reordena poco y calibra
+mejor. El AR(1) llega a 0.898 y sube el *skill* de 0.331 a 0.436.
+
+El AUC de 2025 (0.898) queda a la par del de ajuste (0.892). Con la primera
+versión de `BD 2025.xlsx`, cortada al 30 de junio, la validación daba 0.927 y
+superaba al ajuste; la sección 8.7 muestra por qué —el primer semestre de 2025
+es el tramo más fácil de ese año— y acota cuánto vale el modelo en un año
+cualquiera.
+
+```{r}
+comp_auc <- function(nombre, formula_base) {
+  rb <- roc(VA$y, predict(glm(formula_base, binomial, TR), VA, type = "response"),
+            quiet = TRUE)
+  rf <- roc(VA$y, predict(modelo, VA, type = "response"), quiet = TRUE)
+  pr <- roc.test(rf, rb, method = "delong")$p.value
+  data.frame(contra = nombre, AUC_base = round(as.numeric(auc(rb)), 3),
+             AUC_modelo = round(as.numeric(auc(rf)), 3),
+             p_DeLong = format.pval(pr, digits = 3))
+}
+rbind(comp_auc("persistencia", y ~ y1),
+      comp_auc("climatologia", y ~ s1 + c1 + s2 + c2)) |> print(row.names = FALSE)
+```
+
+La prueba de DeLong confirma que la ventaja no es de muestreo: el modelo supera
+a ambas líneas base con $p < 10^{-5}$.
+
+### 8.2 Los coeficientes
+
+```{r}
+ic <- suppressMessages(confint(modelo))
+round(data.frame(OR = exp(coef(modelo)), IC_inf = exp(ic[, 1]), IC_sup = exp(ic[, 2]),
+                 p = coef(summary(modelo))[, 4]), 4)
+```
+
+Los tres factores apuntan en la dirección que la física predice, y ningún
+intervalo cruza el 1:
+
+- **Forzamiento fotoquímico**, OR 3.69 por desviación estándar: el efecto más
+  grande de los tres. Más temperatura y radiación, más ozono.
+- **Combustión primaria**, OR 2.37: más precursores, más excedencia.
+- **Ventilación**, OR 0.32: el viento dispersa. Es el único protector.
+- **$y_{t-1}$**, OR 3.83: haber excedido ayer casi cuadruplica los momios de
+  exceder hoy. Es lo que justifica que el modelo sea autorregresivo.
+
+Los dos cuadráticos quedan por debajo de 1 (0.70 y 0.69), la saturación que la
+sección 4 anticipó: el efecto marginal se achica cuando ya hay mucho.
+
+Advertencia heredada de `analisis_discriminante.pdf`: el SIMA no mide compuestos
+orgánicos volátiles, así que estos ejes se describen como *consistentes con*
+combustión, ventilación o forzamiento fotoquímico, nunca como una atribución de
+régimen NOx–COV.
+
+### 8.3 Discriminación
+
+```{r}
+#| label: fig-roc
+#| fig-cap: "Curvas ROC sobre la validacion de 2025. La diagonal punteada es el clasificador aleatorio. La persistencia produce solo tres vertices porque su predictor es binario."
+#| fig-width: 5
+#| fig-height: 3.4
+modelos_roc <- list("Autorregresivo (AR1)" = modelo,
+                    "Climatologia"         = glm(y ~ s1 + c1 + s2 + c2, binomial, TR),
+                    "Persistencia"         = glm(y ~ y1, binomial, TR))
+etiqueta <- function(nm) {
+  r <- roc(VA$y, predict(modelos_roc[[nm]], VA, type = "response"), quiet = TRUE)
+  sprintf("%s (AUC %.3f)", nm, as.numeric(auc(r)))
+}
+curvas <- do.call(rbind, lapply(names(modelos_roc), function(nm) {
+  r <- roc(VA$y, predict(modelos_roc[[nm]], VA, type = "response"), quiet = TRUE)
+  data.frame(modelo = factor(etiqueta(nm), levels = sapply(names(modelos_roc), etiqueta)),
+             fpr = 1 - r$specificities, tpr = r$sensitivities)
+}))
+
+fig_roc <- ggplot(curvas, aes(fpr, tpr, color = modelo)) +
+  geom_abline(slope = 1, intercept = 0, color = GRIS, linetype = "dotted",
+              linewidth = .4) +
+  geom_line(linewidth = .7) +
+  scale_color_manual(values = c(AZUL, ROJO, GRIS), name = NULL) +
+  coord_equal() +
+  labs(x = "1 - especificidad", y = "sensibilidad") +
+  theme_minimal(base_size = 9) +
+  theme(legend.position = c(.98, .02), legend.justification = c(1, 0),
+        legend.background = element_rect(fill = "white", color = NA),
+        legend.key.height = unit(.8, "lines"),
+        panel.grid.minor = element_blank())
+ggsave("../reports/figuras/nowcast_roc.pdf", fig_roc, width = 5, height = 3.4)
+fig_roc
+```
+
+### 8.4 El umbral de decisión
+
+**0.5 no es la respuesta por defecto** cuando el evento no es equiprobable: con
+una tasa base de 0.30, exigir más de 0.5 sacrifica sensibilidad. El corte se
+elige por el índice de Youden y **sobre el ajuste**, nunca sobre la validación —
+escogerlo en 2025 sería calibrar una decisión con los datos de prueba.
+
+```{r}
+roc_tr  <- roc(TR$y, fitted(modelo), quiet = TRUE)
+youden  <- coords(roc_tr, "best", best.method = "youden", transpose = FALSE)
+umbral  <- as.numeric(youden$threshold)
+cat(sprintf("umbral de Youden (elegido en 2021-2024): %.3f\n", umbral))
+
+metricas <- function(y, p, u) {
+  yh <- as.integer(p >= u)
+  tp <- sum(yh == 1 & y == 1); tn <- sum(yh == 0 & y == 0)
+  fp <- sum(yh == 1 & y == 0); fn <- sum(yh == 0 & y == 1)
+  c(sens = tp/(tp+fn), esp = tn/(tn+fp), vpp = tp/(tp+fp), exactitud = (tp+tn)/length(y))
+}
+p_va <- predict(modelo, VA, type = "response")
+round(rbind(
+  `u=0.50 ajuste`      = metricas(TR$y, fitted(modelo), 0.5),
+  `u=0.50 validacion`  = metricas(VA$y, p_va, 0.5),
+  `Youden ajuste`      = metricas(TR$y, fitted(modelo), umbral),
+  `Youden validacion`  = metricas(VA$y, p_va, umbral)), 3)
+```
+
+```{r}
+cat("matriz de confusion en 2025, umbral de Youden:\n")
+print(table(prediccion = as.integer(p_va >= umbral), observado = VA$y))
+```
+
+**El modelo clasifica 2025 con 75.9 % de sensibilidad y 84.1 % de
+especificidad.** De 170 días de excedencia, detecta 129 y se le escapan 41; de
+195 días limpios, acierta 164 y da 31 falsas alarmas.
+
+Los dos cortes representan políticas distintas y vale la pena verlos juntos. Con
+0.5 la especificidad sube a 0.908 pero la sensibilidad cae a 0.624: trece falsas
+alarmas menos, a cambio de veintitrés días de excedencia más sin detectar, 64 en
+vez de 41. Para una aplicación de calidad del aire, donde
+el costo de no avisar de un día malo supera al de una alerta de más, el corte de
+Youden es el defendible. La decisión es de política pública, no estadística, y se
+deja explícita en vez de esconderla en un `0.5` por omisión.
+
+### 8.5 Calibración
+
+El AUC sólo mide **orden**. Que las probabilidades signifiquen lo que dicen es
+otra pregunta, y para un *nowcasting* que se comunicaría como "hoy hay 70 % de
+probabilidad de excedencia" es la que importa.
+
+```{r}
+#| label: fig-calibracion
+#| fig-cap: "Calibracion en 2025 por quintiles de riesgo. Los puntos por encima de la diagonal indican subprediccion; las barras son intervalos binomiales del 95 %."
+#| fig-width: 4.2
+#| fig-height: 3.4
+calib <- data.frame(p = p_va, y = VA$y) |>
+  mutate(bin = cut(p, quantile(p, 0:5/5), include.lowest = TRUE)) |>
+  group_by(bin) |>
+  summarise(predicho = mean(p), observado = mean(y), n = n(),
+            ee = sqrt(mean(y) * (1 - mean(y)) / n()), .groups = "drop")
+print(as.data.frame(round(calib[, -1], 3)), row.names = FALSE)
+
+fig_cal <- ggplot(calib, aes(predicho, observado)) +
+  geom_abline(slope = 1, intercept = 0, color = CLARO, linewidth = .4) +
+  geom_errorbar(aes(ymin = pmax(0, observado - 1.96*ee),
+                    ymax = pmin(1, observado + 1.96*ee)),
+                width = .02, color = GRIS, linewidth = .4) +
+  geom_point(color = AZUL, size = 2.2) +
+  coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
+  labs(x = "probabilidad predicha (media del quintil)",
+       y = "frecuencia observada") +
+  theme_minimal(base_size = 9) + theme(panel.grid.minor = element_blank())
+ggsave("../reports/figuras/nowcast_calibracion.pdf", fig_cal, width = 4.2, height = 3.4)
+fig_cal
+```
+
+```{r}
+cat(sprintf("media predicha %.3f   vs   prevalencia observada %.3f\n",
+            mean(p_va), mean(VA$y)))
+```
+
+**El modelo subpredice en 2025, y de forma sistemática.** La media predicha es
+0.338 contra 0.466 observado, y los quintiles centrales son los peores: donde el
+modelo dice 0.253, la frecuencia real es 0.548. Los extremos están mejor —el
+quintil bajo predice 0.008 y observa 0.000; el alto predice 0.821 y observa
+0.904.
+
+La causa está diagnosticada desde la sección 2: **es el escalón de 2024**. El
+ajuste promedia el régimen bajo (2021–2023, tasa base 0.25–0.28) con el alto, y
+2025 pertenece al alto, con la prevalencia más alta de la serie (0.466).
+
+No se corrige: recalibrar el intercepto contra 2025 mejoraría el número y
+destruiría la validación. La discriminación, que no depende de la tasa base, no
+está afectada.
+
+### 8.6 La serie de 2025
+
+```{r}
+#| label: fig-serie
+#| fig-cap: "Probabilidad predicha por el modelo contra la excedencia observada, validacion 2025. La linea roja es el umbral de Youden fijado en el ajuste."
+#| fig-width: 6
+#| fig-height: 2.8
+MESES <- c("ene", "feb", "mar", "abr", "may", "jun", "jul",
+           "ago", "sep", "oct", "nov", "dic")
+cortes <- as.POSIXct(paste0("2025-", sprintf("%02d", 1:12), "-01"), tz = "UTC")
+serie  <- data.frame(fecha = VA$fecha, p = p_va, y = VA$y)
+
+fig_serie <- ggplot(serie, aes(fecha)) +
+  geom_hline(yintercept = umbral, color = ROJO, linetype = "dashed", linewidth = .4) +
+  geom_point(aes(y = y, color = "Excedencia observada"), size = .7, alpha = .6) +
+  geom_line(aes(y = p, color = "Probabilidad predicha"), linewidth = .5) +
+  annotate("text", x = max(serie$fecha) - 86400 * 6, y = umbral + .09,
+           label = sprintf("umbral %.2f", umbral), hjust = 1, size = 2.6, color = ROJO) +
+  scale_color_manual(values = c("Probabilidad predicha" = AZUL,
+                                "Excedencia observada"  = GRIS), name = NULL) +
+  scale_x_datetime(breaks = cortes, labels = MESES) +
+  scale_y_continuous(breaks = c(0, .5, 1)) +
+  labs(x = NULL, y = "P(excedencia)") +
+  theme_minimal(base_size = 9) +
+  theme(legend.position = "top", panel.grid.minor = element_blank(),
+        legend.margin = margin(0, 0, -6, 0))
+ggsave("../reports/figuras/nowcast_serie_2025.pdf", fig_serie, width = 6, height = 2.8)
+fig_serie
+```
+
+Enero y la primera mitad de febrero son limpios y el modelo los da por limpios;
+de marzo a mayo la probabilidad oscila entre casi 0 y casi 1 día con día, no en
+una meseta estacional; junio baja, y de julio a noviembre el evento vuelve a
+ocurrir uno de cada dos días, sin el descanso de verano de otros años, hasta
+que diciembre cierra limpio. Esas oscilaciones rápidas son el aporte de
+los factores contemporáneos: el modelo no predice la temporada, distingue días
+dentro de la temporada — lo que la climatología no puede hacer.
+
+### 8.7 ¿Cuánto de ese 0.898 es real?
+
+Un AUC de 0.898 sobre 365 días hay que auditarlo antes de reportarlo. Dos
+sospechas que conviene no confundir: **ruido de muestreo** (170 eventos) y
+**efecto de año** (la sección 2 encontró un escalón entre 2023 y 2024). Se
+conserva además la partición por semestres, porque la primera versión de 2025
+—cortada al 30 de junio— daba 0.927 y conviene saber si eso era la ventana o
+el año.
+
+```{r}
+ic_auc <- ci.auc(roc(VA$y, p_va, quiet = TRUE), method = "delong")
+cat(sprintf("AUC 2025 = %.3f   IC 95%% DeLong [%.3f, %.3f]   n = %d, %d eventos\n",
+            ic_auc[2], ic_auc[1], ic_auc[3], nrow(VA), sum(VA$y)))
+```
+
+El intervalo abarca casi ocho centésimas: el punto estimado no se lee con tres
+decimales de confianza.
+
+Para aislar la ventana estacional hace falta una comparación donde sólo cambie
+el calendario. Se usa validación cruzada **dejando un año fuera** y se calcula,
+sobre cada año predicho por un modelo que no lo vio, el AUC del año completo y
+el de su ventana enero–junio.
+
+```{r}
+Ap <- filter(A, !is.na(y1))
+Ap$mes <- as.integer(format(Ap$fecha, "%m"))
+
+# Al dejar 2021 fuera el modelo ve anios posteriores. Para un pronostico seria
+# trampa; aqui se mide heterogeneidad entre anios, no uso operativo.
+fuera_de_muestra <- lapply(2021:2025, function(Y) {
+  va <- filter(Ap, anio == Y)
+  list(anio = Y, y = va$y, mes = va$mes,
+       p = predict(glm(F_final, binomial, filter(Ap, anio != Y)), va,
+                   type = "response"))
+})
+
+auc_de <- function(o, filtro) {
+  if (length(unique(o$y[filtro])) < 2) return(NA)
+  as.numeric(auc(roc(o$y[filtro], o$p[filtro], quiet = TRUE)))
+}
+tabla_anios <- do.call(rbind, lapply(fuera_de_muestra, function(o) data.frame(
+  anio = o$anio, n = length(o$y), prevalencia = round(mean(o$y), 3),
+  AUC_completo = round(auc_de(o, rep(TRUE, length(o$y))), 3),
+  AUC_ene_jun  = round(auc_de(o, o$mes <= 6), 3),
+  AUC_jul_dic  = round(auc_de(o, o$mes >= 7), 3))))
+print(tabla_anios, row.names = FALSE)
+
+cmp <- tabla_anios[tabla_anios$anio <= 2024, ]
+cat(sprintf("\nefecto de la ventana ene-jun sobre el anio completo: %+.3f\n",
+            mean(cmp$AUC_ene_jun) - mean(cmp$AUC_completo)))
+```
+
+**En 2021–2024 la ventana enero–junio deprime el AUC** (−0.021 en promedio):
+el segundo semestre trae noviembre y diciembre con prevalencia de 0.09, días
+tan sistemáticamente limpios que el modelo los ordena sin dificultad. 2025 es
+la excepción: su primer semestre (0.922) es más fácil que el segundo (0.877),
+porque de julio a noviembre el evento ocurre uno de cada dos días y las
+oscilaciones son más difíciles de ordenar. Eso explica el 0.927 de la versión
+truncada: no era un artefacto de la ventana en general, era que el semestre
+disponible de 2025 resultó ser el fácil.
+
+Lo que queda por separar es **el año**:
+
+```{r}
+agrupado <- do.call(rbind, lapply(fuera_de_muestra[1:4],
+                                  \(o) data.frame(y = o$y, p = o$p)))
+r_ag  <- roc(agrupado$y, agrupado$p, quiet = TRUE)
+ic_ag <- ci.auc(r_ag, method = "delong")
+cat(sprintf("AUC agrupado 2021-2024 (%d dias, 4 anios completos, fuera de muestra)\n",
+            nrow(agrupado)))
+cat(sprintf("  = %.3f   IC 95%% [%.3f, %.3f]\n", ic_ag[2], ic_ag[1], ic_ag[3]))
+```
+
+Los años 2021–2023 quedan entre 0.840 y 0.881; 2024 sube a 0.915 y 2025
+completo queda en 0.898, dentro del intervalo agrupado. El escalón de la
+sección 2 se refleja en 2024, pero con 2025 completo el efecto de año es más
+chico de lo que la versión truncada sugería. Antes de aceptarlo como efecto
+real hay que descartar la explicación mecánica: que la mayor prevalencia de
+2024–25 facilite la clasificación.
+
+```{r}
+set.seed(7)
+d24 <- fuera_de_muestra[[4]]
+objetivo <- tabla_anios$prevalencia[1]                     # prevalencia de 2021
+n_pos <- round(objetivo * sum(d24$y == 0) / (1 - objetivo))
+sim <- replicate(400, {
+  i <- c(sample(which(d24$y == 1), n_pos), which(d24$y == 0))
+  as.numeric(auc(roc(d24$y[i], d24$p[i], quiet = TRUE)))
+})
+cat(sprintf("AUC 2024 original %.3f -> submuestreado a la prevalencia de 2021: %.3f [%.3f, %.3f]\n",
+            tabla_anios$AUC_completo[4], mean(sim),
+            quantile(sim, .025), quantile(sim, .975)))
+```
+
+No es la prevalencia: el AUC de 2024 no se mueve al igualarle la tasa base de
+2021. La cobertura tampoco —2025 es el año con **menos** estaciones reportando
+por día y su AUC queda en el rango de los demás. El efecto de año queda como
+observación empírica sin mecanismo identificado, igual que el escalón que lo
+acompaña.
+
+Salen dos cifras, según la pregunta:
+
+- **El año de validación, 2025 completo: 0.898, IC 95 % [0.867, 0.929].**
+- **Un año futuro cualquiera: 0.878, IC 95 % [0.859, 0.897]**, con rango año a
+  año de 0.840 a 0.915.
+
+**La segunda es la que debe reportarse como estimación de generalización.** El
+0.898 no es incorrecto —es el desempeño sobre el periodo de validación
+preestablecido— y esta vez cae dentro del rango, no en su extremo. La
+diferencia entre 0.92 (2024) y 0.84 (2021) es la magnitud del efecto de año,
+la limitación principal de este modelo.
+
+### 8.8 ¿Depende el resultado del umbral?
+
+La sección 0.1 fijó `frac >= 0.5` como definición de día de excedencia y la
+presentó como decisión sustantiva. Falta saber si el modelo cambia de historia
+con otra definición.
+
+```{r}
+sensibilidad <- do.call(rbind, lapply(c(1e-9, 0.25, 0.5, 0.75), function(u) {
+  S <- A
+  S$y  <- as.integer(S$frac >= u)
+  S$y1 <- lag(S$y, 1)
+  tr <- filter(S, anio <= 2024, !is.na(y1)); va <- filter(S, anio == 2025)
+  g  <- glm(F_final, binomial, tr)
+  pv <- predict(g, va, type = "response")
+  data.frame(umbral = if (u < 0.01) "frac > 0" else sprintf("frac >= %.2f", u),
+             prevalencia = round(mean(tr$y), 3),
+             AUC_2025 = round(as.numeric(auc(roc(va$y, pv, quiet = TRUE))), 3),
+             OR_y1 = round(exp(coef(g)["y1"]), 2),
+             OR_foto = round(exp(coef(g)["foto"]), 2),
+             OR_vent = round(exp(coef(g)["vent"]), 2))
+}))
+print(sensibilidad, row.names = FALSE)
+```
+
+**No depende.** El AUC va de 0.888 a 0.938 según el umbral, y las razones de
+momios conservan signo y orden de magnitud: el rezago entre 3.2 y 6.7, el
+forzamiento fotoquímico entre 2.4 y 4.0, la ventilación siempre protectora. El
+umbral cambia la prevalencia del evento, no lo que el modelo dice de él. La
+elección de 0.5 queda como decisión de definición, no como supuesto del que
+dependa el resultado.
+
+## 9. Criterios de aceptación
+
+```
+Supuestos
+OK       El orden autorregresivo se decide con PACF y con BIC condicionado a las
+         covariables, sobre filas identicas (p = 1)
+OK       La estacionariedad se prueba donde corresponde: raiz unitaria en los
+         factores continuos, homogeneidad temporal en la cadena binaria
+PARCIAL  La dinamica es homogenea (persistencia estable, p = 0.64) pero el nivel
+         da un escalon en 2024 (p = 0.0013) que los factores no absorben
+OK       No hay separacion perfecta: convergencia en 6 iteraciones, |b| max 1.80,
+         cuatro celdas de transicion pobladas, traslape > 3 sd en los tres factores
+OK       El link logit es correcto; el rechazo del linktest se atribuye a
+         curvatura omitida y desaparece al incluirla (p = 0.60)
+OK       La cadena es irreducible, aperiodica y geometricamente ergodica
+         (|lambda_2| = 0.459), con estacionaria 0.302 vs empirica 0.301
+OK       La respuesta se dicotomiza en vez de modelarse como fraccion: la
+         sobredispersion binomial es de 5.97
+OK       La dependencia residual se mide antes y despues del rezago
+
+Modelo
+OK       La especificacion se deriva de los diagnosticos, no se elige a mano
+OK       Se compara contra dos lineas base de nowcasting (climatologia y
+         persistencia), con prueba de DeLong sobre la validacion
+OK       El umbral de decision se fija en el ajuste, nunca en la validacion
+OK       Se reporta discriminacion (AUC 0.898) y calibracion por separado
+OK       El AUC se audita: IC de DeLong, validacion cruzada por anio, y anios
+         completos sinteticos para aislar el efecto de la ventana estacional
+OK       Se distingue el desempeno en la particion (0.898) de la estimacion de
+         generalizacion (0.878 [0.859, 0.897])
+OK       La subprediccion en 2025 se cuantifica y se explica, no se corrige
+         recalibrando contra los datos de prueba
+OK       El umbral de dicotomizacion se somete a sensibilidad: AUC 0.89-0.94 y
+         razones de momios estables en cuatro definiciones
+```
+
+## 10. Qué se lleva el reporte
+
+**El modelo funciona.** Sobre 2025, que no vio, alcanza un AUC de 0.898 con
+75.9 % de sensibilidad y 84.1 % de especificidad, y supera de forma
+significativa a la climatología (0.668, $p < 10^{-15}$) y a la persistencia
+(0.717, $p < 10^{-15}$). El *skill score* de Brier es 0.436. **La cifra que
+debe reportarse como generalización es 0.878, IC 95 % [0.859, 0.897]**, con un
+rango año a año de 0.840 a 0.915 (§8.7); el 0.898 de 2025 cae dentro de él.
+
+Tres decisiones de especificación salidas de los diagnósticos, no del tanteo:
+
+1. **$p = 1$**: un solo rezago de la respuesta (§1).
+2. **Los armónicos anual y semianual son obligatorios** (§2): sin ellos la
+   marginal varía por un factor de seis dentro del año.
+3. **Los cuadrados de `vent` y `foto` entran, el de `comb` no** (§4 y §8): los
+   dos primeros hacen pasar el *linktest*; el tercero no aporta ($p = 0.55$).
+
+Y cinco limitaciones que se declaran en vez de corregirse:
+
+**El escalón de 2024 y la subpredicción que produce.** El nivel de excedencia
+sube abruptamente desde 2024 y los factores no lo explican. El ajuste promedia
+dos regímenes y 2025 pertenece al alto: media predicha 0.338 contra 0.466
+observado. No se corrige con una indicadora ni recalibrando el intercepto,
+porque sería ajustar un parámetro al periodo de validación.
+
+**El efecto de año.** El AUC fuera de muestra va de 0.84 (2021) a 0.92 (2024),
+y no por prevalencia ni por cobertura: ambas explicaciones se descartan en
+§8.7. Es la limitación principal: el desempeño en un año dado puede quedar
+cuatro centésimas arriba o abajo del 0.88 agrupado.
+
+**La validación cae en el año de prevalencia más alta.** 2025 tiene 0.466 de
+días de excedencia contra 0.301 del ajuste, y eso es lo que produce la
+subpredicción de §8.5. No es un artefacto de ventana: con 2025 completo la
+composición estacional de la validación es la de cualquier año.
+
+**La dimensión espacial se perdió.** Agregar a área metropolitana devuelve la
+independencia temporal y la rejilla regular, pero elimina el contraste entre
+estaciones y zonas que `analisis_discriminante.pdf` sí aprovecha. Los dos
+modelos responden preguntas distintas —días de área contra día-estación— y
+comparar sus AUC no sería justo.
+
+**Esto es nowcasting, no pronóstico.** Los factores son del mismo día que la
+respuesta: el modelo dice si hoy es día de excedencia, no anticipa el ozono de
+mañana. La extensión exige rezagar los factores y volver a validar, y §5 adelanta
+el techo: con un tiempo de mezcla de 1.3 días, más allá de dos o tres días la
+predicción converge a la climatología del mes.
+
+**Queda abierto** el término de media móvil sobre los residuales —el residuo de
+lag 2 de §7 es el argumento para probarlo—, que es lo que agregaría un GLARMA.
+Requiere `renv::install("glarma")` seguido de `renv::record()`, nunca
+`snapshot()`.

@@ -114,7 +114,7 @@ summary(sima_disc)
 
 Referencia por variable (issue #55):
 
-- `zona`: **Noreste**, la de menor tasa de excedencia (19.0 %, `docs/05_estacionalidad_ozono.pdf`) — baseline de menor riesgo.
+- `zona`: **Noreste**, la de menor tasa de excedencia (19.5 %, `docs/05_estacionalidad_ozono.pdf`) — baseline de menor riesgo.
 - `tipo_dia`: **laborable**, el nivel más frecuente y el orden natural de `NIVELES_TIPO_DIA` en `src/agregacion_diaria.py`.
 - `temporada`: **invierno**, temporada de menor actividad fotoquímica.
 
@@ -168,13 +168,13 @@ range(sima_valid$fecha)
 ```
 
 **Limitación de la partición** (cuantificada en `docs/05_estacionalidad_ozono.pdf`):
-como 2025 termina el 30 de junio, la validación es 52.3 % primavera, 32.2 %
-invierno, 15.5 % verano y 0 % otoño, contra un entrenamiento repartido casi
-por igual (23.1–26.0 %). La tasa base de excedencia pasa de 29.31 % a
-41.50 %, 12.2 puntos que vienen del calendario y no del modelo. El AUC es
-menos sensible a la tasa base que la exactitud, lo que amortigua el problema
-pero no lo elimina — por eso la exactitud no se usa como métrica de decisión
-más adelante.
+con 2025 completo la validación tiene la misma composición estacional que el
+entrenamiento (24–26 % por temporada), pero la tasa base de excedencia pasa de
+29.4 % a 44.0 %: 2025 es el año de ozono más alto de la serie en todas las
+temporadas. Esos 14.6 puntos son un efecto de año, no del calendario ni del
+modelo. El AUC es menos sensible a la tasa base que la exactitud, lo que
+amortigua el problema pero no lo elimina — por eso la exactitud no se usa como
+métrica de decisión más adelante.
 
 ```{r}
 mean(sima_train$excede_anio_5, na.rm = TRUE)
@@ -183,8 +183,8 @@ mean(sima_valid$excede_anio_5, na.rm = TRUE)
 
 ## Regresión logística
 
-Respuesta `excede_anio_5`; predictores las tres componentes retenidas en #54
-más los 12 dummies (zona, tipo_dia, temporada) del paso anterior. Se arma la
+Respuesta `excede_anio_5`; predictores los tres factores comunes extraídos en
+`docs/09_extraccion_factorial.pdf` más los 12 dummies (zona, tipo_dia, temporada) del paso anterior. Se arma la
 fórmula a partir de los nombres de columna en vez de escribirla a mano, para
 que quede ligada a los dummies que de verdad existen en `sima_disc` — si
 cambia el catálogo de zonas, la fórmula lo sigue sin que haya que tocarla.
@@ -261,28 +261,29 @@ fig_momios <- ggplot(momios_factor, aes(x = momios, y = reorder(eje, momios))) +
     geom_pointrange(aes(xmin = ic_inf, xmax = ic_sup), colour = "#2c7fb8", linewidth = 0.8) +
     geom_text(aes(label = sprintf("%.2f", momios)), vjust = -1, size = 3.5) +
     labs(
-        title = "Razones de momios por componente",
+        title = "Razones de momios por factor",
         subtitle = "Excedencia MDA8 > 51 ppb — IC 95 %",
         x = "Razón de momios", y = NULL
     ) +
     theme_minimal()
 
 fig_momios
-ggsave("../reports/figuras/momios_componentes.pdf", fig_momios,
+ggsave("../reports/figuras/momios_factores.pdf", fig_momios,
     width = 6, height = 3.6, units = "in"
 )
 ```
 
-Los tres quedan por encima de 1 con el intervalo lejos de esa línea: subir
-una desviación estándar en cualquiera de los tres ejes se asocia con mayores
-momios de excedencia, controlando por zona y calendario. El de mayor efecto
-es el forzamiento fotoquímico, seguido de la combustión primaria — consistente
+Ningún intervalo cruza el 1. Subir una desviación estándar en combustión
+primaria o en forzamiento fotoquímico se asocia con mayores momios de
+excedencia, y subirla en ventilación con menores, controlando por zona y
+calendario. El de mayor efecto es el forzamiento fotoquímico, seguido de la
+combustión primaria — consistente
 con que el ozono es un contaminante secundario que necesita tanto precursores
 como las condiciones para formarse fotoquímicamente, no solo lo primero.
 
 ### Evaluación en validación: AUC, sensibilidad, especificidad
 
-**Nunca exactitud** — con 41.50 % de excedencia base en validación, un
+**Nunca exactitud** — con 43.97 % de excedencia base en validación, un
 clasificador constante ya acierta bien sin distinguir nada.
 
 ```{r}
@@ -409,9 +410,9 @@ round(sqrt(diag(S1)) / sqrt(diag(S0)), 3) # razón de desviaciones estándar
 c(det_no_excede = det(S0), det_excede = det(S1))
 ```
 
-Las razones son 0.895, 0.888 y 0.746: los días de excedencia son **menos
+Las razones son 0.894, 0.888 y 0.742: los días de excedencia son **menos
 dispersos** que los de no excedencia, sobre todo en el eje fotoquímico (`F3`),
-y la varianza generalizada cae de 1.077 a 0.349. El supuesto de covarianzas
+y la varianza generalizada cae de 1.081 a 0.346. El supuesto de covarianzas
 iguales no se cumple estrictamente. Se declara aquí y se retoma al comparar los
 dos modelos, en vez de sustituirlo por un discriminante cuadrático: la issue
 pide el lineal como contraste de la logística, y cambiar de técnica a medio
@@ -454,7 +455,7 @@ coef_lda
 
 El orden y el signo reproducen los de la logística: primavera y otoño pesan
 más que verano, el Noroeste y el Suroeste son las zonas de mayor riesgo, y
-entre los factores manda el forzamiento fotoquímico (`F3`, 0.799) sobre la
+entre los factores manda el forzamiento fotoquímico (`F3`, 0.795) sobre la
 combustión primaria (`F1`, 0.506), con la ventilación (`F2`, −0.107) en contra,
 que es el signo correcto para un eje que mide dispersión. Los coeficientes no son razones de
 momios y no se leen como tales; son la dirección en la que las dos clases se
@@ -516,7 +517,7 @@ comparacion
 Ambos superan el criterio de logro del issue (AUC ≥ 0.75) con holgura. La
 diferencia de AUC se contrasta con la prueba de DeLong, que es la adecuada
 porque las dos curvas están correlacionadas — se calculan sobre las mismas
-1,325 observaciones de validación con respuesta observada:
+2,927 observaciones de validación con respuesta observada:
 
 ```{r}
 roc.test(roc_log, roc_lda, method = "delong")
@@ -527,14 +528,16 @@ cor(p_valid, p_valid_lda) # correlación de los puntajes
 mean((p_valid >= umbral_log) == (p_valid_lda >= umbral_lda)) # concordancia
 ```
 
-Las dos técnicas son indistinguibles en estos datos: los AUC difieren en el
-cuarto decimal (0.8995 contra 0.8997, DeLong $p = 0.80$), los puntajes
-correlacionan a 0.998 y las clasificaciones coinciden en el 97.0 % de los días
-de validación. Donde difieren es en el reparto de errores, y aquí el
-intercambio se invierte respecto de la versión con componentes: ahora es la
-**logística** la que detecta más excedencias (sensibilidad 0.851 contra 0.827) a
-cambio de más falsas alarmas (especificidad 0.819 contra 0.839). Sigue siendo un
-intercambio dentro del ruido de muestreo.
+Las dos técnicas son prácticamente equivalentes en estos datos: los AUC
+difieren en tres milésimas (0.850 contra 0.846), los puntajes correlacionan a
+0.996 y las clasificaciones coinciden en el 93.8 % de los días de validación.
+DeLong sí detecta esa diferencia ($p = 0.0002$, IC 95 % de 0.002 a 0.005):
+con 2,927 observaciones la prueba tiene potencia para tres milésimas de AUC,
+que es una diferencia estadísticamente real y sin consecuencia práctica. Con
+la primera versión de 2025 (1,325 observaciones) daba $p = 0.80$. Donde sí
+difieren es en el reparto de errores al umbral de Youden: el **discriminante**
+detecta más excedencias (sensibilidad 0.758 contra 0.698) a cambio de más
+falsas alarmas (especificidad 0.788 contra 0.853).
 
 **Esa coincidencia es el resultado, no un anticlímax.** La heterocedasticidad
 documentada arriba es real y aun así no mueve el desempeño: la frontera que
@@ -709,15 +712,17 @@ data.frame(
 roc.test(r_fac$log, r_pca$log, method = "delong")
 ```
 
-Los factores ganan, y la ganancia es real pero pequeña: **0.9001 contra 0.8928**
-de AUC en la logística, siete milésimas, con DeLong $p = 0.006$. Con 1,325
-observaciones de validación la prueba detecta una diferencia de ese tamaño, así
-que el resultado es que los factores **no cuestan desempeño** y lo mejoran
-marginalmente. El discriminante se comporta igual (0.9004 contra 0.8928).
+Los factores no pierden: **0.850 contra 0.848** de AUC en la logística, dos
+milésimas a su favor, con DeLong $p = 0.44$. Con 2,960 observaciones de
+validación la prueba no distingue una diferencia de ese tamaño, así que el
+resultado es que los factores **no cuestan desempeño**; con la primera versión
+de 2025 (cortada a junio) ganaban siete milésimas con $p = 0.006$, y esa
+ventaja no sobrevive al año completo. El discriminante se comporta igual
+(0.847 contra 0.845).
 
 Esto confirma por la vía empírica lo que el solapamiento de subespacios ya
 anticipaba en `docs/09_extraccion_factorial.pdf`: las correlaciones canónicas
-entre ambos conjuntos de puntajes valen 0.996, 0.976 y 0.804, de modo que los
+entre ambos conjuntos de puntajes valen 0.996, 0.975 y 0.812, de modo que los
 dos bloques cargan casi la misma información. **El argumento para cambiar de
 insumo no es el desempeño, es la interpretación** — y el desempeño confirma que
 cambiar no cuesta nada.
@@ -752,7 +757,7 @@ data.frame(
 Tres lecturas de esa tabla:
 
 **Los momios del PCA que están hoy en el reporte están mal escalados.** Por
-desviación estándar valen 2.154, 2.210 y 1.275, no 1.47, 1.58 y 1.22. Esas
+desviación estándar valen 2.173, 2.188 y 1.278, no 1.47, 1.58 y 1.22. Esas
 últimas son por unidad de puntuación, y como las tres componentes tienen
 desviaciones estándar distintas (1.98, 1.72 y 1.23), tampoco eran comparables
 entre sí como el texto afirmaba. Hay que corregirlo en
@@ -764,32 +769,221 @@ estancamiento del PCA describía con un momio de 1.275, leído con el eje
 orientado al revés. Que el intervalo no cruce el 1 confirma que el efecto
 existe, aunque sea el más débil de los tres.
 
-**El forzamiento fotoquímico domina con claridad** (2.771 contra 1.926 de la
-combustión primaria). Con las componentes esa jerarquía no se veía: 2.210 contra
+**El forzamiento fotoquímico domina con claridad** (2.773 contra 1.925 de la
+combustión primaria). Con las componentes esa jerarquía no se veía: 2.188 contra
 2.154 las dejaba prácticamente empatadas. La estructura simple del análisis
 factorial separa mejor los dos mecanismos, y la consecuencia sustantiva es que
 la condición meteorológica pesa más que la carga de precursores — lo cual, sin
 mediciones de COV, se describe pero no se explica.
 
+## Corrección de errores
+
+Dos correcciones distintas que comparten nombre. La primera es sobre la **tasa
+de error** del clasificador: la que se calcula sobre los mismos datos con que se
+ajustó (error aparente) es optimista, y hay que corregirla con datos que el
+modelo no vio. La segunda es sobre los **errores estándar** de la logística: las
+observaciones no son independientes y eso los hace demasiado chicos. Aplican a
+ambos modelos la primera; sólo a la logística la segunda, porque el discriminante
+no produce errores estándar.
+
+### Tasa de error: del aparente al corregido
+
+Cinco estimadores de la misma cantidad, la fracción de días mal clasificados con
+la regla $p \geq 0.5$. Del más optimista al más exigente: resustitución (APER),
+el holdout de Lachenbruch (dejar una observación fuera; exacto para el
+discriminante, `lda(CV = TRUE)`), validación cruzada de 10 pliegues con filas al
+azar, la misma pero con **días completos** en cada pliegue —para que las
+estaciones de un mismo día no queden repartidas entre ajuste y prueba—, y el
+holdout temporal de 2025 que ya se usó arriba.
+
+```{r}
+tr_cc <- sima_train |> filter(!is.na(excede_anio_5))
+va_cc <- sima_valid |> filter(!is.na(excede_anio_5))
+tasa  <- function(y, p) mean((p >= 0.5) != y)
+auc_de <- function(y, p) as.numeric(auc(roc(y, p, quiet = TRUE)))
+
+p_tr_log <- predict(modelo_log, tr_cc, type = "response")
+p_tr_lda <- predict(modelo_lda, tr_cc)$posterior[, "1"]
+p_loo_lda <- lda(formula_log, data = tr_cc, CV = TRUE)$posterior[, "1"]
+
+# k pliegues sobre unidades `bloques`: filas (aleatorio) o fechas (bloqueado).
+set.seed(2003)
+kfold <- function(bloques, k = 10) {
+  ids  <- unique(bloques)
+  fold <- sample(rep(1:k, length.out = length(ids)))[match(bloques, ids)]
+  pl <- pd <- numeric(nrow(tr_cc))
+  for (j in 1:k) {
+    ent <- fold != j
+    pl[!ent] <- predict(glm(formula_log, binomial, tr_cc[ent, ]),
+                        tr_cc[!ent, ], type = "response")
+    pd[!ent] <- predict(lda(formula_log, data = tr_cc[ent, ]),
+                        tr_cc[!ent, ])$posterior[, "1"]
+  }
+  list(log = pl, lda = pd)
+}
+cv_alea <- kfold(seq_len(nrow(tr_cc)))
+cv_bloq <- kfold(as.character(tr_cc$fecha))
+
+y_tr <- tr_cc$excede_anio_5; y_va <- va_cc$excede_anio_5
+p_va_log <- predict(modelo_log, va_cc, type = "response")
+p_va_lda <- predict(modelo_lda, va_cc)$posterior[, "1"]
+
+errores <- data.frame(
+  estimador = c("APER (resustitucion)", "Lachenbruch (LOO)", "10 pliegues, filas",
+                "10 pliegues, dias completos", "Holdout 2025"),
+  err_log = c(tasa(y_tr, p_tr_log), NA, tasa(y_tr, cv_alea$log),
+              tasa(y_tr, cv_bloq$log), tasa(y_va, p_va_log)),
+  err_lda = c(tasa(y_tr, p_tr_lda), tasa(y_tr, p_loo_lda), tasa(y_tr, cv_alea$lda),
+              tasa(y_tr, cv_bloq$lda), tasa(y_va, p_va_lda)),
+  auc_log = c(auc_de(y_tr, p_tr_log), NA, auc_de(y_tr, cv_alea$log),
+              auc_de(y_tr, cv_bloq$log), auc_de(y_va, p_va_log)),
+  auc_lda = c(auc_de(y_tr, p_tr_lda), auc_de(y_tr, p_loo_lda), auc_de(y_tr, cv_alea$lda),
+              auc_de(y_tr, cv_bloq$lda), auc_de(y_va, p_va_lda)))
+print(transform(errores, err_log = round(err_log, 4), err_lda = round(err_lda, 4),
+                auc_log = round(auc_log, 3), auc_lda = round(auc_lda, 3)),
+      row.names = FALSE)
+```
+
+**La corrección de la tasa de error es de dos milésimas.** El error aparente de
+la logística es 0.229 y el corregido con días completos 0.231; el discriminante
+va de 0.230 a 0.232, y Lachenbruch da 0.231. Es lo esperable: el optimismo de
+la resustitución es del orden de $p/n$, y con 16 parámetros sobre 15,704
+observaciones ese cociente es 0.001. Los dos clasificadores están lejos de
+sobreajustar.
+
+Lo que la tabla sí revela es otra cosa, y está en la columna del AUC: **dentro
+de 2021–2024 el modelo discrimina a 0.80, no a 0.85.** El 0.85 es del holdout
+de 2025 y no se reproduce en ninguna validación cruzada sobre los años de
+ajuste. Se desagrega por año, cada uno predicho por un modelo que no lo vio:
+
+```{r}
+todo <- bind_rows(sima_train, sima_valid) |> filter(!is.na(excede_anio_5))
+todo$anio <- as.integer(format(todo$fecha, "%Y"))
+do.call(rbind, lapply(2021:2025, function(Y) {
+  g <- glm(formula_log, binomial, todo[todo$anio != Y, ])
+  v <- todo[todo$anio == Y, ]
+  p <- predict(g, v, type = "response")
+  data.frame(anio = Y, n = nrow(v), prevalencia = round(mean(v$excede_anio_5), 3),
+             AUC = round(auc_de(v$excede_anio_5, p), 3),
+             error = round(tasa(v$excede_anio_5, p), 3))
+})) |> print(row.names = FALSE)
+```
+
+Los años 2021–2023 quedan en 0.76–0.77; 2024 sube a 0.84 y 2025 a 0.85. Es un
+efecto de año, no de calendario —`autorregresivo_logistico.pdf` §8.7 lo
+documenta con el mismo corte sobre la serie de área metropolitana— y con 2025
+completo ya no puede atribuirse a la cobertura estacional. La tasa de error
+apenas se mueve entre 2021 y 2024 (0.238 a 0.250) y salta a 0.317 en 2025,
+porque con la regla fija de 0.5 la domina la tasa base, que ese año es 0.44.
+**Para reportar desempeño esperado en un año cualquiera, el AUC es 0.80;
+el 0.85 es el de los dos años de ozono alto, 2024 y 2025.**
+
+### Errores estándar bajo dependencia
+
+Los errores estándar de `summary(modelo_log)` suponen observaciones
+independientes. No lo son: las 15 estaciones de un día comparten el clima, y
+los días consecutivos se parecen. Se corrigen con el estimador sandwich
+agrupado por **conglomerados** (Liang-Zeger), que permite cualquier
+correlación dentro de un grupo y sólo exige independencia entre grupos.
+
+```{r}
+# Sandwich por conglomerado, a mano para no agregar `sandwich` al lockfile.
+# Verificado contra sandwich::vcovCL(type = "HC0"): coincide a 1e-7.
+#   V = G/(G-1) * B (sum_g U_g U_g') B,  B = vcov(m),  U_g = sum_{i in g} x_i (y_i - p_i)
+vcov_cl <- function(m, grupo) {
+  X <- model.matrix(m); e <- residuals(m, type = "response")
+  U <- rowsum(X * e, grupo); G <- nrow(U); B <- vcov(m)
+  G / (G - 1) * B %*% crossprod(U) %*% B
+}
+ee <- function(V) sqrt(diag(V))
+b      <- coef(modelo_log)
+ee_iid <- ee(vcov(modelo_log))
+ee_dia <- ee(vcov_cl(modelo_log, tr_cc$fecha))
+# Dos vias (dia + estacion): V_dia + V_est - V_interseccion (Cameron-Gelbach-Miller).
+ee_2v  <- ee(vcov_cl(modelo_log, tr_cc$fecha) + vcov_cl(modelo_log, tr_cc$estacion)
+             - vcov_cl(modelo_log, paste(tr_cc$fecha, tr_cc$estacion)))
+pval   <- function(se) 2 * pnorm(-abs(b / se))
+
+cat(sprintf("conglomerados: %d dias, %d estaciones\n\n",
+            n_distinct(tr_cc$fecha), n_distinct(tr_cc$estacion)))
+cat("Conglomerado por dia:\n")
+data.frame(termino = names(b), OR = round(exp(b), 3),
+           EE_iid = round(ee_iid, 4), EE_dia = round(ee_dia, 4),
+           inflacion = round(ee_dia / ee_iid, 2),
+           p_iid = signif(pval(ee_iid), 2), p_dia = signif(pval(ee_dia), 2))[-1, ] |>
+  print(row.names = FALSE)
+
+cat("\nDos vias (dia + estacion):\n")
+data.frame(termino = names(b), EE_2vias = round(ee_2v, 4),
+           inflacion = round(ee_2v / ee_iid, 2),
+           p_2vias = signif(pval(ee_2v), 2))[-1, ] |> print(row.names = FALSE)
+```
+
+**Agrupando por día**, que es la corrección bien fundada (1,460 conglomerados),
+los errores estándar se inflan entre ×1.5 y ×2.5. El patrón es informativo:
+los factores suben ×1.5 a ×1.9; las indicadoras de calendario —que son
+constantes dentro de un día y por tanto las más afectadas— ×2.1 a ×2.5; las de
+zona **no cambian** (×0.8 a ×1.1), porque la zona varía *dentro* de cada día. El
+único término que pierde significancia al 5 % es `tipo_dia_sabado`. Los tres
+factores, las seis zonas, primavera y otoño conservan $p < 0.01$; el verano
+queda en $p = 0.02$. Las conclusiones del modelo no dependen del supuesto de
+independencia.
+
+**Agrupando también por estación** el cuadro es distinto y hay que leerlo con
+cuidado. Las zonas inflan ×5 a ×8 y `zona_Norte`, `zona_Sureste` y `F2` dejan de
+ser significativas. Pero sólo hay **15 estaciones**, y el estimador sandwich
+necesita del orden de 30–50 conglomerados para ser confiable; con menos, tiende
+a *subestimar* la varianza, así que esas cifras son, si acaso, todavía
+optimistas. Lo que la corrección a dos vías dice de fondo es correcto aunque su
+magnitud no sea precisa: la zona es constante dentro de cada estación, de modo
+que **los siete contrastes de zona descansan en 15 unidades**, no en 15,704
+filas, y su precisión es la que 15 unidades pueden dar.
+
+```{r}
+#| fig-cap: "Razones de momios de los factores con intervalos del 95 % bajo independencia (gris) y agrupando por dia (color). Los intervalos corregidos son mas anchos y ninguno cruza el 1."
+#| fig-width: 5.5
+#| fig-height: 2.4
+ic <- data.frame(eje = nombres_factor[c("F1", "F2", "F3")], OR = exp(b[c("F1","F2","F3")]),
+                 inf_iid = exp(b[c("F1","F2","F3")] - 1.96 * ee_iid[c("F1","F2","F3")]),
+                 sup_iid = exp(b[c("F1","F2","F3")] + 1.96 * ee_iid[c("F1","F2","F3")]),
+                 inf_dia = exp(b[c("F1","F2","F3")] - 1.96 * ee_dia[c("F1","F2","F3")]),
+                 sup_dia = exp(b[c("F1","F2","F3")] + 1.96 * ee_dia[c("F1","F2","F3")]))
+fig_ic <- ggplot(ic, aes(y = eje)) +
+  geom_vline(xintercept = 1, linetype = "dashed", colour = "grey60") +
+  geom_errorbar(aes(xmin = inf_iid, xmax = sup_iid), width = 0, colour = "grey70",
+                 linewidth = 2.2) +
+  geom_errorbar(aes(xmin = inf_dia, xmax = sup_dia), width = .25, colour = "#2c7fb8",
+                 linewidth = .7) +
+  geom_point(aes(x = OR), colour = "#2c7fb8", size = 2.2) +
+  labs(x = "razón de momios (por desviación estándar)", y = NULL) +
+  theme_minimal(base_size = 9)
+ggsave("../reports/figuras/momios_ic_corregido.pdf", fig_ic, width = 5.5, height = 2.4)
+fig_ic
+```
+
+Los intervalos corregidos de los tres factores son casi el doble de anchos que
+los originales y siguen sin cruzar el 1: la ventilación queda en [0.84, 0.97] y
+el forzamiento fotoquímico en [2.48, 3.10]. Estas son las cifras que deben ir al
+reporte en lugar de las de `momios_log`.
+
 ## Limitaciones
 
 **Autocorrelación.** Las 15 estaciones de un mismo día comparten el clima
 sinóptico y los días consecutivos correlacionan entre sí, de modo que las
-17,029 filas día-estación que entran al ajuste y la validación no son
-observaciones independientes: la n efectiva está mucho más cerca de los 1,641
+18,631 filas día-estación que entran al ajuste y la validación no son
+observaciones independientes: la n efectiva está mucho más cerca de los 1,826
 días distintos que cubre la serie. Medida sobre los puntajes factoriales, la
 correlación entre estaciones dentro de un mismo día promedia 0.53 en la
-respuesta y llega a 0.86 en el factor fotoquímico, mientras que la
-autocorrelación de la respuesta a un día de distancia es de 0.44: la dependencia
-transversal es la mayor de las dos. Los errores
+respuesta y llega a 0.85 en el factor fotoquímico, mientras que la
+autocorrelación de la respuesta a un día de distancia, dentro de cada
+estación, es de 0.49: las dos dependencias son del mismo orden, y la
+transversal es la mayor. Los errores
 estándar de `momios_log` y los $p$-valores de `summary(modelo_log)`
-son, por lo tanto, optimistas — los intervalos de confianza reales son más
-anchos que los reportados. No se corrige: agregar a día-AMM devolvería la
-independencia temporal pero eliminaría la dimensión espacial, que es
-justamente donde están los contrastes de zona que el modelo encuentra
-significativos. La decisión es declararlo. Vale la pena notar que el AUC de
-validación no se ve afectado por esto: se calcula sobre 2025, que el modelo no
-vio, y no depende de ningún error estándar.
+son, por lo tanto, optimistas. **Se corrigen en la sección anterior** con
+errores estándar agrupados por día: se inflan ×1.5 a ×2.5 y las conclusiones
+sobreviven, salvo el efecto del sábado. Lo que no se puede corregir bien es la
+dimensión de estación —15 conglomerados son pocos para el estimador— y ahí
+queda declarado que los contrastes de zona descansan en 15 unidades.
 
 **Sin COV, ninguna afirmación de mecanismo.** El SIMA no mide compuestos
 orgánicos volátiles, así que los ejes se describen como *consistentes con*
@@ -804,11 +998,12 @@ la respuesta. El modelo describe qué condiciones acompañan a una excedencia; n
 anticipa el ozono de mañana con los datos de hoy, y por eso no se validó como
 serie de tiempo.
 
-**Partición estacionalmente desbalanceada.** Ya cuantificada arriba: la
-validación de 2025 no tiene otoño y le sobra primavera. El AUC amortigua el
-sesgo de tasa base, pero las cifras de sensibilidad y especificidad se leen
-sobre una validación más cargada de días propensos a excedencia que un año
-completo.
+**Validación en un año atípico.** Ya cuantificado arriba: 2025 es el año de
+ozono más alto de la serie, con 44 % de excedencia contra 29 % del
+entrenamiento. El AUC amortigua el sesgo de tasa base, pero las cifras de
+sensibilidad y especificidad se leen sobre una validación más cargada de días
+propensos a excedencia que un año típico, y el AUC de 0.85 no debe tomarse
+como desempeño esperado (§ corrección de errores: 0.80).
 
 **Verificación espacial pendiente.** El reajuste por zona para ver si las
 razones de momios de las componentes se mueven entre zonas está marcado como

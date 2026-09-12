@@ -140,8 +140,8 @@ for c in ["temporada", "tipo_dia", "excede_anio_1", "excede_anio_3",
     frecuencia(D[c], c)
 ```
 
-**Verificación contra #14.** `excede_anio_1` debe dar 10.65 % sobre válidos
-(2,400 de 22,529). Sobre el total de días-estación daría 10.03 %; la diferencia
+**Verificación contra #14.** `excede_anio_1` debe dar 11.25 % sobre válidos
+(2,825 de 25,100). Sobre el total de días-estación daría 10.58 %; la diferencia
 es solo la base, y por eso se reportan las dos columnas.
 
 ## 2. `estacion` cruzada con la cobertura temporal
@@ -242,7 +242,7 @@ for i, (e, r) in enumerate(cv.iterrows()):
             color=ROJO if e == "NO3" else AZUL)
 ax.set_yticks(range(len(cv))); ax.set_yticklabels(cv.index, fontsize=6.5)
 ax.tick_params(axis="x", labelsize=6.5)
-ax.set_title("Ventana de operación (2021-01-01 a 2025-06-30)",
+ax.set_title("Ventana de operación (2021-01-01 a 2025-12-31)",
              loc="left", fontsize=8.5)
 fig.tight_layout(); fig.savefig(FIGS / "eda_cual_cobertura.pdf"); plt.show()
 ```
@@ -313,10 +313,10 @@ fig.tight_layout(pad=.3)
 fig.savefig(FIGS / "eda_cual_excedencias.pdf", bbox_inches="tight"); plt.show()
 ```
 
-Al umbral vigente de 65 ppb las excedencias son el 10.65 % de los
+Al umbral vigente de 65 ppb las excedencias son el 11.25 % de los
 días-estación válidos: un clasificador que prediga siempre la clase
-mayoritaria acierta 89.35 % sin capturar nada. La exactitud queda descartada
-como métrica en la etapa de clasificación. El umbral de 51 ppb (30.70 %) está
+mayoritaria acierta 88.75 % sin capturar nada. La exactitud queda descartada
+como métrica en la etapa de clasificación. El umbral de 51 ppb (31.96 %) está
 mucho mejor balanceado y conviene como escenario principal de modelado.
 
 ## 5. Criterios de aceptación
@@ -331,8 +331,8 @@ chk.append(("Frecuencias diarias suman al total",
             all(D[c].value_counts(dropna=False).sum() == len(D)
                 for c in ["excede_anio_1","excede_anio_3","excede_anio_5","excede_1h"])))
 pct = D.excede_anio_1.mean() * 100
-chk.append((f"excede_anio_1 = 10.65 % sobre válidos (obtenido {pct:.2f} %)",
-            abs(pct - 10.65) < 0.01))
+chk.append((f"excede_anio_1 = 11.25 % sobre válidos (obtenido {pct:.2f} %)",
+            abs(pct - 11.25) < 0.01))
 chk.append(("Ningún pastel con más de 3 sectores", True))
 for nombre, ok in chk:
     print(("OK   " if ok else "FALLA") + "  " + nombre)

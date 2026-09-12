@@ -1,182 +1,74 @@
-\section{Análisis factorial}\label{sec:af}
+\section{Análisis factorial exploratorio}
+\label{sec:analisis-factorial}
 
-El PCA de \cref{sec:pca} nombró sus tres componentes (carga primaria de
-combustión, forzamiento fotoquímico, estancamiento atmosférico), pero nombrar
-un componente es una afirmación factorial: supone que existe una variable
-latente que las variables observadas manifiestan. El PCA no puede verificar
-esa suposición porque descompone la varianza \emph{total} y no distingue,
-dentro de ella, cuánta es estructura compartida y cuánta es específica de cada
-variable. El análisis factorial sí distingue esa partición (comunalidad y
-unicidad) y se usa aquí con dos objetivos: confirmar o corregir la lectura de
-los tres ejes, y decidir si sus puntajes pueden sustituir a los del PCA como
-predictores del modelo de clasificación (\cref{sec:clasificacion_tecs}).
+El análisis factorial complementa al ACP (\cref{sec:pca}) al separar
+la varianza compartida entre variables de la específica de cada una.
+Los resultados se basan en los documentos 08 y 09 de análisis y
+extracción factorial, disponibles en \texttt{docs/}. Para cada variable
+estandarizada se plantea
+\begin{equation}
+  z_j=\sum_{k=1}^{3}\lambda_{jk}f_k+\varepsilon_j,
+  \qquad h_j^2=\sum_{k=1}^{3}\lambda_{jk}^2.
+  \label{eq:af-modelo}
+\end{equation}
+Los $f_k$ son factores latentes y las cargas $\lambda_{jk}$ indican
+la magnitud y el sentido de su asociación con cada variable. Con
+factores ortogonales de varianza unitaria, la comunalidad $h_j^2$ es
+la proporción de varianza explicada; la unicidad $1-h_j^2$ recoge
+la parte específica y el error.
 
-Opera sobre el mismo bloque de 15 predictores de \cref{sec:pca} y la misma
-partición (ajuste 2021--2024, aplicación 2025).
+\paragraph{Adecuación y extracción}
+El diagnóstico inicial utiliza 15 predictores y 16,008 observaciones
+completas de 2021--2024; 2025 se reserva para aplicación. Bartlett
+rechaza la ausencia de correlaciones ($p<0.001$), aunque la dependencia
+temporal y espacial limita esta prueba. El KMO inicial de 0.646
+indica adecuación mediocre. Se retira \texttt{NOX\_06\_09} por su
+redundancia con NO y NO2 (VIF de 47.16). Sobre las 14 variables
+restantes, MAP de Velicer sugiere tres factores, frente a siete del
+análisis paralelo; se adopta MAP por parsimonia, conservando esta
+discrepancia como limitación.
 
-\subsection{Adecuación de la matriz y poda de variables}
+La extracción por ejes principales iterados produce una comunalidad
+inadmisible de 1.089 para \texttt{RH\_min\_diurna}; se elimina esta
+variable y se conserva la humedad media. El bloque final de 13
+predictores alcanza un KMO de 0.679 y un VIF máximo de 2.54, sin
+comunalidades superiores a uno. Se mantienen tres factores y se
+aplica varimax para facilitar su interpretación mediante ejes
+ortogonales (\cref{fig:af-diagrama}).
 
-El KMO global del bloque de 15 predictores es 0.646, \emph{mediocre} en la
-escala de Kaiser: pasa el umbral mínimo de factorización, pero sin holgura.
-\texttt{NO}, \texttt{NOX} y \texttt{NO2} encabezan tanto el VIF como los peores
-KMO individuales, con \texttt{NOX} en un VIF de 47.2 por ser, por definición
-química, la suma de las otras dos ($r=0.985$ contra esa suma). La prueba de
-esfericidad de Bartlett rechaza $H_0$ de forma contundente, pero no informa:
-con las 16,008 observaciones de entrenamiento (2021--2024, antes de podar
-\texttt{RH\_min\_diurna}) el estadístico crece con $n$ y rechazaría cualquier
-apartamiento trivial de la identidad.
-
-\texttt{NOX} se elimina del bloque: no aporta información que \texttt{NO} y
-\texttt{NO2} no tengan, y su colinealidad casi perfecta produce una
-comunalidad mayor que 1 --- un \textbf{caso Heywood}, imposible porque la
-comunalidad es una proporción de varianza (\cref{sec:tecnicas-descartadas}).
-Quitarlo mejora el KMO a 0.670 y baja el VIF de \texttt{NO} de 21.79 a 2.29 y
-el de \texttt{NO2} de 10.30 a 2.45.
-
-Al extraer con 14 predictores aparece un segundo caso Heywood:
-\texttt{RH\_min\_diurna} da una comunalidad de 1.089, porque correlaciona 0.892
-con \texttt{RH\_media}. A diferencia de \texttt{NOX} no es una identidad
-contable, pero el ajuste ya en mano deja la misma salida: se elimina y se
-conserva \texttt{RH\_media}. El bloque final queda en 13 predictores, con KMO
-de 0.679 y VIF máximo de 2.54 --- la redundancia severa desapareció con las dos
-podas.
-
-\subsection{Número de factores}
-
-El codo del scree plot de \cref{sec:pca} no aplica aquí: opera sobre la matriz
-de correlación completa, y el modelo factorial trabaja sobre la matriz
-\emph{reducida} (comunalidades en la diagonal). El análisis paralelo de Horn,
-el criterio que sí corresponde, se descarta por el tamaño muestral y no por su
-resultado (\cref{sec:tecnicas-descartadas}); se adopta en su lugar el MAP de
-Velicer, que retiene tres factores (\cref{fig:af-paralelo}) --- el mismo número
-que el codo de \cref{sec:pca} dio por un camino distinto.
-
-\subsection{Extracción, rotación e interpretación}
-
-La extracción usa ejes principales iterados, no máxima verosimilitud, porque
-esta última supone normalidad multivariada y las transformaciones de
-\cref{sec:transformaciones} acercaron las marginales a la simetría sin
-volverlas normales (\cref{sec:tecnicas-descartadas}). La solución sin rotar no
-es interpretable por diseño: el modelo factorial identifica el subespacio
-común, no un conjunto particular de ejes dentro de él, así que rotar no
-sacrifica ninguna propiedad --- a diferencia del PCA, donde rotar destruiría la
-propiedad de máxima varianza. Se adopta la rotación varimax en vez de una
-oblicua (\cref{sec:tecnicas-descartadas}).
-
-Los tres factores rotados admiten estructura simple: cada variable carga
-principalmente en un solo eje (\cref{fig:af-cargas}).
-
-\begin{itemize}
-  \item \textbf{Combustión primaria}: \texttt{NO2}, \texttt{NO}, \texttt{PM10},
-    \texttt{CO} y \texttt{SO2} cargan juntas y en ningún otro factor --- la
-    firma de emisión vehicular e industrial de la ventana matutina.
-  \item \textbf{Ventilación}: \texttt{WSR\_media} ($+0.88$), \texttt{WSR\_min}
-    ($+0.77$) y \texttt{viento\_u\_media} ($-0.52$). Valores altos indican
-    buena dispersión.
-  \item \textbf{Forzamiento fotoquímico}: \texttt{TOUT\_max} ($+0.73$) y
-    \texttt{SR\_acum} ($+0.63$) contra \texttt{RH\_media} ($-0.48$): días
-    calurosos, soleados y secos.
-\end{itemize}
-
-Los tres factores explican 40.4\,\% de la varianza común de los 13
-predictores. El ajuste es utilizable sin ser excelente: el RMSR de la matriz
-reconstruida es 0.055 (pasa la convención de 0.08 sin margen amplio) y 24 de
-78 pares de residuos exceden 0.05, coherente con un KMO mediocre.
-
-\begin{figure}[h]
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=\linewidth]{af_paralelo.pdf}
-  \caption{Izquierda: análisis paralelo de Horn sobre la matriz reducida,
-    descartado por el tamaño muestral (\cref{sec:tecnicas-descartadas}).
-    Derecha: MAP de Velicer, con mínimo en tres factores, criterio adoptado.}
-  \label{fig:af-paralelo}
+  \includegraphics[width=0.92\linewidth]{af_diagrama_cargas.pdf}
+  \caption{Cargas varimax con $|\lambda|\geq0.30$. Flechas sólidas:
+  asociaciones positivas; discontinuas: negativas. Los valores grises
+  indican unicidades. Fuente: notebook de extracción factorial.}
+  \label{fig:af-diagrama}
 \end{figure}
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\linewidth]{af_cargas.pdf}
-  \caption{Cargas rotadas por varimax de los 13 predictores retenidos. La
-    barra derecha es la comunalidad: la fracción de varianza de cada variable
-    que los tres factores comparten.}
-  \label{fig:af-cargas}
-\end{figure}
+\paragraph{Interpretación}
+Los factores explican el 40.4\,\% de la varianza total de los 13
+predictores. \emph{Combustión primaria} (15.7\,\%) agrupa NO2, NO,
+PM10, CO y SO2. \emph{Ventilación} (14.4\,\%) reúne principalmente
+la velocidad media y mínima del viento, con cargas de 0.88 y 0.77.
+\emph{Forzamiento fotoquímico} (10.2\,\%) combina temperatura máxima
+(0.73), radiación acumulada (0.64) y humedad media ($-0.48$): días
+cálidos, soleados y secos. La presión tiene comunalidad de apenas
+0.13, por lo que el nombre ventilación resulta más preciso que
+atribuir al factor un mecanismo anticiclónico.
 
-\subsection{Dónde el análisis factorial corrige al PCA}\label{sec:af-correccion}
+\paragraph{Ajuste y alcance}
+El residuo cuadrático medio de las correlaciones reconstruidas
+(RMSR) es 0.0552; 24 de 78 pares conservan residuos absolutos mayores
+que 0.05. El ajuste es razonable, pero parcial. Los puntajes de
+Bartlett, aplicados a 2025 con pesos de entrenamiento, tienen VIF
+cercanos a 1.01 y correlación absoluta máxima de 0.097. Pueden servir
+como predictores con poca colinealidad, aunque sustituir al ACP
+requiere validar de nuevo los modelos.
 
-El PC3 de \cref{sec:pca} se nombró \emph{estancamiento atmosférico}, leyendo
-la presión barométrica como parte de un patrón anticiclónico junto con el
-viento. El análisis factorial no sostiene esa lectura: \texttt{PRS\_media}
-tiene una comunalidad de apenas 0.134, de modo que el 87\,\% de su varianza es
-específica y no se comparte con ninguna otra variable del bloque. El factor
-existe, pero es de viento --- \emph{ventilación} ---, no de anticiclón; la
-presión participa poco y no debería darle el nombre. El PCA no puede
-distinguir esto porque descompone varianza total: la presión tenía que
-aparecer en algún componente y apareció en el tercero con una carga de 0.39,
-que se leyó como participación sustantiva cuando gran parte de ella era
-varianza única.
-
-La comparación cuantitativa entre ambos espacios lo confirma. Sobre los datos
-de 2025, las correlaciones canónicas entre los tres puntajes del PCA y los
-tres del análisis factorial dan dos ejes prácticamente idénticos (0.996 y
-0.976, a $5.3^{\circ}$ y $12.7^{\circ}$ de separación) y un tercero que
-difiere de verdad, a $36.5^{\circ}$. Es justamente el eje del desacuerdo: donde el PCA ve estancamiento, el
-análisis factorial ve ventilación con presión casi ausente. Es también el eje
-que menos pesaba en la clasificación: la razón de momios de \texttt{PC3} en
-\cref{tab:momios-log} es 1.22, la más baja de las tres. Cambiar de insumo no
-mueve las predicciones; corrige la justificación.
-
-\subsection{Los puntajes como sustituto del PCA}
-
-Los puntajes factoriales, a diferencia de los del PCA, no son ortogonales por
-construcción --- se estiman. Se usan los de Bartlett, insesgados, calculados
-sobre el ajuste de entrenamiento y aplicados a 2025 con los mismos pesos.
-Su VIF es 1.01 y la correlación absoluta máxima entre ellos es 0.097: muy
-lejos del umbral de 5 y del VIF de 47.2 que tenía \texttt{NOX} en el bloque
-original. Los tres coeficientes de determinación (correlación entre el
-puntaje estimado y el factor que representa) superan 0.80, con la ventilación
-por encima de 0.90 y el forzamiento fotoquímico como el más débil, en 0.835
-($\rho^2=0.698$): el puntaje comparte cerca del 70\,\% de su varianza con el
-factor, y el resto es error de estimación --- una limitación sin análogo en el
-PCA, donde la componente se calcula de forma exacta.
-
-Los tres factores reaparecen al reajustar el modelo sobre 2025 y compararlo
-por congruencia de Tucker (\cref{tab:af-congruencia}). Combustión primaria y
-forzamiento fotoquímico son estables; la ventilación cae por debajo del
-umbral convencional de 0.85, atribuible a que la validación de 2025 --- que
-termina el 30 de junio --- no cubre verano ni otoño, y el régimen de viento es
-la variable más sensible a la estación del año.
-
-\begin{table}[h]
-  \centering
-  \caption{Congruencia de Tucker entre los factores ajustados sobre
-    2021--2024 y su reajuste sobre 2025.}
-  \label{tab:af-congruencia}
-  \begin{tabular}{lr}
-    \toprule
-    Factor & Congruencia \\
-    \midrule
-    Forzamiento fotoquímico & 0.940 \\
-    Combustión primaria     & 0.930 \\
-    Ventilación             & 0.826 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-En conjunto, el análisis factorial puede sustituir al PCA también en su papel
-instrumental como generador de predictores, no solo en el interpretativo:
-resuelve la misma multicolinealidad, con puntajes prácticamente incorrelados y
-una corrección de fondo sobre el nombre del tercer eje.
-
-\subsection{Limitaciones}
-
-El KMO de 0.679 sigue siendo mediocre y se arrastra como limitación del
-enfoque, no como trámite superado. El ajuste (RMSR 0.055) pasa la convención
-sin margen amplio. El puntaje del forzamiento fotoquímico comparte solo
-70\,\% de su varianza con el factor que representa, y la ventilación
-reaparece en 2025 con una congruencia por debajo del umbral convencional. La
-transformación Box-Cox de \cref{sec:transformaciones} estimó su parámetro
-$\lambda$ sobre el periodo completo, la misma fuga no supervisada que
-\cref{sec:pca} ya declaró. Y, como en \cref{sec:limitaciones-clasificacion},
-la ausencia de compuestos orgánicos volátiles impide describir los factores
-como algo más que \emph{consistentes con} combustión, ventilación o
-fotoquímica --- nunca como una atribución de mecanismo o de régimen NOx--COV.
+La congruencia en enero--junio de 2025 es 0.930 para combustión,
+0.940 para fotoquímica y 0.826 para ventilación, cuya estabilidad
+es menor y está condicionada por la cobertura estacional. Persisten
+el KMO mediocre y la transformación Box--Cox estimada sobre todo el
+periodo. Los factores describen asociaciones; sin mediciones de
+compuestos orgánicos volátiles no permiten establecer mecanismos
+de formación de ozono.

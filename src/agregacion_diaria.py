@@ -99,8 +99,8 @@ NIVELES_TIPO_DIA = ["laborable", "sabado", "domingo", "festivo"]
 
 
 def calendario_festivos(anios=range(2021, 2026)) -> set:
-    """Días de asueto de 2021-2025: 81 fechas, de las cuales 71 caen dentro
-    de la cobertura real del dataset (que termina el 2025-06-30)."""
+    """Días de asueto de 2021-2025: 81 fechas. Cuántas caen dentro del dataset
+    depende de su cobertura real; el log lo reporta."""
     fest = set()
     for y in anios:
         fest |= {f"{y}-01-01", f"{y}-05-01", f"{y}-09-16", f"{y}-12-25"}
@@ -350,11 +350,12 @@ def agregar_agrupacion(diario: pd.DataFrame, log: Log) -> pd.DataFrame:
             f"comportamiento del ozono y luego usarla para explicar ozono sería "
             f"circular.")
     dias_fest = diario.loc[diario["festivo"] == 1, "fecha"].nunique()
+    fin = diario["fecha"].max().date()
     log.add("4. Variables de agrupación",
             f"tipo_dia ({', '.join(NIVELES_TIPO_DIA)}) y festivo, promovidos "
             f"desde notebooks/04_eda_cualitativas.qmd. El calendario genera "
             f"{len(FESTIVOS)} fechas para 2021-2025 completos; dentro de la "
-            f"cobertura real del dataset (que termina el 2025-06-30) caen "
+            f"cobertura real del dataset (que termina el {fin}) caen "
             f"{dias_fest} días de asueto, o "
             f"{int(diario['festivo'].sum()):,} filas día-estación.")
     log.add("4. Variables de agrupación",

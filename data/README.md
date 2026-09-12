@@ -55,7 +55,7 @@ conocerlas antes de tocar los Excel a mano:
 | 2022 | 15 estaciones; `NO3` arranca a media hoja (solo 743 horas de datos ese año). |
 | 2023 | 15 estaciones, estructura estándar. |
 | 2024 | Las **unidades vienen pegadas al encabezado**: `CO (ppm)`, `PM10 (ug/m3)`, `TOUT (ºC)`. |
-| 2025 | La columna de fecha se llama **`date`** (no `Fecha y hora`) y hay una **fila de unidades** debajo del encabezado. Cubre hasta el 30 de junio. |
+| 2025 | La columna de fecha se llama **`date`** (no `Fecha y hora`). La primera versión del archivo (hasta septiembre de 2026) cubría solo hasta el 30 de junio y traía una **fila de unidades** debajo del encabezado; la versión actual cubre el año completo y ya no trae esa fila. `importar_datos.py` detecta la fila por su firma, así que tolera ambas. |
 
 Además, en todos los años buena parte de los valores están guardados **como texto**
 (`'66'`, `'54.23'`), no como número.
@@ -84,13 +84,13 @@ punto del pipeline.
 ## Estado de los datos consolidados
 
 Verificado sobre `sima_horario.parquet`: sin fechas nulas, sin `(estación, fecha)`
-duplicados, cobertura continua del 2020-01-01 al 2025-06-30.
+duplicados, cobertura continua del 2020-01-01 al 2025-12-31.
 
 Los faltantes **siguen ahí a propósito** — limpiarlos es la issue #13:
 
 | | CO | NO | NO2 | NOX | O3 | PM10 | PM2.5 | PRS | RAINF | RH | SO2 | SR | TOUT | WSR | WDR |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| % faltante | 13.2 | 17.5 | 18.4 | 17.6 | 15.4 | 4.5 | 24.6 | 5.0 | 4.9 | 10.4 | 15.7 | 3.7 | 6.5 | 7.2 | 8.9 |
+| % faltante | 13.3 | 16.7 | 17.4 | 16.8 | 14.7 | 4.6 | 25.2 | 5.1 | 4.7 | 11.4 | 15.0 | 3.7 | 6.9 | 6.9 | 8.4 |
 
 > **Ojo con las banderas.** `Etiquetas.xlsx` documenta 23 banderas de calidad
 > (`P`, `c`, `z`, `o`, …), pero los archivos entregados **no las traen**: se
