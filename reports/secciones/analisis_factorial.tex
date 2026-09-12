@@ -1,0 +1,74 @@
+\section{Análisis factorial exploratorio}
+\label{sec:analisis-factorial}
+
+El análisis factorial complementa al ACP (\cref{sec:pca}) al separar
+la varianza compartida entre variables de la específica de cada una.
+Los resultados se basan en los documentos 08 y 09 de análisis y
+extracción factorial, disponibles en \texttt{docs/}. Para cada variable
+estandarizada se plantea
+\begin{equation}
+  z_j=\sum_{k=1}^{3}\lambda_{jk}f_k+\varepsilon_j,
+  \qquad h_j^2=\sum_{k=1}^{3}\lambda_{jk}^2.
+  \label{eq:af-modelo}
+\end{equation}
+Los $f_k$ son factores latentes y las cargas $\lambda_{jk}$ indican
+la magnitud y el sentido de su asociación con cada variable. Con
+factores ortogonales de varianza unitaria, la comunalidad $h_j^2$ es
+la proporción de varianza explicada; la unicidad $1-h_j^2$ recoge
+la parte específica y el error.
+
+\paragraph{Adecuación y extracción}
+El diagnóstico inicial utiliza 15 predictores y 16,008 observaciones
+completas de 2021--2024; 2025 se reserva para aplicación. Bartlett
+rechaza la ausencia de correlaciones ($p<0.001$), aunque la dependencia
+temporal y espacial limita esta prueba. El KMO inicial de 0.646
+indica adecuación mediocre. Se retira \texttt{NOX\_06\_09} por su
+redundancia con NO y NO2 (VIF de 47.16). Sobre las 14 variables
+restantes, MAP de Velicer sugiere tres factores, frente a siete del
+análisis paralelo; se adopta MAP por parsimonia, conservando esta
+discrepancia como limitación.
+
+La extracción por ejes principales iterados produce una comunalidad
+inadmisible de 1.089 para \texttt{RH\_min\_diurna}; se elimina esta
+variable y se conserva la humedad media. El bloque final de 13
+predictores alcanza un KMO de 0.679 y un VIF máximo de 2.54, sin
+comunalidades superiores a uno. Se mantienen tres factores y se
+aplica varimax para facilitar su interpretación mediante ejes
+ortogonales (\cref{fig:af-diagrama}).
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{af_diagrama_cargas.pdf}
+  \caption{Cargas varimax con $|\lambda|\geq0.30$. Flechas sólidas:
+  asociaciones positivas; discontinuas: negativas. Los valores grises
+  indican unicidades. Fuente: notebook de extracción factorial.}
+  \label{fig:af-diagrama}
+\end{figure}
+
+\paragraph{Interpretación}
+Los factores explican el 40.4\,\% de la varianza total de los 13
+predictores. \emph{Combustión primaria} (15.7\,\%) agrupa NO2, NO,
+PM10, CO y SO2. \emph{Ventilación} (14.4\,\%) reúne principalmente
+la velocidad media y mínima del viento, con cargas de 0.88 y 0.77.
+\emph{Forzamiento fotoquímico} (10.2\,\%) combina temperatura máxima
+(0.73), radiación acumulada (0.64) y humedad media ($-0.48$): días
+cálidos, soleados y secos. La presión tiene comunalidad de apenas
+0.13, por lo que el nombre ventilación resulta más preciso que
+atribuir al factor un mecanismo anticiclónico.
+
+\paragraph{Ajuste y alcance}
+El residuo cuadrático medio de las correlaciones reconstruidas
+(RMSR) es 0.0552; 24 de 78 pares conservan residuos absolutos mayores
+que 0.05. El ajuste es razonable, pero parcial. Los puntajes de
+Bartlett, aplicados a 2025 con pesos de entrenamiento, tienen VIF
+cercanos a 1.01 y correlación absoluta máxima de 0.097. Pueden servir
+como predictores con poca colinealidad, aunque sustituir al ACP
+requiere validar de nuevo los modelos.
+
+La congruencia en enero--junio de 2025 es 0.930 para combustión,
+0.940 para fotoquímica y 0.826 para ventilación, cuya estabilidad
+es menor y está condicionada por la cobertura estacional. Persisten
+el KMO mediocre y la transformación Box--Cox estimada sobre todo el
+periodo. Los factores describen asociaciones; sin mediciones de
+compuestos orgánicos volátiles no permiten establecer mecanismos
+de formación de ozono.
