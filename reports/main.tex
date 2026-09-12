@@ -210,14 +210,10 @@ logística \sep análisis discriminante lineal \sep calidad del aire \sep
 \input{secciones/objetivo_tecnicas.tex}
 \input{secciones/res_sima.tex}
 \input{secciones/revi_medio_ambiente.tex}
-\input{secciones/diccionario_datos.tex}
 \input{secciones/seleccion_datos.tex}
 \input{secciones/transformaciones.tex}
 
 % --- Etapa 2 ---
-% El diccionario del dataset transformado va aqui: describe la salida de
-% las transformaciones de arriba y es la entrada del analisis descriptivo.
-\input{secciones/diccionario_datos_transformadas.tex}
 \input{secciones/descript_quant.tex}
 \input{secciones/eda_cualitativas.tex}
 
@@ -225,8 +221,20 @@ logística \sep análisis discriminante lineal \sep calidad del aire \sep
 \input{secciones/pca.tex}
 \input{secciones/analisis_factorial}
 \input{secciones/regresion_logistica.tex}
+\input{secciones/analisis_factorial.tex}
+\input{secciones/series_tiempo_factores.tex}
+\input{secciones/tecnicas_no_funcionaron.tex}
 \input{secciones/declaratoria_ia.tex}
 
 \printbibliography
+
+% --- Anexos ---
+% Los diccionarios de datos son referencia exhaustiva citada desde el cuerpo
+% (ver \cref{sec:diccionario} en objetivo_tecnicas.tex y \cref{sec:diccionario-transformado}
+% en transformaciones.tex); no se leen linea por linea en la prosa, por eso
+% viven aqui y no cuentan contra el limite de paginas del cuerpo.
+\appendix
+\input{secciones/diccionario_datos.tex}
+\input{secciones/diccionario_datos_transformadas.tex}
 
 \end{document}
