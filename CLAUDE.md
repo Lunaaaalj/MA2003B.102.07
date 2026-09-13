@@ -98,7 +98,7 @@ La configuración (incluido el marcador `lento`) está en `pytest.ini` en la ra�
 
 ## Workflow de git (no negociable)
 
-El `README.md` de la raíz es la guía completa del equipo. Lo esencial:
+El `CONTRIBUTING.md` de la raíz es la guía completa del equipo (el `README.md` describe el proyecto y cómo correrlo). Lo esencial:
 
 - **Nada de rebase**, ni rebase merging. Si la branch se atrasó respecto a `main`, se actualiza con `git merge main`.
 - **Nada de push directo a `main`.** Todo entra por Pull Request aprobada y con conversaciones resueltas.
