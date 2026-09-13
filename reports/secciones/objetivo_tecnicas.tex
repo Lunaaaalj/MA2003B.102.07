@@ -1,77 +1,78 @@
-% Continuacion de secciones/objetivo.tex: NO abre seccion propia, sigue con
-% \subsection dentro de "Objetivo del analisis y tecnicas estadisticas".
-% Se fusionaron porque eran dos secciones de objetivo con encabezado y parrafo
-% de enlace propios; objetivo.tex cubre el objeto de estudio (el ozono) y esta
-% parte fija el objetivo ESTADISTICO, las tecnicas y las variables.
-%
-% Regla al editarla: las cifras que se citan aqui vienen de las secciones de
-% analisis descriptivo y de transformacion; no se recalculan ni se repiten,
-% se referencian con \cref.
+% Seccion 2 de la rubrica: problematica y objetivo. Fija el objetivo
+% estadistico, las tecnicas y las variables. Las cifras que se citan aqui
+% vienen del analisis exploratorio; se referencian con \cref, no se repiten.
+
+\section{Problemática y objetivo}
+\label{sec:objetivo-tecnicas}
+
+\subsection{Problemática}
+
+El AMM acumula tres décadas de ozono al alza (\cref{sec:objetivo}) y su red
+de monitoreo produce, cada hora y en 15 puntos, las concentraciones de los
+precursores y las condiciones meteorológicas que gobiernan su formación. La
+pregunta que este trabajo responde es qué combinación de esas condiciones
+acompaña a un día en que el ozono supera la norma, y con qué certeza puede
+identificarse ese día a partir de ellas. Dos obstáculos la vuelven un
+problema multivariado y no una comparación de umbrales: los precursores
+están fuertemente correlacionados entre sí (\ce{NO}, \ce{NO2} y \ce{NOx} son
+la misma emisión medida tres veces) y la respuesta es rara con el umbral
+vigente, de modo que una regla trivial acierta casi siempre sin decir nada.
 
 \subsection{Objetivo del análisis multivariado}
 \label{sec:obj:objetivo}
 
-\textbf{Objetivo principal} Clasificar cada registro día-estación como
+\textbf{Objetivo principal.} Clasificar cada registro día-estación como
 excedencia o no excedencia del MDA8 en el umbral de 51 ppb, a partir de los
-precursores y variables meteorológicas del mismo día.
+precursores y variables meteorológicas del mismo día, e identificar qué
+condiciones latentes explican esa clasificación.
 
 \textit{Criterio de logro:} área bajo la curva ROC $\geq 0.75$ en una
-partición de validación, con sensibilidad y especificidad reportadas por
-separado. No se utilizará la exactitud: con el umbral vigente de 65 ppb, las
-excedencias representan 10.65\,\% de los días-estación válidos y un
-clasificador constante alcanzaría 89.35\,\% de exactitud sin identificar el
-fenómeno
-(\cref{sec:eda-cualitativas}). Por esta razón, el escenario principal utiliza
-51 ppb, con 30.70\,\% de excedencias \parencite{saito2015}.
+partición de validación no vista durante el ajuste, con sensibilidad y
+especificidad reportadas por separado. No se utiliza la exactitud: con el
+umbral vigente de 65 ppb las excedencias son 11.25\,\% de los días-estación
+válidos y un clasificador constante alcanzaría 88.75\,\% de exactitud sin
+identificar el fenómeno (\cref{sec:eda-cualitativas}). Por esa razón el
+escenario principal usa 51 ppb, la meta a 5 años de la NOM-020-SSA1-2021
+(\cref{tab:nom-limites}), con 31.96\,\% de excedencias \parencite{saito2015}.
 
-El objetivo de agrupar las estaciones se conserva, pero cambia el criterio de
-agrupamiento: en lugar de partir de los niveles medios de ozono, las estaciones
-se homologan en siete zonas a partir de las etiquetas de su código
-(\texttt{NO}, \texttt{NO2}, \texttt{NE}, entre otras). Este ajuste y la
-incorporación de la clasificación de excedencias se apoyan en tres hallazgos
-descriptivos.
-
-Primero, aunque el análisis de varianza del MDA8 fue significativo, la
-estación solo explica 5.3\,\% de la varianza total; agrupar por niveles medios
-produciría poca separación. El contraste por tipo de día y la razón
-\ce{O_x}, en cambio, describen un proceso que no depende de promedios
-distintos entre estaciones.
-
-Segundo, la preparación de datos produjo el MDA8, las indicadoras de
-excedencia y \texttt{tipo\_dia}
-(\cref{sec:preparacion-datos,sec:eda-cualitativas}). La clasificación les da
-una función dentro del modelado.
-
-Tercero, el balance de clases mejora al pasar del umbral de 65 ppb al de
-51 ppb (\cref{fig:eda-cual-excedencias}). Este último también corresponde a
-la meta de cumplimiento gradual a 5 años de la NOM-020-SSA1-2021
-(\cref{tab:nom-limites}).
+Las estaciones no se agrupan por sus niveles medios de ozono, que la
+estación explica en apenas 5.3\,\% de la varianza del MDA8, sino que se
+homologan en las siete zonas de \cref{sec:contexto-estaciones}, cuyo
+contenido espacial sí se sostiene en los datos.
 
 \subsection{Técnicas estadísticas}
 \label{sec:obj:tecnicas}
 
+Se combinan técnicas de interdependencia, que reducen los predictores a ejes
+interpretables, con técnicas de dependencia, que relacionan esos ejes con la
+excedencia:
+
 \begin{itemize}
-    \item \textbf{Discriminante lineal}: responde a la separación entre días
-      con y sin excedencia. Box-Cox dejó los sesgos en $|\text{sesgo}| < 0.5$
-      (\cref{tab:sesgos-transformacion}), aproximando el supuesto de
-      normalidad.
-    \item \textbf{Regresión logística}: responde a la probabilidad de
-      excedencia y al aporte de cada predictor. Es la alternativa sin
-      supuestos de normalidad y homocedasticidad para contrastar el
-      discriminante, y ya se ha aplicado a la probabilidad de excedencia del
-      MDA8 a partir de variables meteorológicas \parencite{otero2016}.
+  \item \textbf{Análisis de componentes principales (ACP)}: resuelve la
+    multicolinealidad de los predictores y produce ejes ortogonales con
+    lectura física.
+  \item \textbf{Análisis factorial exploratorio (AF)}: separa la varianza
+    común de la específica y expone redundancias que el ACP absorbe sin
+    señalar. Sus puntajes son los predictores de los modelos de
+    clasificación.
+  \item \textbf{Regresión logística}: modela la probabilidad de excedencia y
+    el aporte de cada predictor como razón de momios, sin supuestos de
+    normalidad; ya se ha aplicado a la excedencia del MDA8 a partir de
+    variables meteorológicas \parencite{otero2016}.
+  \item \textbf{Análisis discriminante lineal}: contrasta a la logística bajo
+    los supuestos de normalidad multivariada y covarianzas iguales
+    \parencite{hosmer2013}. Box-Cox dejó los sesgos en $|\text{sesgo}|<0.5$
+    (\cref{tab:sesgos-transformacion}), lo que aproxima el primero.
+  \item \textbf{Modelo autorregresivo logístico}: incorpora la dependencia
+    temporal de la respuesta, que la caracterización como serie de tiempo
+    muestra que persiste tras remover la estacionalidad.
 \end{itemize}
 
-Se requiere la estandarización de
-\cref{sec:transformaciones}. En unidades originales, la presión, con valores
-cercanos a 710, dominaría las distancias frente al \ce{CO}, cuyos valores son
-menores que 10.
-
-Para el objetivo principal, se comparan un análisis discriminante lineal, que
-supone normalidad multivariada y covarianzas iguales entre clases, y una
-regresión logística, que no requiere estos supuestos
-\parencite{hosmer2013}. Ambos se evalúan mediante el área bajo la curva ROC,
-no con exactitud, debido al desbalance señalado \parencite{saito2015}.
+Todos los clasificadores se evalúan con el área bajo la curva ROC, no con
+exactitud, por el desbalance señalado \parencite{saito2015}. Se requiere la
+estandarización de \cref{sec:transformaciones}: en unidades originales la
+presión, con valores cercanos a 710, dominaría las distancias frente al
+\ce{CO}, cuyos valores son menores que 10.
 
 \subsection{Variables y sus características}
 \label{sec:obj:variables}
@@ -80,57 +81,37 @@ Las definiciones, unidades y faltantes se encuentran en el diccionario de
 datos (\cref{sec:diccionario}); la \cref{tab:variables-tecnica} presenta el
 papel de cada grupo en el objetivo.
 
-\begin{table*}[t]
+\begin{table}[t]
   \centering
   \caption{Papel de cada grupo de variables en el objetivo.}
   \label{tab:variables-tecnica}
   \footnotesize
-  \begin{tabular}{p{6.0cm} p{7.4cm}}
+  \begin{tabular}{p{3.4cm} p{4.4cm}}
     \toprule
     Grupo & Papel \\
     \midrule
-    \ce{O3}, MDA8, \ce{O_x} & \ce{O3} y MDA8 definen la clase; no son
-      predictores \\
+    \ce{O3}, MDA8 & Definen la clase; no son predictores \\
     \addlinespace[2pt]
-    \ce{NO}, \ce{NO2}, \ce{NO_x}, \ce{CO} & Predictores, después de la
-      selección por cargas de componentes rotadas
-      \parencite{abdulwahab2005} \\
+    \ce{NO}, \ce{NO2}, \ce{NO_x}, \ce{CO} & Predictores, ventana matutina
+      06--09 h \parencite{abdulwahab2005} \\
     \addlinespace[2pt]
-    \ce{PM10}, \ce{PM2.5}, \ce{SO2} & Predictores \\
+    \ce{PM10}, \ce{PM2.5}, \ce{SO2} & Predictores, media diaria \\
     \addlinespace[2pt]
     \texttt{TOUT}, \texttt{RH}, \texttt{SR}, \texttt{PRS}, \texttt{WSR},
-      \texttt{viento\_u}, \texttt{viento\_v}, \texttt{llovio} &
-      Predictores \\
+      \texttt{viento\_u}, \texttt{viento\_v} & Predictores, resúmenes
+      diarios (máximo, acumulado, media, mínimo) \\
     \addlinespace[2pt]
-    \texttt{temporada}, \texttt{periodo}, \texttt{tipo\_dia}, codificación
-      cíclica de hora y mes & Predictores categóricos \\
-    \addlinespace[2pt]
-    \texttt{estacion} & Predictor categórico \\
+    \texttt{temporada}, \texttt{tipo\_dia}, \texttt{zona} & Predictores
+      categóricos, codificados en $k-1$ indicadoras \\
     \bottomrule
   \end{tabular}
-\end{table*}
+\end{table}
 
-La razón \ce{O_x} se construye como la suma horaria de \ce{O3} y \ce{NO2}
-antes de la agregación diaria. La radiación solar, la humedad relativa, el
-\ce{NO} y el \ce{SO2} se incorporaron después del análisis descriptivo, por
-lo que sus estadísticos no aparecen en \cref{sec:preparacion-datos}. La
-radiación solar se conserva para distinguir la atenuación fotolítica por
-aerosol de una diferencia en la disponibilidad de luz.
-
-\paragraph{La estación de monitoreo.} \texttt{estacion} entra como
-predictor categórico de 15 niveles. Se conserva porque su aporte es
-significativo y el estudio tiene interés espacial
-(\cref{sec:obj:objetivo}). La menor cantidad de
-registros de \texttt{NO3}, en operación desde diciembre de 2022, refleja
-tiempo de operación y no menor calidad
-(\cref{fig:eda-cual-estacion}).
-
-\paragraph{Codificación de las variables categóricas.} El discriminante y la
-regresión logística requieren $k-1$ indicadoras: 14 para
-\texttt{estacion}, tres para \texttt{temporada} y tres para
-\texttt{tipo\_dia}, con una categoría de referencia explícita. Incluir los
-$k$ niveles generaría colinealidad perfecta con el término independiente,
-condición ya advertida en la limpieza de datos. Las componentes principales
-y los conglomerados excluyen estas indicadoras porque las columnas binarias
-aumentarían artificialmente la varianza explicada. La codificación se
-generará durante el modelado y no forma parte del conjunto entregado.
+Los precursores se resumen en la ventana 06--09 h porque es la emisión
+matutina la que alimenta la fotoquímica del mediodía; la radiación solar se
+conserva para distinguir la atenuación por aerosol de una diferencia en la
+disponibilidad de luz. Las categóricas entran con $k-1$ indicadoras y una
+categoría de referencia explícita (Noreste, día laborable e invierno);
+incluir los $k$ niveles generaría colinealidad perfecta con el término
+independiente. El ACP y el AF excluyen estas indicadoras porque las columnas
+binarias inflarían artificialmente la varianza explicada.

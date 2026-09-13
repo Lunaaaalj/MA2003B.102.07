@@ -1,10 +1,10 @@
-\section{Análisis de componentes principales}
+\subsection{Análisis de componentes principales}
 \label{sec:pca}
 
-El procedimiento de ACP es esencial para tratar la multicolinealidad de los predictores antes de su uso en el modelo: \texttt{NO} y \texttt{NOX} se correlacionan por 0.94. El resultado esperado son los componentes principales con nombres interpretables al contexto y las relaciones de las cargas. Se realiza el procedimiento a partir de los datos en estación-día.
+El procedimiento de ACP es esencial para tratar la multicolinealidad de los predictores antes de su uso en el modelo: \texttt{NO} y \texttt{NOX} se correlacionan por 0.95. El resultado esperado son los componentes principales con nombres interpretables al contexto y las relaciones de las cargas. Se realiza el procedimiento a partir de los datos en estación-día.
 Las variables categóricas (\texttt{tipo\_dia}, \texttt{temporada}, \texttt{festivo}, \texttt{zona}) no entran al proceso; así como las derivadas de \texttt{O3} y los indicadores de excedencia son la variable respuesta, usar estos se consideraría fuga de información, se construirían componentes que tienen información que se quiere predecir.
 
-Solo se ajustará con el periodo de 2021-2024, dejando 2025 para aplicarlo, ya que de incluirlo se filtraría información del conjunto de validación de los modelos en los ejes.
+Se ajusta solo con 2021--2024 y se aplica a 2025 (\cref{sec:modelacion}).
 
 Se calculan los eigenvalores y se construye el gráfico scree (\cref{fig:scree_pca}). Sobre él se determina por el método del codo el número de componentes que se mantienen. La curvatura ubica el corte en el tercer componente principal.
 
@@ -22,10 +22,10 @@ tres componentes sobre variables independientes: con $p = 15$ cada eigenvalor
 valdría 1 y tres acumularían 20\,\%. Los retenidos valen 3.92, 2.97 y 1.50,
 2.8 veces el nulo. La correlación entre \texttt{NO} y \texttt{NOX} que motivó
 el análisis queda absorbida en \texttt{PC1}, y las tres coordenadas que
-heredan los modelos posteriores son ortogonales por construcción.
+heredan los modelos posteriores son ortogonales por construcción. Las medias de las puntuaciones de 2025 no son cero (\texttt{PC1} $-0.39$, \texttt{PC3} $+0.35$): 2025 tiene menos carga primaria y más estancamiento que el promedio de 2021--2024, el efecto de año de \cref{sec:modelacion}, no un error de ajuste.
 
 
-\begin{figure}
+\begin{figure}[t]
   \centering
   \includegraphics[width = \linewidth]{pca_scree.pdf}
   \caption{Varianza explicada por cada componente. El decremento mayor ocurre en el tercer componente; a partir de ahí es marginal.}
@@ -52,20 +52,20 @@ heredan los modelos posteriores son ortogonales por construcción.
     \quad \texttt{RH\_min\_diurna} & $-0.77$ \\
     \quad \texttt{TOUT\_max}       & 0.72 \\
     \quad \texttt{RH\_media}       & $-0.70$ \\
-    \quad \texttt{SR\_acum}        & 0.65 \\
-    \quad \texttt{WSR\_media}      & 0.60 \\
+    \quad \texttt{SR\_acum}        & 0.64 \\
+    \quad \texttt{WSR\_media}      & 0.61 \\
     \midrule
     \multicolumn{2}{l}{\emph{Estancamiento atmosférico} (10.0\,\%)} \\
     \quad \texttt{WSR\_min}        & $-0.50$ \\
     \quad \texttt{viento\_u\_media} & 0.48 \\
     \quad \texttt{WSR\_media}      & $-0.41$ \\
-    \quad \texttt{PRS\_media}      & 0.39 \\
+    \quad \texttt{PRS\_media}      & 0.40 \\
     \quad \texttt{RH\_min\_diurna} & $-0.37$ \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\begin{figure}
+\begin{figure}[t]
   \centering
   \includegraphics[width = \linewidth]{pca_biplot.pdf}
   \caption{Biplot de los ejes retenidos. Puntos: submuestra de 3,000 observaciones de entrenamiento por temporada. Flechas: cargas escaladas al marco. Nombres abreviados: \texttt{TOUT} y \texttt{SR} son máximo y acumulado diarios; \texttt{NO}, \texttt{NO2}, \texttt{NOX} y \texttt{CO} son la ventana 06--09 h; el resto son medias diarias, salvo \texttt{WSR} mín y \texttt{RH} mín.}

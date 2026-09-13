@@ -5,14 +5,14 @@ transformaciones de \cref{sec:transformaciones}. El archivo
 de los análisis multivariados posteriores.
 
 \subsection{Dimensión y cobertura}
-El conjunto transformado contiene 23,931 observaciones día-estación y 34
-columnas. Comprende 15 estaciones y cubre del 1 de enero de 2021 al 30 de junio
+El conjunto transformado contiene 26,691 observaciones día-estación y 34
+columnas. Comprende 15 estaciones y cubre del 1 de enero de 2021 al 31 de diciembre
 de 2025. Se transformaron y estandarizaron 16 predictores continuos medidos. Las
 18 columnas restantes se conservaron en su escala original.
 
 El criterio de \cref{sec:transformaciones} se reaplicó sobre la tabla diaria sin
-modificar el método. De las 16 variables continuas, 12 requirieron Box-Cox y
-estandarización z. \texttt{SR\_acum}, \texttt{PRS\_media}, \texttt{RH\_media} y
+modificar el método. De las 16 variables continuas, 13 requirieron Box-Cox y
+estandarización z. \texttt{PRS\_media}, \texttt{RH\_media} y
 \texttt{RH\_min\_diurna} cumplieron el criterio de sesgo desde la escala
 original y solo se estandarizaron. Los valores faltantes se conservaron sin
 imputación.
@@ -34,44 +34,44 @@ estandarización.
     Variable & Descripción & Unidad & Tratamiento & Faltantes \\
     \midrule
     \texttt{TOUT\_max} & Máximo diario de temperatura ambiente
-      & $^{\circ}\mathrm{C}$ & Box-Cox + z & 1,272 \\
+      & $^{\circ}\mathrm{C}$ & Box-Cox + z & 1,561 \\
     \texttt{SR\_acum} & Acumulado diario de radiación solar
-      & $\mathrm{kWh}/\mathrm{m}^{2}$ & solo z & 1,018 \\
+      & $\mathrm{kWh}/\mathrm{m}^{2}$ & Box-Cox + z & 1,123 \\
     \texttt{NO\_06\_09} & Media de NO entre las 06:00 y las 09:00 h
-      & ppb & Box-Cox + z & 1,598 \\
+      & ppb & Box-Cox + z & 1,757 \\
     \texttt{NO2\_06\_09} & Media de NO$_2$ entre las 06:00 y las 09:00 h
-      & ppb & Box-Cox + z & 1,624 \\
+      & ppb & Box-Cox + z & 1,776 \\
     \texttt{NOX\_06\_09} & Media de NO$_x$ entre las 06:00 y las 09:00 h
-      & ppb & Box-Cox + z & 1,584 \\
+      & ppb & Box-Cox + z & 1,790 \\
     \texttt{CO\_06\_09} & Media de CO entre las 06:00 y las 09:00 h
-      & ppm & Box-Cox + z & 1,554 \\
+      & ppm & Box-Cox + z & 1,937 \\
     \texttt{WSR\_media} & Media diaria de la velocidad del viento
-      & km/h & Box-Cox + z & 959 \\
+      & km/h & Box-Cox + z & 1,008 \\
     \texttt{WSR\_min} & Mínimo diario de la velocidad del viento
-      & km/h & Box-Cox + z & 959 \\
+      & km/h & Box-Cox + z & 1,008 \\
     \texttt{PRS\_media} & Media diaria de la presión atmosférica
-      & mmHg & solo z & 751 \\
+      & mmHg & solo z & 886 \\
     \texttt{RH\_media} & Media diaria de la humedad relativa
-      & \% & solo z & 2,067 \\
+      & \% & solo z & 2,649 \\
     \texttt{RH\_min\_diurna} & Mínimo diurno de la humedad relativa
-      & \% & solo z & 1,995 \\
+      & \% & solo z & 2,575 \\
     \texttt{viento\_u\_media} & Media vectorial diaria del viento en la
-      componente este-oeste & --- & Box-Cox + z & 1,387 \\
+      componente este-oeste & --- & Box-Cox + z & 1,447 \\
     \texttt{viento\_v\_media} & Media vectorial diaria del viento en la
-      componente norte-sur & --- & Box-Cox + z & 1,387 \\
+      componente norte-sur & --- & Box-Cox + z & 1,447 \\
     \texttt{PM10\_media} & Media diaria de partículas PM$_{10}$
-      & $\mu\mathrm{g}/\mathrm{m}^{3}$ & Box-Cox + z & 805 \\
+      & $\mu\mathrm{g}/\mathrm{m}^{3}$ & Box-Cox + z & 940 \\
     \texttt{PM2.5\_media} & Media diaria de partículas PM$_{2.5}$
-      & $\mu\mathrm{g}/\mathrm{m}^{3}$ & Box-Cox + z & 5,229 \\
+      & $\mu\mathrm{g}/\mathrm{m}^{3}$ & Box-Cox + z & 5,965 \\
     \texttt{SO2\_media} & Media diaria de SO$_2$
-      & ppb & Box-Cox + z & 1,720 \\
+      & ppb & Box-Cox + z & 1,933 \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
-Aunque \texttt{SR\_acum} contiene 1,830 ceros, su sesgo de 0.30 cumple el
-criterio establecido. Por esta razón se conserva como predictor continuo y no
-se convierte en una variable binaria. Las 16 variables de la
+Con el 2025 completo el sesgo de \texttt{SR\_acum} sube a 0.53 y ya no
+cumple el criterio, por lo que se transforma ($\lambda=0.755$); se conserva
+como predictor continuo y no se convierte en binaria. Las 16 variables de la
 \cref{tab:dic-diario-continuas} quedan dentro del criterio
 $|\mathrm{sesgo}|<0.5$.
 
@@ -113,19 +113,19 @@ sus umbrales deben conservar una interpretación física directa.
     \texttt{fin\_de\_semana} & binaria & Indicadora de sábado o domingo
       & 0/1 & 0 \\
     \texttt{llovio} & binaria & Indicadora de al menos una hora del día con
-      precipitación & 0/1 & 706 \\
+      precipitación & 0/1 & 800 \\
     \texttt{MDA8} & continua & Máximo diario de la media móvil de 8 h de O$_3$
-      & ppb & 1,402 \\
+      & ppb & 1,591 \\
     \texttt{ventanas\_validas} & discreta & Número de ventanas móviles de 8 h válidas
       durante el día, de un máximo de 24 & ventanas & 0 \\
     \texttt{O3\_max\_1h} & continua & Máximo horario de O$_3$ durante el día
-      & ppb & 709 \\
+      & ppb & 838 \\
     \texttt{excede\_anio\_1} & binaria & Excedencia de MDA8 sobre 65 ppb
-      & 0/1 & 1,402 \\
+      & 0/1 & 1,591 \\
     \texttt{excede\_anio\_3} & binaria & Excedencia de MDA8 sobre 60 ppb
-      & 0/1 & 1,402 \\
+      & 0/1 & 1,591 \\
     \texttt{excede\_anio\_5} & binaria & Excedencia de MDA8 sobre 51 ppb
-      & 0/1 & 1,402 \\
+      & 0/1 & 1,591 \\
     \texttt{excede\_1h} & binaria & Excedencia del máximo horario sobre 95 ppb
       & 0/1 & 0 \\
     \bottomrule
@@ -135,7 +135,7 @@ sus umbrales deben conservar una interpretación física directa.
 \subsection{Sesgo y curtosis}
 La \cref{tab:dic-diario-sesgo} compara la forma de las distribuciones antes y
 después del tratamiento. La estandarización z es una transformación lineal y no
-modifica el sesgo ni la curtosis. Por ello, las cuatro variables que solo se
+modifica el sesgo ni la curtosis. Por ello, las tres variables que solo se
 estandarizaron conservan los valores de la escala original.
 
 \begin{table*}[t]
@@ -152,22 +152,22 @@ estandarizaron conservan los valores de la escala original.
     \cmidrule(lr){4-5}\cmidrule(lr){6-7}
     Variable & Despl. & $\lambda$ & Antes & Después & Antes & Después \\
     \midrule
-    \texttt{TOUT\_max} & 1.55 & 2.055 & $-0.83$ & $-0.16$ & 0.51 & $-0.51$ \\
-    \texttt{SR\_acum} & --- & --- & 0.30 & 0.30 & 1.65 & 1.65 \\
-    \texttt{NO\_06\_09} & 0.00 & $-0.092$ & 3.06 & 0.01 & 13.23 & $-0.10$ \\
-    \texttt{NO2\_06\_09} & 1.00 & 0.270 & 1.70 & 0.02 & 7.12 & 0.41 \\
-    \texttt{NOX\_06\_09} & 0.00 & 0.017 & 2.39 & 0.00 & 8.35 & 0.49 \\
-    \texttt{CO\_06\_09} & 1.00 & $-0.234$ & 1.30 & 0.01 & 4.13 & $-0.49$ \\
-    \texttt{WSR\_media} & 0.00 & 0.139 & 8.19 & 0.07 & 142.35 & 4.02 \\
-    \texttt{WSR\_min} & 0.00 & 0.282 & 8.84 & 0.04 & 342.92 & 0.93 \\
-    \texttt{PRS\_media} & --- & --- & 0.12 & 0.12 & $-0.18$ & $-0.18$ \\
-    \texttt{RH\_media} & --- & --- & $-0.36$ & $-0.36$ & 0.14 & 0.14 \\
-    \texttt{RH\_min\_diurna} & --- & --- & 0.44 & 0.44 & 0.12 & 0.12 \\
-    \texttt{viento\_u\_media} & 116.16 & 3.002 & $-1.82$ & 0.29 & 27.36 & 5.25 \\
-    \texttt{viento\_v\_media} & 99.96 & 2.972 & $-1.58$ & 0.20 & 28.28 & 4.97 \\
-    \texttt{PM10\_media} & 0.00 & 0.193 & 1.55 & 0.02 & 4.91 & 0.57 \\
-    \texttt{PM2.5\_media} & 0.00 & 0.031 & 2.03 & 0.00 & 9.88 & 0.04 \\
-    \texttt{SO2\_media} & 0.00 & $-0.210$ & 3.67 & $-0.01$ & 36.68 & 0.47 \\
+    \texttt{TOUT\_max} & 1.55 & 2.118 & $-0.86$ & $-0.16$ & 0.60 & $-0.49$ \\
+    \texttt{SR\_acum} & 1.00 & 0.755 & 0.53 & 0.00 & 3.04 & 0.99 \\
+    \texttt{NO\_06\_09} & 0.00 & $-0.103$ & 4.13 & 0.01 & 32.49 & $-0.09$ \\
+    \texttt{NO2\_06\_09} & 1.00 & 0.279 & 1.67 & 0.02 & 6.89 & 0.40 \\
+    \texttt{NOX\_06\_09} & 0.00 & 0.008 & 3.04 & 0.00 & 17.68 & 0.52 \\
+    \texttt{CO\_06\_09} & 1.00 & $-0.320$ & 1.42 & 0.02 & 4.82 & $-0.53$ \\
+    \texttt{WSR\_media} & 0.00 & 0.134 & 8.29 & 0.07 & 149.74 & 3.94 \\
+    \texttt{WSR\_min} & 0.00 & 0.285 & 8.74 & 0.04 & 347.89 & 0.94 \\
+    \texttt{PRS\_media} & --- & --- & 0.12 & 0.12 & $-0.16$ & $-0.16$ \\
+    \texttt{RH\_media} & --- & --- & $-0.37$ & $-0.37$ & 0.19 & 0.19 \\
+    \texttt{RH\_min\_diurna} & --- & --- & 0.45 & 0.45 & 0.15 & 0.15 \\
+    \texttt{viento\_u\_media} & 116.16 & 2.955 & $-1.74$ & 0.29 & 27.19 & 5.23 \\
+    \texttt{viento\_v\_media} & 99.96 & 2.956 & $-1.52$ & 0.20 & 27.68 & 4.86 \\
+    \texttt{PM10\_media} & 0.00 & 0.165 & 1.58 & 0.01 & 4.98 & 0.48 \\
+    \texttt{PM2.5\_media} & 0.00 & 0.021 & 2.04 & 0.00 & 9.86 & 0.03 \\
+    \texttt{SO2\_media} & 0.00 & $-0.202$ & 3.63 & $-0.01$ & 36.70 & 0.47 \\
     \bottomrule
   \end{tabular}
 \end{table*}

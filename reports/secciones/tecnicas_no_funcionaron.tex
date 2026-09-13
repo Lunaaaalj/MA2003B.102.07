@@ -1,6 +1,6 @@
 \section{Técnicas y decisiones descartadas}\label{sec:tecnicas-descartadas}
 
-El análisis factorial (\cref{sec:af}) generó, además de su resultado final,
+El análisis factorial (\cref{sec:analisis-factorial}) generó, además de su resultado final,
 tres decisiones metodológicas que se probaron y se rechazaron de forma
 explícita, y dos variables que el modelo no toleró. Documentarlas evita que
 parezcan omisiones: cada una se descartó por una razón concreta y verificable,
@@ -12,7 +12,7 @@ Es el criterio estándar para decidir cuántos factores retener, y aquí retiene
 siete --- el doble que el MAP de Velicer finalmente adoptado
 (\cref{fig:af-paralelo}). No se sigue, porque el resultado es un artefacto del
 tamaño muestral y no una señal sustantiva: el umbral simulado sobre la matriz
-reducida se sitúa en 0.06 y sobre la completa en 1.06. Con las 16,008
+reducida se sitúa en 0.06 y sobre la completa en 1.06. Con las 16,028
 observaciones de entrenamiento del bloque de 14 predictores, los eigenvalores que produciría ruido puro se concentran
 fortísimo alrededor de su valor esperado, la banda de simulación se angosta
 casi a un punto, y cualquier eigenvalor apenas positivo la supera. El
@@ -23,12 +23,12 @@ infla con el tamaño de la muestra.
 
 \subsection{Extracción por máxima verosimilitud}
 
-La extracción de \cref{sec:af} usa ejes principales iterados y no máxima
+La extracción de \cref{sec:analisis-factorial} usa ejes principales iterados y no máxima
 verosimilitud, que exige normalidad multivariada. Las transformaciones
 Box-Cox de \cref{sec:transformaciones} acercaron las marginales a la simetría
 ($|\text{sesgo}|<0.5$) pero no las volvieron normales, de modo que ese
 supuesto no se sostiene sobre estos datos. La solución de ejes principales se
-validó contra \texttt{psych::fa(fm="pa", rotate="varimax")} de R sobre el
+validó contra la implementación de referencia del paquete \texttt{psych} de R sobre el
 mismo bloque: coincide hasta orden y signo de los factores, con comunalidades
 iguales a la milésima.
 
@@ -54,7 +54,7 @@ redundante en un sentido estadístico ordinario, es una identidad contable que
 el PCA de \cref{sec:pca} absorbió sin protestar y que el análisis factorial no
 puede repartir en comunalidad y unicidad. \texttt{RH\_min\_diurna}
 correlaciona 0.892 con \texttt{RH\_media}; a diferencia de \texttt{NOX} no es
-una identidad, así que \cref{sec:af} la dejó en observación hasta que el
+una identidad, así que \cref{sec:analisis-factorial} la dejó en observación hasta que el
 segundo ajuste, ya con el diagnóstico completo, forzó la misma salida. Ambas
 se eliminaron del bloque de predictores, que queda en 13 variables con un VIF
 máximo de 2.54. Que el PCA no haya señalado ninguno de los dos problemas es en

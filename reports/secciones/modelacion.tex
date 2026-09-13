@@ -1,0 +1,30 @@
+% Seccion 5 de la rubrica: modelacion y validacion. Solo abre la seccion y
+% fija lo comun a todas las tecnicas (particion, regla de fuga). Cada tecnica
+% es una \subsection en su propio archivo.
+
+\section{Modelación y validación}
+\label{sec:modelacion}
+
+Todas las técnicas comparten la misma partición temporal: los años
+2021--2024 se destinan al ajuste y 2025 completo a la validación. La regla
+es estricta: ningún procedimiento ve 2025 durante el ajuste, incluidos el
+ACP y el AF, cuyos ejes se estiman sobre 2021--2024 y se aplican a 2025 con
+los pesos de entrenamiento; de otro modo la información de la partición de
+validación se filtraría a las coordenadas que consumen los clasificadores.
+La única fuga que persiste es la del parámetro $\lambda$ de Box-Cox,
+estimado sobre el periodo completo en \cref{sec:transformaciones}; se
+declara porque revertirla exigiría rehacer el conjunto transformado.
+
+La validación tiene una particularidad que atraviesa todos los resultados:
+2025 es el año de ozono más alto de la serie, con 44.0\,\% de excedencia
+día-estación contra 29.4\,\% del ajuste, en las cuatro temporadas. Es un
+efecto de año, no de calendario, y cada técnica lo retoma donde le afecta.
+
+Las cinco técnicas se presentan en el orden en que cada una alimenta a la
+siguiente: el ACP (\cref{sec:pca}) y el AF (\cref{sec:analisis-factorial})
+reducen los 16 predictores a tres ejes; la caracterización como serie de
+tiempo (\cref{sec:serie-tiempo}) establece la dependencia temporal de esos
+ejes; la regresión logística y el discriminante
+(\cref{sec:clasificacion_tecs}) clasifican el día-estación; y el modelo
+autorregresivo (\cref{sec:autorregresivo}) incorpora la dependencia temporal
+a la clasificación.
