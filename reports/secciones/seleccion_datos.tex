@@ -1,9 +1,25 @@
-\section{Preparación de datos}
+\section{Preparación de la base de datos}
 \label{sec:preparacion-datos}
+
+\subsection{Consolidación y limpieza}
+
+Los seis archivos anuales del SIMA no comparten estructura: cambian los
+encabezados, la posición de la fila de unidades y el número de estaciones
+(13 en 2020, 15 desde 2024). Se consolidan en una sola tabla horaria de 15
+parámetros por estación y fecha, 754,603 registros entre 2020 y 2025. La
+auditoría de calidad detecta valores centinela ($-9999$, el código de
+faltante del registrador) y físicamente imposibles (humedad relativa de
+hasta 725\,\%, temperaturas de 785\,°C), que se convierten a faltante en vez
+de imputarse; el detalle está en el diccionario de datos
+(\cref{sec:dic:centinela}). El porcentaje de faltantes por parámetro va de
+3.66\,\% en la radiación solar a 25.23\,\% en \ce{PM2.5}, pero no se reparte
+de forma pareja entre años ni estaciones, lo que determina la ventana de
+estudio.
 
 \subsection{Selección de datos}
 
-La preparación de los datos continúa con la selección de las variables más relevantes. A partir del diccionario de datos y del diagnóstico de calidad y limpieza de la sección anterior, se construye un nuevo conjunto de datos (\textit{dataset}) para los procesos subsiguientes.
+A partir del diccionario de datos y del diagnóstico de calidad se construye
+el conjunto de datos de los procesos subsiguientes.
 
 Dado que el objetivo es analizar el comportamiento del ozono troposférico, se evalúa cada variable y se determina, con base en la literatura, si existe un mecanismo documentado por el cual influya en la formación de \ce{O3}, ya sea químico, físico o meteorológico.
 
@@ -67,7 +83,7 @@ como variable objetivo del análisis.
 
 Los valores faltantes de \ce{O3} por estación y año (\cref{sec:dic:faltantes}) muestran que 2020 es inutilizable: de las 13 estaciones que operaban ese año, 7 registran entre $89\%$ y $100\%$ de datos faltantes. Se descarta por completo el año 2020.
 
-En 2021 los faltantes siguen siendo elevados en varias estaciones, pero dentro de un rango que permite el análisis; de 2022 en adelante ninguna estación supera el $20\%$. Se conservan, por lo tanto, los años 2021 a 2025, con la salvedad de que 2025 cubre únicamente hasta el 30 de junio, lo cual debe considerarse al analizar el periodo invernal.
+En 2021 los faltantes siguen siendo elevados en varias estaciones, pero dentro de un rango que permite el análisis; de 2022 en adelante ninguna estación supera el $20\%$, salvo \texttt{NO3} en 2025 (30.3\,\%). Se conservan, por lo tanto, los años 2021 a 2025 completos: 1,826 días de calendario.
 
 Dentro de esta ventana, ninguna estación presenta faltantes que justifiquen excluirla, por lo que se conservan los 15 niveles de la variable \texttt{estacion}. Esta no se somete al mismo criterio que los parámetros medidos: no es una magnitud fisicoquímica sino un identificador
 que define la estructura espacial del conjunto de datos.
@@ -113,3 +129,21 @@ De los contaminantes atmosféricos:
     \item NOX es el grupo $\ce{NO2} + \ce{NO}$, esencial para la formación de \ce{O3}.
     \item \texttt{PM10} y \texttt{PM2.5} no son gases, sino fragmentos sólidos suspendidos en el aire; una concentración elevada actúa como pantalla contra la luz solar y atenúa las reacciones.
 \end{itemize}
+
+\subsection{Agregación diaria}
+\label{sec:agregacion-diaria}
+
+La unidad de análisis de los modelos es el día-estación, porque la norma se
+evalúa sobre el MDA8 y no sobre la hora. La tabla horaria limpia se colapsa
+a una fila por día y estación con 16 resúmenes continuos: los precursores
+\ce{NO}, \ce{NO2}, \ce{NOx} y \ce{CO} como media de la ventana 06--09 h;
+temperatura máxima, radiación acumulada, humedad media y mínima diurna,
+presión media, velocidad de viento media y mínima, componentes vectoriales
+medias del viento y medias diarias de \ce{PM10}, \ce{PM2.5} y \ce{SO2}. El
+MDA8 se declara válido solo si al menos 18 de las 24 ventanas móviles de
+8 horas del día están completas; de las 26,691 filas día-estación, 25,100
+cumplen esa regla. Cada resumen y la regla de completitud se justifican en la
+bitácora de agregación del repositorio. Al día-estación se añaden
+\texttt{zona}, \texttt{temporada} y \texttt{tipo\_dia}, que distingue
+laborable, sábado, domingo y los 71 días festivos del periodo, cuyo patrón de
+tráfico es anómalo.

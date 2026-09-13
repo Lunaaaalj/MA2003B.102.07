@@ -8,8 +8,8 @@ final.
 
 El procedimiento abarca todas las variables cuantitativas disponibles; las
 cualitativas y binarias quedan fuera. \texttt{RAINF}, que mide la
-precipitación en $mm/h$, presenta un sesgo de 238.46, muy por encima del rango
-de $-1$ a 5 en que se sitúan las demás variables. La causa es la frecuencia
+precipitación en $mm/h$, presenta un sesgo de 144.85, muy por encima del rango
+de $-1.4$ a 13.3 en que se sitúan las demás variables. La causa es la frecuencia
 desproporcionada de ceros, consecuencia de que los días sin lluvia superan
 ampliamente a los días con lluvia: la variable se clasifica como
 \textbf{variable inflada de ceros} y requiere un tratamiento distinto al del
@@ -48,23 +48,29 @@ Los sesgos antes y después de la transformación se reportan en
     \toprule
     Variable & Sesgo original & Sesgo transformado \\
     \midrule
-    O3        & 1.29   & -0.07 \\
-    CO        & 1.81   & 0.02 \\
-    NO2       & 1.93   & 0.03 \\
-    NOX       & 3.63   & -0.03 \\
-    PM10      & 3.66   & -0.06 \\
-    PM2.5     & 5.81   & 0.08 \\
-    TOUT      & -0.42  & -0.04 \\
-    RAINF     & 238.46 & --\footnotemark \\
-    PRS       & 0.10   & 0.00 \\
-    WSR       & 6.94   & 0.12 \\
-    viento\_u & -1.47  & 0.78 \\
-    viento\_v & -0.52  & 0.65 \\
-    O3\_8h    & 0.97   & 0.02 \\
+    O3        & 1.28   & $-0.07$ \\
+    CO        & 1.91   & 0.01 \\
+    NO        & 6.87   & $-0.01$ \\
+    NO2       & 1.91   & 0.02 \\
+    NOX       & 4.49   & 0.00 \\
+    SO2       & 13.31  & 0.00 \\
+    PM10      & 3.66   & $-0.04$ \\
+    PM2.5     & 5.70   & 0.09 \\
+    TOUT      & $-0.43$ & $-0.06$ \\
+    RH        & $-0.32$ & $-0.17$ \\
+    SR        & 1.52   & 1.02 \\
+    RAINF     & 144.85 & --\footnotemark \\
+    PRS       & 0.09   & 0.00 \\
+    WSR       & 6.89   & 0.10 \\
+    viento\_u & $-1.42$ & 0.75 \\
+    viento\_v & $-0.50$ & 0.62 \\
+    O3\_8h    & 0.96   & 0.01 \\
     \bottomrule
   \end{tabular}
 \end{table}
 \footnotetext{\texttt{RAINF} no se transformó: al ser una variable inflada de ceros, Box-Cox no reduce su sesgo. Se sustituyó por la variable binaria \texttt{llovio}.}
+
+Tres variables no alcanzan el criterio tras Box-Cox: \texttt{SR}, por el bloque de ceros nocturnos (1.02), y las dos componentes del viento (0.75 y 0.62). Se conservan porque la agregación diaria de \cref{sec:agregacion-diaria} las resume (radiación acumulada, medias vectoriales) y sobre esos resúmenes el mismo criterio sí se cumple, con parámetros reestimados que se documentan en \cref{tab:dic-diario-sesgo}.
 
 Tras el escalamiento ($z$-score), las densidades de las variables quedan centradas y comparables entre sí (\cref{fig:densidad-escaladas}).
 

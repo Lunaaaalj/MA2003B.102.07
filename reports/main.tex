@@ -149,92 +149,183 @@
 
 \begin{document}
 
+% --- Carátula ----------------------------------------------------------------
+% La rúbrica pide número de equipo, nombre y matrícula de cada integrante y el
+% nombre del proyecto vinculado con el objetivo. elsarticle no trae carátula,
+% así que se compone a mano antes del frontmatter (que pone el resumen).
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\large Instituto Tecnológico y de Estudios Superiores de Monterrey\par}
+  \vspace{0.4cm}
+  {\large MA2003B --- Aplicación de Métodos Multivariados en Ciencia de Datos\par}
+  {\large Grupo 102\par}
+  \vspace{2.5cm}
+  {\LARGE\bfseries Discriminación de excedencias diarias de ozono en el Área
+    Metropolitana de Monterrey\par}
+  \vspace{0.6cm}
+  {\large Clasificación día-estación bajo el umbral de 51 ppb de la
+    NOM-020-SSA1-2021 con análisis factorial, regresión logística,
+    discriminante lineal y modelo autorregresivo, sobre 15 estaciones del
+    SIMA, 2021--2025\par}
+  \vspace{2.5cm}
+  {\large\bfseries Equipo 7\par}
+  \vspace{0.5cm}
+  \begin{tabular}{ll}
+    \toprule
+    Integrante & Matrícula \\
+    \midrule
+    Eduardo Luna    & \texttt{A00842657} \\
+    Jenaro Alcaraz  & \texttt{A01646850} \\
+    Emilia Rico     & \texttt{A01384587} \\
+    Mar Fernández   & \texttt{A00227571} \\
+    Sofía Fernández & \texttt{A01722980} \\
+    \bottomrule
+  \end{tabular}
+  \vfill
+  {\large Monterrey, Nuevo León\par}
+  {\large Septiembre de 2026\par}
+\end{titlepage}
+
 \begin{frontmatter}
 
-\title{Discriminación de excedencias de ozono día-estación bajo el umbral de
-51 ppb de la NOM-020-SSA1-2021\tnoteref{repo}\\
-\large Comparación de análisis discriminante lineal y regresión logística en
-15 estaciones del SIMA, Área Metropolitana de Monterrey}
-
-% Nota de portada: el enlace al repositorio se pone aqui, con el gancho
-% \tnotetext de elsarticle, para que salga al pie de la primera pagina.
-\tnotetext[repo]{Código, notebooks y fuente de este reporte:
-  \url{https://github.com/Lunaaaalj/MA2003B.102.07}}
+\title{Discriminación de excedencias diarias de ozono en el Área Metropolitana
+de Monterrey\\
+\large Clasificación día-estación bajo el umbral de 51 ppb de la
+NOM-020-SSA1-2021 en 15 estaciones del SIMA, 2021--2025}
 
 \author[tec]{Eduardo Luna}
 \author[tec]{Jenaro Alcaraz}
 \author[tec]{Emilia Rico}
 \author[tec]{Mar Fernández}
 \author[tec]{Sofía Fernández}
-\address[tec]{Instituto Tecnológico y de Estudios Superiores de Monterrey, MA2003B --- Grupo 102.07}
+\address[tec]{Instituto Tecnológico y de Estudios Superiores de Monterrey, MA2003B --- Grupo 102, equipo 7}
 
+% Resumen de una página a espacio sencillo, como pide la rúbrica: problema,
+% datos, método, resultado. Sin citas, fórmulas ni referencias a secciones.
 \begin{abstract}
 El ozono troposférico del Área Metropolitana de Monterrey excede con
-regularidad el umbral de 51 ppb del máximo diario de la media móvil de 8 horas
-(MDA8). Este trabajo discrimina, a resolución día-estación, las excedencias de
-ese umbral a partir de las condiciones meteorológicas y de los contaminantes
-primarios del mismo día. Los registros horarios de 15 estaciones del SIMA entre
-el 1 de enero de 2021 y el 30 de junio de 2025 se agregan a una fila por
-día-estación; 17,002 de ellas cumplen la regla de completitud y entran al
-modelado con 15 predictores. El análisis de componentes principales, ajustado
-solo sobre 2021--2024 para no filtrar información de la partición de
-validación, retiene tres ejes que acumulan 55.9\,\% de la varianza y admiten
-lectura física: carga primaria de combustión, forzamiento fotoquímico y
-estancamiento atmosférico. Sobre esas tres coordenadas y 12 indicadoras de
-zona, tipo de día y temporada se ajustan una regresión logística y un análisis
-discriminante lineal, evaluados sobre 2025. Ambos alcanzan un AUC de 0.893 sin
-diferencia detectable entre sí, con sensibilidad de 0.831 y 0.845 y
-especificidad de 0.824 y 0.811 al umbral de Youden. La primavera multiplica los
-momios de excedencia por 5.11 respecto al invierno, por encima de cualquier
-predictor meteorológico, y el forzamiento fotoquímico pesa más que la carga
-primaria de combustión. La ausencia de mediciones de compuestos orgánicos
-volátiles impide atribuir un régimen fotoquímico, de modo que los ejes se
-interpretan como condiciones asociadas y no como mecanismo.
+regularidad el límite que la NOM-020-SSA1-2021 fija para el máximo diario de
+la media móvil de 8 horas (MDA8), y la tendencia de las últimas tres décadas
+es al alza, en contraste con la de la Ciudad de México. Este trabajo se
+pregunta qué condiciones meteorológicas y de contaminantes primarios
+acompañan a un día de excedencia, y qué tan bien se puede discriminar ese día
+a partir de ellas. Se adopta como respuesta la indicadora de excedencia del
+MDA8 sobre 51 ppb, la meta a 5 años de la norma, porque con el umbral vigente
+de 65 ppb las excedencias son 11.25\,\% de los días-estación y un
+clasificador constante alcanzaría 88.75\,\% de exactitud sin identificar el
+fenómeno.
+
+Los datos son los registros horarios de las 15 estaciones del Sistema
+Integral de Monitoreo Ambiental de Nuevo León entre el 1 de enero de 2021 y
+el 31 de diciembre de 2025: ocho contaminantes criterio y siete parámetros
+meteorológicos. El año 2020 se descarta por faltantes superiores a 89\,\% en
+siete estaciones. Las series se limpian de valores centinela y físicamente
+imposibles, se transforman con Box-Cox para llevar el sesgo por debajo de
+0.5 en valor absoluto, se estandarizan y se agregan a una fila por
+día-estación con 16 resúmenes diarios; 25,100 filas cuentan con MDA8 válido.
+Los años 2021--2024 se destinan al ajuste y 2025 completo a la validación,
+sin que ningún procedimiento vea el segundo.
+
+La modelación combina técnicas de interdependencia y de dependencia. El
+análisis de componentes principales retiene tres ejes con 55.9\,\% de la
+varianza y los identifica como carga primaria de combustión, forzamiento
+fotoquímico y estancamiento atmosférico. El análisis factorial exploratorio,
+sobre 13 predictores tras retirar dos redundancias que produjeron
+comunalidades imposibles, recupera tres factores ortogonales ---combustión
+primaria, ventilación y forzamiento fotoquímico--- que explican 40.3\,\% de
+la varianza común y reaparecen en 2025 con congruencia de Tucker superior a
+0.92. Sobre esos tres puntajes y 12 indicadoras de zona, tipo de día y
+temporada se ajustan una regresión logística y un análisis discriminante
+lineal. Ambos superan el criterio de logro de 0.75 en el área bajo la curva
+ROC, con 0.850 y 0.846 en 2025; la diferencia es estadísticamente detectable
+pero sin consecuencia práctica, de modo que la interpretación de las razones
+de momios no depende del supuesto de normalidad que el discriminante exige.
+Una desviación estándar adicional de forzamiento fotoquímico multiplica los
+momios de excedencia por 2.78 y una de combustión primaria por 1.92; la
+ventilación es el único factor protector (0.90). La primavera triplica los
+momios respecto al invierno y las zonas Noroeste y Suroeste los triplican
+respecto al Noreste. Los errores estándar corregidos por conglomerado de día
+se inflan hasta 2.5 veces y las conclusiones se sostienen, salvo el efecto
+del sábado.
+
+La caracterización de los puntajes como series de tiempo muestra que la
+autocorrelación de un día para otro sobrevive a la descomposición estacional,
+lo que motiva un modelo autorregresivo logístico sobre la serie diaria de
+área metropolitana. Con un solo rezago de la respuesta, los tres factores y
+los armónicos del calendario, alcanza un AUC de 0.898 en 2025 y supera a la
+climatología (0.668) y a la persistencia (0.717); haber excedido el día
+anterior multiplica los momios por 3.83. La validación cruzada por año sitúa
+la generalización esperada en 0.878 y revela un efecto de año ---2024 y 2025
+son los de ozono más alto de la serie--- que ningún predictor explica y que
+queda como la limitación principal, junto con la ausencia de mediciones de
+compuestos orgánicos volátiles, que impide atribuir un régimen fotoquímico.
+Los resultados indican que la excedencia es un fenómeno estacional y
+regional modulado por el viento, con una señal espacial en el poniente de la
+ciudad que no explica la meteorología medida.
 \end{abstract}
 
 \begin{keyword}
-ozono troposférico \sep análisis de componentes principales \sep regresión
-logística \sep análisis discriminante lineal \sep calidad del aire \sep
-Área Metropolitana de Monterrey
+ozono troposférico \sep análisis factorial \sep análisis de componentes
+principales \sep regresión logística \sep análisis discriminante lineal \sep
+modelo autorregresivo \sep Área Metropolitana de Monterrey
 \end{keyword}
 
 \end{frontmatter}
 
 % --- Secciones ---------------------------------------------------------------
 % Una seccion = un archivo = una issue = una branch.
-% Para agregar una seccion nueva: crea el archivo en secciones/ y pon su \input
-% aqui, en el orden en que debe aparecer. Sin la extension .tex.
+% El orden sigue la rubrica del curso: introduccion y justificacion,
+% problematica y objetivo, preparacion de la base de datos, modelacion y
+% validacion, resultados, discusion y conclusiones. Cada archivo de
+% secciones/ abre con el nivel de encabezado que le toca aqui; al mover un
+% archivo de lugar hay que revisar ese nivel.
 
-\input{secciones/introduccion.tex}
-\input{secciones/objetivo.tex}
+% 1. Introducción y justificación
+\input{secciones/introduccion.tex}          % \section + el ozono
+\input{secciones/revi_medio_ambiente.tex}   % \subsection
+\input{secciones/res_sima.tex}              % \subsection
+\input{secciones/contexto_estaciones.tex}   % \subsection
+
+% 2. Problemática y objetivo
 \input{secciones/objetivo_tecnicas.tex}
-\input{secciones/res_sima.tex}
-\input{secciones/revi_medio_ambiente.tex}
+
+% 3. Preparación de la base de datos
 \input{secciones/seleccion_datos.tex}
-\input{secciones/transformaciones.tex}
+\input{secciones/transformaciones.tex}      % \subsection
 
-% --- Etapa 2 ---
+% 4. Análisis exploratorio
 \input{secciones/descript_quant.tex}
-\input{secciones/eda_cualitativas.tex}
+\input{secciones/eda_cualitativas.tex}      % \subsection
 
-% --- Etapa 3 ---
-\input{secciones/pca.tex}
-\input{secciones/analisis_factorial}
-\input{secciones/regresion_logistica.tex}
-\input{secciones/analisis_factorial.tex}
-\input{secciones/series_tiempo_factores.tex}
-\input{secciones/tecnicas_no_funcionaron.tex}
+% 5. Modelación y validación
+\input{secciones/modelacion.tex}            % \section + partición común
+\input{secciones/pca.tex}                   % \subsection
+\input{secciones/analisis_factorial.tex}    % \subsection
+\input{secciones/series_tiempo_factores.tex}% \subsection
+\input{secciones/regresion_logistica.tex}   % \subsection
+\input{secciones/autorregresivo_logistico.tex} % \subsection
+
+% 6. Resultados
+\input{secciones/resultados.tex}
+
+% 7. Discusión y conclusiones
+\input{secciones/discusion_conclusiones.tex}
+
 \input{secciones/declaratoria_ia.tex}
 
 \printbibliography
 
 % --- Anexos ---
-% Los diccionarios de datos son referencia exhaustiva citada desde el cuerpo
-% (ver \cref{sec:diccionario} en objetivo_tecnicas.tex y \cref{sec:diccionario-transformado}
-% en transformaciones.tex); no se leen linea por linea en la prosa, por eso
-% viven aqui y no cuentan contra el limite de paginas del cuerpo.
+% Solo informacion complementaria citada desde el cuerpo: las tecnicas que se
+% probaron y descartaron (\cref{sec:tecnicas-descartadas}) y los diccionarios
+% de datos (\cref{sec:diccionario,sec:diccionario-transformado}). No cuentan
+% contra el limite de paginas del cuerpo.
 \appendix
+\input{secciones/tecnicas_no_funcionaron.tex}
 \input{secciones/diccionario_datos.tex}
 \input{secciones/diccionario_datos_transformadas.tex}
+
+\input{secciones/codigo.tex}
 
 \end{document}

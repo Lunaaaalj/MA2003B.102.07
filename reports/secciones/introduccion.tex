@@ -1,19 +1,56 @@
-\section{Introducción}
+% Seccion 1 de la rubrica: introduccion y justificacion. Abre con \section y
+% aloja como \subsection a revi_medio_ambiente.tex, res_sima.tex y
+% contexto_estaciones.tex, que se \input inmediatamente despues en main.tex.
+% El objeto de investigacion (el ozono) vivia en objetivo.tex; se fusiono aqui
+% porque es justificacion, no objetivo.
+
+\section{Introducción y justificación}
 \label{sec:introduccion}
 
 La calidad del aire en Nuevo León es un factor determinante de la salud
 pública: la exposición diaria a concentraciones elevadas de contaminantes
-representa un riesgo acumulativo para la población.
+representa un riesgo acumulativo para la población. Las mediciones continuas
+del Sistema Integral de Monitoreo Ambiental (SIMA), descrito en la
+\cref{sec:sima}, permiten caracterizar la atmósfera del Área Metropolitana
+de Monterrey (AMM) y son la fuente de este trabajo. Para reportar la calidad
+del aire, SIMA convierte las mediciones horarias en un índice categórico con
+un color asociado a su valor máximo \parencite{aireNL2026}.
 
-Las mediciones constantes del Sistema Integral de Monitoreo Ambiental (SIMA),
-descrito en la \cref{sec:sima}, permiten caracterizar la atmósfera del área
-metropolitana de Monterrey.
+De los contaminantes que mide la red, el ozono troposférico es el que
+justifica este estudio: es secundario, no se emite sino que se forma, y su
+formación depende a la vez de los precursores químicos y de las condiciones
+meteorológicas. Esa doble dependencia es lo que vuelve pertinente un análisis
+multivariado: ninguna variable por sí sola explica un día de excedencia.
 
-Los aspectos químicos influyen en el análisis: la concentración y composición
-de sustancias como PM, \ce{O3} y \ce{NO2} determina su dispersión en la
-atmósfera. Los aspectos meteorológicos, como la variación estacional y los
-ciclos diarios, modulan a su vez la acumulación de partículas contaminantes.
+\subsection{El ozono troposférico}
+\label{sec:objetivo}
 
-Para reportar la calidad del aire, SIMA convierte las mediciones horarias en
-un índice categórico con un color asociado a su valor máximo
-\parencite{aireNL2026}.
+El ozono \ce{O3} es una sustancia compuesta por tres átomos de oxígeno que se
+encuentra tanto en la atmósfera superior (ozono estratosférico) como a nivel
+del suelo (ozono troposférico). El estratosférico se produce de manera
+natural por la interacción entre el oxígeno molecular \ce{O2} y los rayos
+ultravioleta, y atenúa la exposición de la superficie a esa radiación
+\parencite{Bernhard2023-lk}. El troposférico, en cambio, es el principal
+ingrediente del \textit{smog} y se forma por transformaciones químicas entre
+los óxidos de nitrógeno \ce{NOx} y los compuestos orgánicos volátiles (COV)
+con el calor y la luz solar.
+
+Áreas metropolitanas de Nuevo León con elevada actividad industrial han
+presentado niveles de \ce{O3} y \ce{PM10} que superan los límites de la
+NOM-020-SSA1-2021 \parencite{nom020ssa1} y la NOM-025-SSA1-2014
+\parencite{nom025ssa1}. Estas tendencias se documentan desde hace más de
+30 años, con herramientas que miden tanto el ozono (fotometría ultravioleta)
+como sus precursores \ce{NO} y \ce{NO2} (agrupados como \ce{NO_x}, por
+quimioluminiscencia), cuya relación fotoquímica es clave para entender la
+formación del contaminante secundario \parencite{SanfordSillman}.
+
+El AMM no es la excepción: entre 1993 y 2014 se registró un aumento
+sostenido de las concentraciones de ozono troposférico, en contraste con la
+tendencia descendente de la Ciudad de México en el mismo periodo, atribuido
+al crecimiento industrial y vehicular sin un control equivalente sobre los
+precursores y a un papel meteorológico modulado por el cambio climático
+\parencite{atmos15070779}. El comportamiento se agrava por la topografía del
+valle donde se asienta el AMM, rodeado de sierras que favorecen el
+estancamiento de masas de aire durante episodios de alta presión, inversión
+térmica y viento débil, factores que reducen la dispersión y prolongan la
+exposición de la población.
