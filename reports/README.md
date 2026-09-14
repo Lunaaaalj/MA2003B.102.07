@@ -25,7 +25,7 @@ agrega una sección nueva. Tu texto va en `secciones/`.
 Desde esta carpeta:
 
 ```bash
-latexmk -pdf main.tex     # genera main.pdf
+latexmk                   # genera main.pdf (el .latexmkrc ya fija el modo PDF y biber)
 latexmk -c                # borra los archivos auxiliares
 ```
 
@@ -37,7 +37,7 @@ Si prefieres VS Code, la extensión **LaTeX Workshop** hace lo mismo al guardar.
 
 ## Antes de escribir
 
-Lee la sección **"Workflow para los reportes"** del [README de la raíz](../README.md).
+Lee la sección **"Workflow para los reportes"** de la [guía de colaboración](../CONTRIBUTING.md).
 En resumen: una issue por sección, una branch por issue, tu texto en tu propio
 archivo, y tus referencias al final de `references.bib`.
 
