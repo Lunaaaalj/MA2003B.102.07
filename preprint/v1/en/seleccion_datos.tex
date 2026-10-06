@@ -12,7 +12,7 @@ code) and physically impossible values (relative humidity of up to
 725\,\%, temperatures of 785\,°C), which are set to missing rather than
 imputed; details are given in the data dictionary (\cref{sec:dic:centinela}).
 The share of missing data per parameter ranges from 3.66\,\% for solar
-radiation to 25.23\,\% for \ce{PM2.5}, but it is not evenly distributed
+radiation to 25.23\,\% for \ce{PM_{2.5}}, but it is not evenly distributed
 across years or stations, which determines the study window.
 
 \subsection{Data selection}
@@ -72,7 +72,7 @@ target variable of the analysis.
     24 hours & 99th percentile (tolerated frequency: 1\,\% of the time per year) & 70 & 60 & 50 \\
     Annual   & Annual mean of the 24-hour averages                              & 36 & 28 & 20 \\
     \midrule
-    \multicolumn{5}{l}{\textbf{\ce{PM2.5}} ($\mu$g/m$^{3}$) --- NOM-025-SSA1-2021, DOF 27 Oct 2021} \\
+    \multicolumn{5}{l}{\textbf{\ce{PM_{2.5}}} ($\mu$g/m$^{3}$) --- NOM-025-SSA1-2021, DOF 27 Oct 2021} \\
     \addlinespace[2pt]
     24 hours & 99th percentile (tolerated frequency: 1\,\% of the time per year) & 41 & 33 & 25 \\
     Annual   & Annual mean of the 24-hour averages                              & 10 & 10 & 10 \\
@@ -183,7 +183,7 @@ collapsed to one row per day and station with 16 continuous summaries: the
 precursors \ce{NO}, \ce{NO2}, \ce{NOx} and \ce{CO} as the mean of the
 06--09 h window; maximum temperature, cumulative radiation, mean and
 daytime-minimum humidity, mean pressure, mean and minimum wind speed, mean
-vector wind components, and daily means of \ce{PM10}, \ce{PM2.5} and
+vector wind components, and daily means of \ce{PM10}, \ce{PM_{2.5}} and
 \ce{SO2}. The MDA8 is declared valid only if at least 18 of the 24 8-hour
 moving windows of the day are complete; of the 26,691 station-day rows,
 25,100 meet this rule. Each summary and the completeness rule are justified
