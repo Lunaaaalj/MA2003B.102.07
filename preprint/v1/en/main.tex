@@ -50,6 +50,8 @@
 
 \usepackage{lastpage}
 \usepackage{orcidlink}
+\NewDocumentCommand\orcidicono{m}{\,\orcidlink{#1}}
+\pdfstringdefDisableCommands{\def\orcidicono#1{}}
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
 \usepackage[capitalise]{cleveref}
 
@@ -81,6 +83,16 @@
           { \raggedright \textsc{orcid}(s):\c_space_token
             \seq_use:Nn \g_stm_orcid_seq { ;~ } }
         \group_end: } }
+\RenewDocumentCommand \printemails { }
+  { \int_compare:nNnT { \int_use:N \g_ead_int } > { 0 }
+      { \group_begin: \tex_let:D \thefootnote \relax
+        \cs_set:Npn \orcidicono ##1 { }
+        \footnotetext
+          { \raggedright
+            \int_compare:nTF { \g_ead_int = 1 }
+              { \textit{Email~address:\c_space_token} } { \textit{Email~addresses:\c_space_token} }
+            \seq_use:Nn \g_stm_ead_seq { ;~ } }
+        \group_end: } }
 \ExplSyntaxOff
 \addto\captionsenglish{\renewcommand\abstractname{A\,B\,S\,T\,R\,A\,C\,T}}
 \pagestyle{cas}
@@ -93,11 +105,16 @@
 \title[mode=title]{Discriminating daily ozone exceedances in the Monterrey Metropolitan Area}
 \title[mode=sub]{Station-day classification under the 51 ppb threshold of NOM-020-SSA1-2021 at 15 SIMA stations, 2021--2025}
 
-\author[1]{Angel Eduardo-Luna\texorpdfstring{\,\orcidlink{0009-0004-8217-9688}}{}}
+\author[1]{Angel Eduardo-Luna\orcidicono{0009-0004-8217-9688}}
+\ead{a00842657@tec.mx}
 \author[1]{Jenaro Alcaraz}
+\ead{a01646850@tec.mx}
 \author[1]{Emilia Rico}
+\ead{a01384587@tec.mx}
 \author[1]{Mar Fernández}
+\ead{a00227571@tec.mx}
 \author[1]{Sofía Fernández}
+\ead{a01722980@tec.mx}
 
 \affiliation[1]{organization={Instituto Tecnológico y de Estudios Superiores de Monterrey},
   city={Monterrey}, state={Nuevo León}, country={Mexico}}
