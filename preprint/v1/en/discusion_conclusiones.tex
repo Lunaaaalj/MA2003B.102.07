@@ -1,105 +1,103 @@
-\section{Discusión y conclusiones}
+\section{Discussion and conclusions}
 \label{sec:conclusiones}
 
-\subsection{Discusión}
+\subsection{Discussion}
 
-El objetivo era clasificar cada día-estación como excedencia o no del MDA8
-a 51 ppb a partir de las condiciones del mismo día, con AUC de al menos
-0.75, e identificar las condiciones latentes que explican esa
-clasificación. Se cumple: los tres clasificadores superan el criterio, y las
-técnicas de interdependencia producen tres ejes con lectura física estable
-fuera del periodo de ajuste.
+The objective was to classify each station-day as an exceedance or not of
+the MDA8 at 51 ppb from same-day conditions, with an AUC of at least 0.75,
+and to identify the latent conditions that explain that classification. It
+is met: the three classifiers exceed the threshold, and the interdependence
+techniques produce three axes with a physical interpretation that is stable
+outside the fitting period.
 
-La excedencia de ozono en el AMM es, ante todo, un fenómeno estacional y
-regional. La temporada es el predictor de mayor efecto en los modelos
-día-estación ---la primavera triplica los momios del invierno--- y el
-forzamiento fotoquímico, el eje de temperatura, radiación y sequedad, es el
-factor continuo dominante. Que el forzamiento pese más que la carga de
-precursores es coherente con la química del ozono como contaminante
-secundario: los ingredientes son necesarios, pero es la energía disponible
-la que fija la velocidad de las reacciones. La ventilación es el único
-mecanismo protector medido, y el AF muestra que es el viento, no la presión,
-lo que define ese eje.
+Ozone exceedance in the MMA is, above all, a seasonal and regional
+phenomenon. Season and zone are the predictors with the largest effects in
+the station-day models ---spring triples the odds of winter--- and
+photochemical forcing, the axis of temperature, radiation and dryness, is the
+dominant continuous factor. That forcing weighs more than the precursor load
+is consistent with the chemistry of ozone as a secondary pollutant: the
+ingredients are necessary, but it is the available energy that sets the rate
+of the reactions. Ventilation is the only protective mechanism measured, and
+FA shows that it is wind, not pressure, that defines this axis.
 
-Sobre ese fondo estacional hay una señal espacial que la meteorología medida
-no explica. A igual temporada y condiciones, el Noroeste y el Suroeste casi
-cuadruplican los momios del Noreste, y la tasa de excedencia de una estación
-correlaciona 0.83 con su elevación. El viento predominante del oriente
-arrastra los precursores hacia el pie de la sierra, donde la orografía frena
-su salida; el ordenamiento poniente--oriente es estable en las cuatro
-temporadas. Los contrastes de zona descansan, sin embargo, en 15 unidades
-espaciales, y su precisión es la que 15 unidades pueden dar.
+Against that seasonal background there is a spatial signal that the measured
+meteorology does not explain. For the same season and conditions, the
+Northwest and Southwest almost quadruple the odds of the Northeast, and a
+station's exceedance rate correlates at 0.83 with its elevation. The
+prevailing easterly wind carries the precursors toward the foot of the
+mountains, where the orography blocks their exit; the west--east ordering is
+stable across the four seasons. The zone contrasts, however, rest on 15
+spatial units, and their precision is what 15 units can provide.
 
-La dependencia temporal es el tercer hallazgo. La autocorrelación de un día
-para otro sobrevive a la descomposición estacional en las cuatro series de
-área metropolitana, y un solo rezago de la respuesta captura casi toda esa
-dependencia: haber excedido ayer casi cuadruplica los momios de exceder hoy,
-controlando por factores y calendario. El modelo autorregresivo distingue
-días dentro de una temporada, lo que la climatología no puede hacer.
+Temporal dependence is the third finding. Day-to-day autocorrelation survives
+the seasonal decomposition in the four metropolitan-area series, and a single
+lag of the response captures almost all of that dependence: having exceeded
+yesterday almost quadruples the odds of exceeding today, controlling for
+factors and calendar. The autoregressive model distinguishes days within a
+season, which climatology cannot do.
 
-Dos limitaciones acotan todo lo anterior. La primera es el efecto de año:
-2024 y 2025 tienen un nivel de excedencia que los factores no explican, y
-ningún modelo generaliza igual de bien a 2021 que a 2024. Con estos datos
-no puede decidirse si es un cambio de emisiones, de instrumentación o dos
-años meteorológicamente atípicos. La segunda es la ausencia de compuestos
-orgánicos volátiles: sin ellos, los ejes se describen como consistentes con
-combustión, ventilación o fotoquímica, y ninguna afirmación sobre el régimen
-que limita la formación de ozono es contestable.
+Two limitations bound all of the above. The first is the year effect: 2024
+and 2025 have an exceedance level that the factors do not explain, and no
+model generalizes as well to 2021 as to 2024. With these data it cannot be
+decided whether this is a change in emissions, in instrumentation, or two
+meteorologically atypical years. The second is the absence of volatile
+organic compounds: without them, the axes are described as consistent with
+combustion, ventilation or photochemistry, and no statement about the regime
+that limits ozone formation can be answered.
 
-\subsection{Conclusiones}
+\subsection{Conclusions}
 
 \begin{enumerate}[label=\roman*.]
-  \item Los tres clasificadores alcanzan AUC de 0.846 a 0.898 en 2025 y
-    superan el umbral de desempeño. La logística y el discriminante son
-    equivalentes en la práctica, de modo que la interpretación de las razones
-    de momios no depende del supuesto de normalidad.
-  \item La excedencia es principalmente estacional: la temporada pesa más
-    que cualquier factor continuo, y entre estos domina el forzamiento
-    fotoquímico (2.78 por desviación estándar) sobre la combustión primaria
-    (1.92); la ventilación protege (0.90).
-  \item Existe una señal espacial no explicada por la meteorología medida:
-    el poniente del AMM casi cuadruplica los momios del Noreste, en
-    correspondencia con la elevación y el viento predominante.
-  \item El calendario laboral apenas influye; solo el domingo tiene un
-    efecto claro y pequeño, y el del sábado desaparece al corregir los
-    errores estándar por dependencia.
-  \item La dependencia día a día es genuina y un modelo AR(1) la aprovecha:
-    supera a la climatología y a la persistencia con generalización esperada
-    de 0.878.
+  \item The three classifiers reach AUCs from 0.846 to 0.898 in 2025 and
+    exceed the performance threshold. The logistic model and the
+    discriminant are equivalent in practice, so the interpretation of the
+    odds ratios does not depend on the normality assumption.
+  \item Exceedance is mainly seasonal and regional: season and zone weigh
+    more than any continuous factor, and among these photochemical forcing
+    (2.78 per standard deviation) dominates primary combustion (1.92);
+    ventilation protects (0.90).
+  \item There is a spatial signal not explained by the measured meteorology:
+    the west of the MMA almost quadruples the odds of the Northeast, in
+    correspondence with elevation and the prevailing wind.
+  \item The working calendar has little influence; only Sunday has a clear,
+    small effect, and the Saturday effect disappears when standard errors
+    are corrected for dependence.
+  \item Day-to-day dependence is genuine and an AR(1) model exploits it: it
+    outperforms climatology and persistence with an expected generalization
+    of 0.878.
 \end{enumerate}
 
-\subsection{Recomendaciones}
+\subsection{Recommendations}
 
-Para la gestión de la calidad del aire, el modelo autorregresivo sobre la
-serie de área metropolitana puede operar como sistema de \emph{nowcasting}
-de excedencia con las mediciones del propio día, con un umbral de decisión
-que privilegie la sensibilidad, porque el costo de no avisar de un día malo
-supera al de una alerta de más. Las zonas Noroeste y Suroeste merecen
-vigilancia y medidas de control específicas, ya que su riesgo excede lo que
-explican sus condiciones meteorológicas. Y la incorporación de mediciones de
-compuestos orgánicos volátiles a la red del SIMA es la única vía para pasar
-de asociaciones a mecanismo.
+For air quality management, the autoregressive model on the
+metropolitan-area series can operate as an exceedance \emph{nowcasting}
+system with same-day measurements, with a decision threshold that favors
+sensitivity, because the cost of failing to warn of a bad day exceeds that of
+one alert too many. The Northwest and Southwest zones deserve specific
+monitoring and control measures, since their risk exceeds what their
+meteorological conditions explain. And adding volatile organic compound
+measurements to the SIMA network is the only way to move from associations
+to mechanism.
 
-Para el análisis, tres mejoras metodológicas quedan identificadas: estimar
-el parámetro de Box-Cox solo sobre el ajuste, para cerrar la única fuga que
-persiste; incluir un término de media móvil sobre los residuales, que el
-residuo de segundo orden del modelo autorregresivo justifica; y extender el
-modelo a pronóstico rezagando los factores, con validación propia.
+For the analysis, three methodological improvements are identified:
+estimating the Box-Cox parameter on the fitting data only, to close the only
+remaining leak; including a moving-average term on the residuals, justified by
+the second-order residual of the autoregressive model; and extending the
+model to forecasting by lagging the factors, with its own validation.
 
-\subsection{Preguntas nuevas}
+\subsection{Open questions}
 
 \begin{itemize}
-  \item ¿Qué produjo el escalón de 2024? Distinguir entre cambio de
-    emisiones, de instrumentación y años atípicos exige inventarios de
-    emisiones y bitácoras de calibración que este trabajo no tuvo.
-  \item ¿Qué característica del poniente explica el exceso de riesgo que
-    la zona conserva tras controlar por meteorología? Uso de suelo,
-    distancia a fuentes industriales y recirculación orográfica son las
-    candidatas.
-  \item ¿Cuánto del efecto de la temporada es fotoquímica y cuánto es
-    régimen de vientos? Los factores lo capturan en parte, pero la temporada
-    conserva un efecto propio que sugiere una variable estacional no medida.
-  \item ¿Hasta qué horizonte es útil el pronóstico? El tiempo de mezcla de
-    1.3 días de la cadena binaria sugiere que más allá de dos o tres días la
-    predicción converge a la climatología del mes.
+  \item What produced the 2024 step? Distinguishing between a change in
+    emissions, in instrumentation, and atypical years requires emission
+    inventories and calibration logs that this work did not have.
+  \item What characteristic of the west explains the excess risk that the
+    zone retains after controlling for meteorology? Land use, distance to
+    industrial sources and orographic recirculation are the candidates.
+  \item How much of the season effect is photochemistry and how much is
+    wind regime? The factors capture it in part, but season retains an
+    effect of its own that suggests an unmeasured seasonal variable.
+  \item Up to what horizon is forecasting useful? The 1.3-day mixing time of
+    the binary chain suggests that beyond two or three days the prediction
+    converges to the monthly climatology.
 \end{itemize}

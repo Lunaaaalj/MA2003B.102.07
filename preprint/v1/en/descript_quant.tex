@@ -1,31 +1,30 @@
-\section{Análisis exploratorio}
+\section{Exploratory analysis}
 \label{sec:eda}
 
-\subsection{Variables cuantitativas}
+\subsection{Quantitative variables}
 
-\subsubsection{Cuartiles y límites de outliers}
+\subsubsection{Quartiles and outlier bounds}
 
-Los cuartiles y límites de $1.5\times$IQR de las variables horarias se
-reportan en sus unidades originales (\cref{tab:cuartiles-iqr}) y son los
-mismos que usó la limpieza como criterio de outliers. \texttt{RAINF} y
-\texttt{WDR} quedan fuera: \texttt{WDR} es circular y \texttt{RAINF} está
-inflada de ceros, así que su IQR no es interpretable como límite
-(\cref{sec:dic:meteorologicos}). Dos lecturas importan para lo que sigue: la
-mediana de la componente zonal del viento es negativa, es decir, el viento
-predominante entra del oriente (\cref{sec:contexto-estaciones}); y el límite
-superior de \texttt{O3\_8h} (66.22 ppb) queda por encima del umbral de
-51 ppb, de modo que la excedencia no es un outlier sino parte del rango
-habitual de la variable.
+The quartiles and $1.5\times$IQR bounds of the hourly variables are reported
+in their original units (\cref{tab:cuartiles-iqr}) and are the same ones the
+cleaning used as the outlier criterion. \texttt{RAINF} and \texttt{WDR} are
+excluded: \texttt{WDR} is circular and \texttt{RAINF} is zero-inflated, so
+their IQR cannot be interpreted as a bound (\cref{sec:dic:meteorologicos}).
+Two readings matter for what follows: the median zonal wind component is
+negative, that is, the prevailing wind enters from the east
+(\cref{sec:contexto-estaciones}); and the upper bound of \texttt{O3\_8h}
+(66.22 ppb) lies above the 51 ppb threshold, so exceedance is not an outlier
+but part of the usual range of the variable.
 
 \begin{table}[t]
   \centering
-  \caption{Cuartiles y límites de outlier (criterio $1.5\times$IQR) de las
-    variables cuantitativas horarias, en sus unidades originales.}
+  \caption{Quartiles and outlier bounds ($1.5\times$IQR criterion) of the
+    hourly quantitative variables, in their original units.}
   \label{tab:cuartiles-iqr}
   \small
   \begin{tabular}{lrrrr}
     \toprule
-    Variable & Q1 & Q3 & Lím. inf. & Lím. sup. \\
+    Variable & Q1 & Q3 & Lower & Upper \\
     \midrule
     \texttt{O3}       &    13.00 &    37.00 &  $-23.00$ &    73.00 \\
     \texttt{CO}       &     0.71 &     1.83 &   $-0.96$ &     3.50 \\
@@ -43,83 +42,81 @@ habitual de la variable.
   \end{tabular}
 \end{table}
 
-La \cref{fig:boxplot-medidas} muestra la distribución de cada variable en
-unidades originales. Todas las concentraciones de contaminantes presentan
-cola derecha larga, con outliers que multiplican varias veces el tercer
-cuartil; es la asimetría que motivó Box-Cox en \cref{sec:transformaciones}.
-Las meteorológicas son más simétricas, salvo la velocidad del viento.
+\Cref{fig:boxplot-medidas} shows the distribution of each variable in
+original units. All pollutant concentrations have a long right tail, with
+outliers several times the third quartile; this is the asymmetry that
+motivated Box-Cox in \cref{sec:transformaciones}. The meteorological
+variables are more symmetric, except wind speed.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width = \linewidth]{boxplots_medidas.pdf}
-    \caption{Diagramas de caja de cada variable cuantitativa horaria, en
-      unidades originales.}
+    \caption{Box plots of each hourly quantitative variable, in original
+      units.}
     \label{fig:boxplot-medidas}
 \end{figure}
 
-\subsubsection{Correlación}
+\subsubsection{Correlation}
 
-A resolución horaria y sobre la escala transformada, los pares más fuertes
-son \texttt{NO2}--\texttt{NOX} ($r=0.89$), multicolinealidad esperada entre
-precursores del mismo ciclo de reacción; \texttt{O3}--\texttt{O3\_8h}
-($r=0.69$), por construcción; \texttt{PM10}--\texttt{PM2.5} ($r=0.62$),
-material particulado de origen común; \texttt{O3}--\texttt{TOUT} ($r=0.52$)
-y \texttt{O3}--\texttt{WSR} ($r=0.43$), consistentes con el mecanismo
-fotoquímico; y \texttt{O3}--\texttt{NOX} ($r=-0.43$), que refleja el consumo
-de \ce{O3} por titulación con \ce{NO} cerca de fuentes de tráfico.
+At hourly resolution and on the transformed scale, the strongest pairs are
+\texttt{NO2}--\texttt{NOX} ($r=0.89$), the expected multicollinearity between
+precursors of the same reaction cycle; \texttt{O3}--\texttt{O3\_8h}
+($r=0.69$), by construction; \texttt{PM10}--\texttt{PM2.5} ($r=0.62$),
+particulate matter of common origin; \texttt{O3}--\texttt{TOUT} ($r=0.52$)
+and \texttt{O3}--\texttt{WSR} ($r=0.43$), consistent with the photochemical
+mechanism; and \texttt{O3}--\texttt{NOX} ($r=-0.43$), which reflects the
+consumption of \ce{O3} by titration with \ce{NO} near traffic sources.
 
-El ACP corre sobre la tabla diaria y necesita su propia matriz: agregar a
-día cambia el tamaño de muestra y, típicamente, sube la correlación al
-cancelar ruido de medición. Se calcula sobre las 16 variables continuas del
-conjunto diario transformado, en el subconjunto con las 16 simultáneamente
-completas ($n=15{,}856$ de 26,691 días-estación, 59.4\,\%), la misma regla
-de descarte por lista que usa el modelado y que garantiza una matriz
-semidefinida positiva (\cref{fig:mapa-calor-diario}).
+PCA runs on the daily table and requires its own matrix: aggregating to days
+changes the sample size and typically increases correlations by cancelling
+measurement noise. It is computed over the 16 continuous variables of the
+transformed daily dataset, on the subset with all 16 simultaneously complete
+($n=15{,}856$ of 26,691 station-days, 59.4\,\%), the same listwise deletion
+rule used in modeling, which guarantees a positive semidefinite matrix
+(\cref{fig:mapa-calor-diario}).
 
 \begin{figure}[t]
     \centering
     \includegraphics[width = \linewidth]{mapa_calor_correlacion_diario.pdf}
-    \caption{Mapa de calor de correlación de Pearson entre las 16 variables
-      continuas del conjunto diario transformado, $n=15{,}856$ días-estación
-      completos.}
+    \caption{Pearson correlation heat map of the 16 continuous variables of
+      the transformed daily dataset, $n=15{,}856$ complete station-days.}
     \label{fig:mapa-calor-diario}
 \end{figure}
 
-De los pares horarios, tres tienen análogo directo en el conjunto diario:
-\texttt{NO2}--\texttt{NOX} no cambia (0.89), \texttt{PM10}--\texttt{PM2.5}
-sube a 0.70 y \texttt{viento\_u}--\texttt{WSR} sube en magnitud a $-0.48$.
-El orden sí cambia: dominan \texttt{NO}--\texttt{NOX} ($r=0.95$) y
-\texttt{RH\_media}--\texttt{RH\_min\_diurna} ($r=0.89$), inexistentes en el
-mapa horario porque \texttt{NO} y \texttt{RH} no formaban parte de ese
-conjunto. El primero es la redundancia definicional \texttt{NOX} $\approx$
-\texttt{NO} + \texttt{NO2}; el segundo, y también
-\texttt{WSR\_media}--\texttt{WSR\_min} ($r=0.71$), es la misma variable
-resumida dos veces sobre ventanas distintas del día. Estas redundancias de
-construcción son las que el análisis factorial (\cref{sec:analisis-factorial})
-termina por expulsar.
+Three hourly pairs have a direct analogue in the daily dataset:
+\texttt{NO2}--\texttt{NOX} is unchanged (0.89), \texttt{PM10}--\texttt{PM2.5}
+rises to 0.70, and \texttt{viento\_u}--\texttt{WSR} increases in magnitude to
+$-0.48$. The ordering does change: \texttt{NO}--\texttt{NOX} ($r=0.95$) and
+\texttt{RH\_media}--\texttt{RH\_min\_diurna} ($r=0.89$) dominate, absent from
+the hourly map because \texttt{NO} and \texttt{RH} were not part of that set.
+The first is the definitional redundancy \texttt{NOX} $\approx$ \texttt{NO} +
+\texttt{NO2}; the second, and also \texttt{WSR\_media}--\texttt{WSR\_min}
+($r=0.71$), is the same variable summarized twice over different windows of
+the day. These construction redundancies are the ones that factor analysis
+(\cref{sec:analisis-factorial}) eventually removes.
 
-Los diagnósticos previos al ACP confirman la multicolinealidad
-(\cref{tab:diagnostico-pca}): el determinante es cercano a 0 y el número de
-condición es alto. La prueba de esfericidad de Bartlett rechaza que la
-matriz sea la identidad ($\chi^2(120)=169{,}140.7$, $p<0.001$), y el KMO
-total libra el umbral convencional de 0.6; a nivel variable,
-\texttt{RH\_media} (0.587), \texttt{PRS\_media} (0.589) y \texttt{TOUT\_max}
-(0.596) quedan justo debajo sin arrastrar el total. Los cuatro diagnósticos
-justifican aplicar ACP sobre los predictores diarios.
+The diagnostics prior to PCA confirm the multicollinearity
+(\cref{tab:diagnostico-pca}): the determinant is close to 0 and the condition
+number is high. Bartlett's test of sphericity rejects that the matrix is the
+identity ($\chi^2(120)=169{,}140.7$, $p<0.001$), and the overall KMO clears
+the conventional threshold of 0.6; at the variable level, \texttt{RH\_media}
+(0.587), \texttt{PRS\_media} (0.589) and \texttt{TOUT\_max} (0.596) fall just
+below it without pulling down the total. The four diagnostics justify
+applying PCA to the daily predictors.
 
 \begin{table}[t]
   \centering
-  \caption{Diagnósticos previos al ACP sobre la matriz de correlación
-    diaria ($n=15{,}856$, 16 variables).}
+  \caption{Diagnostics prior to PCA on the daily correlation matrix
+    ($n=15{,}856$, 16 variables).}
   \label{tab:diagnostico-pca}
   \small
   \begin{tabular}{lr}
     \toprule
-    Diagnóstico          & Valor \\
+    Diagnostic          & Value \\
     \midrule
-    Determinante          & $2.32\times10^{-5}$ \\
-    Número de condición   & 322.8 \\
-    KMO total             & 0.660 \\
+    Determinant         & $2.32\times10^{-5}$ \\
+    Condition number    & 322.8 \\
+    Overall KMO         & 0.660 \\
     \bottomrule
   \end{tabular}
 \end{table}

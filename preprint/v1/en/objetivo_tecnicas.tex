@@ -1,113 +1,114 @@
-\section{Problemática y objetivo}
+\section{Problem and objective}
 \label{sec:objetivo-tecnicas}
 
-\subsection{Problemática}
+\subsection{Problem}
 
-El AMM acumula tres décadas de ozono al alza (\cref{sec:objetivo}) y su red
-de monitoreo produce, cada hora y en 15 puntos, las concentraciones de los
-precursores y las condiciones meteorológicas que gobiernan su formación. La
-pregunta que este trabajo responde es qué combinación de esas condiciones
-acompaña a un día en que el ozono supera la norma, y con qué certeza puede
-identificarse ese día a partir de ellas. Dos obstáculos la vuelven un
-problema multivariado y no una comparación de umbrales: los precursores
-están fuertemente correlacionados entre sí (\ce{NO}, \ce{NO2} y \ce{NOx} son
-la misma emisión medida tres veces) y la respuesta es rara con el umbral
-vigente, de modo que una regla trivial acierta casi siempre sin decir nada.
+The MMA has accumulated three decades of rising ozone (\cref{sec:objetivo}),
+and its monitoring network produces, every hour and at 15 sites, the
+concentrations of the precursors and the meteorological conditions that
+govern its formation. The question this work addresses is which combination
+of those conditions accompanies a day on which ozone exceeds the standard,
+and how reliably such a day can be identified from them. Two obstacles make
+it a multivariate problem rather than a comparison of thresholds: the
+precursors are strongly correlated with one another (\ce{NO}, \ce{NO2} and
+\ce{NOx} are the same emission measured three times), and the response is
+rare under the current threshold, so a trivial rule is almost always right
+without saying anything.
 
-\subsection{Objetivo del análisis multivariado}
+\subsection{Objective of the multivariate analysis}
 \label{sec:obj:objetivo}
 
-\textbf{Objetivo principal.} Clasificar cada registro día-estación como
-excedencia o no excedencia del MDA8 en el umbral de 51 ppb, a partir de los
-precursores y variables meteorológicas del mismo día, e identificar qué
-condiciones latentes explican esa clasificación.
+\textbf{Main objective.} To classify each station-day record as an
+exceedance or non-exceedance of the MDA8 at the 51 ppb threshold, from the
+same-day precursors and meteorological variables, and to identify which
+latent conditions explain that classification.
 
-\textit{Criterio de desempeño:} área bajo la curva ROC $\geq 0.75$ en una
-partición de validación no vista durante el ajuste, con sensibilidad y
-especificidad reportadas por separado. No se utiliza la exactitud: con el
-umbral vigente de 65 ppb las excedencias son 11.25\,\% de los días-estación
-válidos y un clasificador constante alcanzaría 88.75\,\% de exactitud sin
-identificar el fenómeno (\cref{sec:eda-cualitativas}). Por esa razón el
-escenario principal usa 51 ppb, la meta a 5 años de la NOM-020-SSA1-2021
-(\cref{tab:nom-limites}), con 31.96\,\% de excedencias \parencite{saito2015}.
+\textit{Performance criterion:} area under the ROC curve $\geq 0.75$ on a
+validation partition not seen during fitting, with sensitivity and
+specificity reported separately. Accuracy is not used: under the current
+65 ppb threshold, exceedances are 11.25\,\% of valid station-days, and a
+constant classifier would reach 88.75\,\% accuracy without identifying the
+phenomenon (\cref{sec:eda-cualitativas}). For that reason the main scenario
+uses 51 ppb, the 5-year target of NOM-020-SSA1-2021 (\cref{tab:nom-limites}),
+with 31.96\,\% exceedances \parencite{saito2015}.
 
-Las estaciones no se agrupan por sus niveles medios de ozono, que la
-estación explica en apenas 5.3\,\% de la varianza del MDA8, sino que se
-homologan en las siete zonas de \cref{sec:contexto-estaciones}, cuyo
-contenido espacial sí se sostiene en los datos.
+Stations are not grouped by their mean ozone levels, which the station
+explains in only 5.3\,\% of the MDA8 variance; instead they are assigned to
+the seven zones of \cref{sec:contexto-estaciones}, whose spatial content is
+supported by the data.
 
-\subsection{Técnicas estadísticas}
+\subsection{Statistical techniques}
 \label{sec:obj:tecnicas}
 
-Se combinan técnicas de interdependencia, que reducen los predictores a ejes
-interpretables, con técnicas de dependencia, que relacionan esos ejes con la
-excedencia:
+Interdependence techniques, which reduce the predictors to interpretable
+axes, are combined with dependence techniques, which relate those axes to
+exceedance:
 
 \begin{itemize}
-  \item \textbf{Análisis de componentes principales (ACP)}: resuelve la
-    multicolinealidad de los predictores y produce ejes ortogonales con
-    lectura física.
-  \item \textbf{Análisis factorial exploratorio (AF)}: separa la varianza
-    común de la específica y expone redundancias que el ACP absorbe sin
-    señalar. Sus puntajes son los predictores de los modelos de
-    clasificación.
-  \item \textbf{Regresión logística}: modela la probabilidad de excedencia y
-    el aporte de cada predictor como razón de momios, sin supuestos de
-    normalidad; ya se ha aplicado a la excedencia del MDA8 a partir de
-    variables meteorológicas \parencite{otero2016}.
-  \item \textbf{Análisis discriminante lineal}: contrasta a la logística bajo
-    los supuestos de normalidad multivariada y covarianzas iguales
-    \parencite{hosmer2013}. Box-Cox dejó los sesgos en $|\text{sesgo}|<0.5$
-    (\cref{tab:sesgos-transformacion}), lo que aproxima el primero.
-  \item \textbf{Modelo autorregresivo logístico}: incorpora la dependencia
-    temporal de la respuesta, que la caracterización como serie de tiempo
-    muestra que persiste tras remover la estacionalidad.
+  \item \textbf{Principal component analysis (PCA)}: resolves the
+    multicollinearity of the predictors and yields orthogonal axes with a
+    physical interpretation.
+  \item \textbf{Exploratory factor analysis (FA)}: separates common from
+    specific variance and exposes redundancies that PCA absorbs without
+    flagging. Its scores are the predictors of the classification models.
+  \item \textbf{Logistic regression}: models the probability of exceedance
+    and the contribution of each predictor as an odds ratio, without
+    normality assumptions; it has already been applied to MDA8 exceedance
+    from meteorological variables \parencite{otero2016}.
+  \item \textbf{Linear discriminant analysis}: contrasts the logistic model
+    under the assumptions of multivariate normality and equal covariances
+    \parencite{hosmer2013}. Box-Cox left the skewness at
+    $|\text{skewness}|<0.5$ (\cref{tab:sesgos-transformacion}), which
+    approximates the first assumption.
+  \item \textbf{Autoregressive logistic model}: incorporates the temporal
+    dependence of the response, which the time-series characterization shows
+    to persist after removing seasonality.
 \end{itemize}
 
-Todos los clasificadores se evalúan con el área bajo la curva ROC, no con
-exactitud, por el desbalance señalado \parencite{saito2015}. Se requiere la
-estandarización de \cref{sec:transformaciones}: en unidades originales la
-presión, con valores cercanos a 710, dominaría las distancias frente al
-\ce{CO}, cuyos valores son menores que 10.
+All classifiers are evaluated with the area under the ROC curve, not with
+accuracy, because of the imbalance noted above \parencite{saito2015}. The
+standardization of \cref{sec:transformaciones} is required: in original
+units, pressure, with values near 710, would dominate distances over
+\ce{CO}, whose values are below 10.
 
-\subsection{Variables y sus características}
+\subsection{Variables and their characteristics}
 \label{sec:obj:variables}
 
-Las definiciones, unidades y faltantes se encuentran en el diccionario de
-datos (\cref{sec:diccionario}); la \cref{tab:variables-tecnica} presenta el
-papel de cada grupo en el objetivo.
+Definitions, units and missing data are given in the data dictionary
+(\cref{sec:diccionario}); \cref{tab:variables-tecnica} presents the role of
+each group of variables in the objective.
 
 \begin{table}[t]
   \centering
-  \caption{Papel de cada grupo de variables en el objetivo.}
+  \caption{Role of each group of variables in the objective.}
   \label{tab:variables-tecnica}
   \footnotesize
   \begin{tabular}{p{3.4cm} p{4.4cm}}
     \toprule
-    Grupo & Papel \\
+    Group & Role \\
     \midrule
-    \ce{O3}, MDA8 & Definen la clase; no son predictores \\
+    \ce{O3}, MDA8 & Define the class; not predictors \\
     \addlinespace[2pt]
-    \ce{NO}, \ce{NO2}, \ce{NO_x}, \ce{CO} & Predictores, ventana matutina
+    \ce{NO}, \ce{NO2}, \ce{NO_x}, \ce{CO} & Predictors, morning window
       06--09 h \parencite{abdulwahab2005} \\
     \addlinespace[2pt]
-    \ce{PM10}, \ce{PM2.5}, \ce{SO2} & Predictores, media diaria \\
+    \ce{PM10}, \ce{PM2.5}, \ce{SO2} & Predictors, daily mean \\
     \addlinespace[2pt]
     \texttt{TOUT}, \texttt{RH}, \texttt{SR}, \texttt{PRS}, \texttt{WSR},
-      \texttt{viento\_u}, \texttt{viento\_v} & Predictores, resúmenes
-      diarios (máximo, acumulado, media, mínimo) \\
+      \texttt{viento\_u}, \texttt{viento\_v} & Predictors, daily summaries
+      (maximum, total, mean, minimum) \\
     \addlinespace[2pt]
-    \texttt{temporada}, \texttt{tipo\_dia}, \texttt{zona} & Predictores
-      categóricos, codificados en $k-1$ indicadoras \\
+    \texttt{temporada}, \texttt{tipo\_dia}, \texttt{zona} & Categorical
+      predictors (season, day type, zone), coded as $k-1$ indicators \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Los precursores se resumen en la ventana 06--09 h porque es la emisión
-matutina la que alimenta la fotoquímica del mediodía; la radiación solar se
-conserva para distinguir la atenuación por aerosol de una diferencia en la
-disponibilidad de luz. Las categóricas entran con $k-1$ indicadoras y una
-categoría de referencia explícita (Noreste, día laborable e invierno);
-incluir los $k$ niveles generaría colinealidad perfecta con el término
-independiente. El ACP y el AF excluyen estas indicadoras porque las columnas
-binarias inflarían artificialmente la varianza explicada.
+Precursors are summarized over the 06--09 h window because morning emissions
+feed midday photochemistry; solar radiation is retained to distinguish
+aerosol attenuation from a difference in light availability. Categorical
+variables enter as $k-1$ indicators with an explicit reference category
+(Northeast, weekday and winter); including all $k$ levels would create
+perfect collinearity with the intercept. PCA and FA exclude these indicators
+because the binary columns would artificially inflate the explained
+variance.

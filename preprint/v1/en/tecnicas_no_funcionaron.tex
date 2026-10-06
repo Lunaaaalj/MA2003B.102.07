@@ -1,62 +1,62 @@
-\section{Técnicas y decisiones descartadas}\label{sec:tecnicas-descartadas}
+\section{Discarded techniques and decisions}\label{sec:tecnicas-descartadas}
 
-El análisis factorial (\cref{sec:analisis-factorial}) generó, además de su resultado final,
-tres decisiones metodológicas que se probaron y se rechazaron de forma
-explícita, y dos variables que el modelo no toleró. Documentarlas evita que
-parezcan omisiones: cada una se descartó por una razón concreta y verificable,
-no por conveniencia.
+Besides its final result, the factor analysis (\cref{sec:analisis-factorial})
+produced three methodological choices that were tried and explicitly
+rejected, and two variables that the model could not accommodate. Documenting
+them prevents them from looking like omissions: each was discarded for a
+concrete, verifiable reason, not for convenience.
 
-\subsection{Análisis paralelo de Horn}
+\subsection{Horn's parallel analysis}
 
-Es el criterio estándar para decidir cuántos factores retener, y aquí retiene
-siete --- el doble que el MAP de Velicer finalmente adoptado
-(\cref{fig:af-paralelo}). No se sigue, porque el resultado es un artefacto del
-tamaño muestral y no una señal sustantiva: el umbral simulado sobre la matriz
-reducida se sitúa en 0.06 y sobre la completa en 1.06. Con las 16,028
-observaciones de entrenamiento del bloque de 14 predictores, los eigenvalores que produciría ruido puro se concentran
-fortísimo alrededor de su valor esperado, la banda de simulación se angosta
-casi a un punto, y cualquier eigenvalor apenas positivo la supera. El
-argumento para descartarlo se sostiene mirando los umbrales simulados, sin
-necesidad de ver una sola carga factorial. El MAP de Velicer se usa en su
-lugar por ser un mínimo descriptivo que no lleva $n$ en la fórmula y no se
-infla con el tamaño de la muestra.
+This is the standard criterion for deciding how many factors to retain, and
+here it retains seven ---more than twice the number given by Velicer's MAP,
+which was finally adopted. It is not followed, because the result is an
+artifact of sample size rather than a substantive signal: the simulated
+threshold lies at 0.06 on the reduced matrix and at 1.06 on the full matrix.
+With the 16,028 training observations of the 14-predictor block, the
+eigenvalues that pure noise would produce concentrate very tightly around
+their expected value, the simulation band narrows almost to a point, and any
+barely positive eigenvalue exceeds it. The argument for discarding it holds by
+looking at the simulated thresholds alone, without examining a single factor
+loading. Velicer's MAP is used instead because it is a descriptive minimum
+that does not include $n$ in its formula and does not inflate with sample
+size.
 
-\subsection{Extracción por máxima verosimilitud}
+\subsection{Maximum likelihood extraction}
 
-La extracción de \cref{sec:analisis-factorial} usa ejes principales iterados y no máxima
-verosimilitud, que exige normalidad multivariada. Las transformaciones
-Box-Cox de \cref{sec:transformaciones} acercaron las marginales a la simetría
-($|\text{sesgo}|<0.5$) pero no las volvieron normales, de modo que ese
-supuesto no se sostiene sobre estos datos. La solución de ejes principales se
-validó contra la implementación de referencia del paquete \texttt{psych} de R sobre el
-mismo bloque: coincide hasta orden y signo de los factores, con comunalidades
-iguales a la milésima.
+The extraction of \cref{sec:analisis-factorial} uses iterated principal axes
+rather than maximum likelihood, which requires multivariate normality. The
+Box-Cox transformations of \cref{sec:transformaciones} brought the marginals
+close to symmetry ($|\text{skewness}|<0.5$) but did not make them normal, so
+that assumption does not hold for these data. The principal axis solution was
+validated against the reference implementation of the R package
+\texttt{psych} on the same block: it matches up to the order and sign of the
+factors, with communalities equal to the third decimal.
 
-\subsection{Rotación oblicua}
+\subsection{Oblique rotation}
 
-Antes de adoptar varimax se probó una rotación oblicua (oblimin), que permite
-correlación entre factores. Encontró correlaciones de hasta 0.32 entre ellos
---- físicamente razonable, ya que el viento dispersa contaminantes y no es
-independiente de la carga de combustión. Se rechaza para el uso instrumental
-de los puntajes: el objetivo de \cref{sec:clasificacion_tecs} es disponer de
-predictores no colineales, y una solución oblicua reintroduce exactamente el
-problema de multicolinealidad que el análisis factorial vino a resolver. La
-correlación entre factores se reporta como hallazgo, pero no se lleva al
-modelo de clasificación.
+Before adopting varimax, an oblique rotation (oblimin), which allows the
+factors to correlate, was tried. It found correlations of up to 0.32 between
+them ---physically reasonable, since wind disperses pollutants and is not
+independent of the combustion load. It is rejected for the instrumental use of
+the scores: the goal of \cref{sec:clasificacion_tecs} is to have
+non-collinear predictors, and an oblique solution reintroduces exactly the
+multicollinearity problem that factor analysis was meant to solve. The
+correlation between factors is reported as a finding but is not carried into
+the classification model.
 
-\subsection{Dos variables que el modelo factorial no toleró}
+\subsection{Two variables the factor model could not accommodate}
 
-\texttt{NOX} y \texttt{RH\_min\_diurna} produjeron comunalidades mayores que 1
---- los llamados \textbf{casos Heywood}, imposibles porque la comunalidad es
-una proporción de varianza. \texttt{NOX} es, por definición química, la suma
-de \texttt{NO} y \texttt{NO2} ($r=0.985$ contra esa suma): no es una variable
-redundante en un sentido estadístico ordinario, es una identidad contable que
-el PCA de \cref{sec:pca} absorbió sin protestar y que el análisis factorial no
-puede repartir en comunalidad y unicidad. \texttt{RH\_min\_diurna}
-correlaciona 0.892 con \texttt{RH\_media}; a diferencia de \texttt{NOX} no es
-una identidad, así que \cref{sec:analisis-factorial} la dejó en observación hasta que el
-segundo ajuste, ya con el diagnóstico completo, forzó la misma salida. Ambas
-se eliminaron del bloque de predictores, que queda en 13 variables con un VIF
-máximo de 2.54. Que el PCA no haya señalado ninguno de los dos problemas es en
-sí mismo un resultado: el modelo factorial expone redundancias que la
-descomposición de varianza total no tiene forma de reportar.
+\texttt{NOX} and \texttt{RH\_min\_diurna} produced communalities greater than
+1 ---the so-called \textbf{Heywood cases}, impossible because communality is a
+proportion of variance. \texttt{NOX} is, by chemical definition, the sum of
+\texttt{NO} and \texttt{NO2} ($r=0.985$ against that sum): it is not redundant
+in an ordinary statistical sense but an accounting identity that the PCA of
+\cref{sec:pca} absorbed without complaint and that factor analysis cannot
+split into communality and uniqueness. \texttt{RH\_min\_diurna} correlates at
+0.892 with \texttt{RH\_media}; unlike \texttt{NOX} it is not an identity, so
+\cref{sec:analisis-factorial} kept it under observation until the second fit,
+with the full diagnosis, forced the same exit. Both were removed from the
+predictor block, which is left with 13 variables and a maximum VIF of 2.54.
+That PCA flagged neither problem is itself a result: the factor model exposes
+redundancies that a total-variance decomposition has no way of reporting.

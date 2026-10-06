@@ -1,73 +1,72 @@
-\section{Resultados}
+\section{Results}
 \label{sec:resultados}
 
-La \cref{tab:resultados} consolida el desempeño de los tres clasificadores
-sobre la validación de 2025 junto con las dos líneas base del modelo
-autorregresivo, y la \cref{tab:resultados-ejes} resume lo que cada técnica
-de interdependencia entregó. Los tres clasificadores superan el criterio de
-logro de 0.75 fijado en \cref{sec:obj:objetivo}.
+\Cref{tab:resultados} consolidates the performance of the three classifiers
+on the 2025 validation together with the two baselines of the autoregressive
+model, and \cref{tab:resultados-ejes} summarizes what each interdependence
+technique delivered. The three classifiers exceed the 0.75 performance
+threshold set in \cref{sec:obj:objetivo}.
 
 \begin{table}[t]
   \centering
-  \caption{Desempeño en la validación de 2025. Los modelos día-estación
-    (logística y discriminante) y el modelo de área metropolitana
-    (autorregresivo y sus líneas base) responden preguntas distintas y sus
-    AUC no son directamente comparables entre bloques. Sensibilidad y
-    especificidad al umbral de Youden fijado en el ajuste; la
-    generalización es el AUC fuera de muestra por validación cruzada
-    dejando un año fuera.}
+  \caption{Performance on the 2025 validation. The station-day models
+    (logistic and discriminant) and the metropolitan-area model
+    (autoregressive and its baselines) answer different questions, and their
+    AUCs are not directly comparable across blocks. Sensitivity and
+    specificity at the Youden threshold set on the fitting data;
+    generalization is the out-of-sample AUC from leave-one-year-out
+    cross-validation.}
   \label{tab:resultados}
   \small
   \begin{tabular}{lrrrr}
     \toprule
-    Modelo & AUC & Sens. & Esp. & General. \\
+    Model & AUC & Sens. & Spec. & General. \\
     \midrule
-    \multicolumn{5}{l}{\emph{Día-estación} ($n=2{,}927$)} \\
-    Regresión logística    & 0.850 & 0.698 & 0.853 & 0.80 \\
-    Discriminante lineal   & 0.846 & 0.758 & 0.788 & 0.80 \\
+    \multicolumn{5}{l}{\emph{Station-day} ($n=2{,}927$)} \\
+    Logistic regression    & 0.850 & 0.698 & 0.853 & 0.80 \\
+    Linear discriminant    & 0.846 & 0.758 & 0.788 & 0.80 \\
     \midrule
-    \multicolumn{5}{l}{\emph{Área metropolitana} ($n=365$)} \\
-    Autorregresivo AR(1)   & 0.898 & 0.759 & 0.841 & 0.878 \\
-    Climatología (base)    & 0.668 & ---   & ---   & --- \\
-    Persistencia (base)    & 0.717 & ---   & ---   & --- \\
+    \multicolumn{5}{l}{\emph{Metropolitan area} ($n=365$)} \\
+    Autoregressive AR(1)   & 0.898 & 0.759 & 0.841 & 0.878 \\
+    Climatology (baseline) & 0.668 & ---   & ---   & --- \\
+    Persistence (baseline) & 0.717 & ---   & ---   & --- \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \begin{table}[t]
   \centering
-  \caption{Ejes retenidos por las técnicas de interdependencia sobre el
-    ajuste 2021--2024. Varianza: total en el ACP, común en el AF.}
+  \caption{Axes retained by the interdependence techniques on the 2021--2024
+    fitting data. Variance: total for PCA, common for FA.}
   \label{tab:resultados-ejes}
   \small
   \begin{tabular}{llr}
     \toprule
-    Técnica & Eje & Var. (\%) \\
+    Technique & Axis & Var. (\%) \\
     \midrule
-    \multirow{3}{*}{ACP (15 variables)}
-      & Carga primaria de combustión & 26.1 \\
-      & Forzamiento fotoquímico      & 19.8 \\
-      & Estancamiento atmosférico    & 10.0 \\
+    \multirow{3}{*}{PCA (15 variables)}
+      & Primary combustion load      & 26.1 \\
+      & Photochemical forcing        & 19.8 \\
+      & Atmospheric stagnation       & 10.0 \\
     \midrule
-    \multirow{3}{*}{AF (13 variables)}
-      & Combustión primaria          & 15.7 \\
-      & Ventilación                  & 14.5 \\
-      & Forzamiento fotoquímico      & 10.1 \\
+    \multirow{3}{*}{FA (13 variables)}
+      & Primary combustion           & 15.7 \\
+      & Ventilation                  & 14.5 \\
+      & Photochemical forcing        & 10.1 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Cuatro resultados atraviesan las técnicas. Primero, los mismos tres ejes
-aparecen por dos caminos distintos, y el AF corrige al ACP en un punto: el
-eje de estancamiento era un eje de viento, porque la presión barométrica
-tiene comunalidad de 0.13 y casi toda su varianza es específica. Segundo, la
-jerarquía de efectos es estable en los tres clasificadores: el forzamiento
-fotoquímico pesa más que la combustión primaria, la ventilación protege, y
-en los modelos día-estación la temporada y la zona pesan más que cualquier
-factor. Tercero, la dependencia temporal es real y aprovechable: el rezago
-de la respuesta sube el AUC de área metropolitana de 0.882 a 0.898 y
-multiplica los momios por 3.83. Cuarto, todos los modelos comparten un
-efecto de año que ningún predictor explica: 2024 y 2025 son los años de
-ozono más alto de la serie y también los mejor clasificados, y el desempeño
-esperado en un año cualquiera queda entre 0.04 y 0.05 por debajo del de la
-validación.
+Four results cut across the techniques. First, the same three axes emerge
+along two different paths, and FA corrects PCA on one point: the stagnation
+axis was a wind axis, because barometric pressure has a communality of 0.13
+and almost all of its variance is specific. Second, the hierarchy of effects
+is stable across the three classifiers: photochemical forcing weighs more
+than primary combustion, ventilation protects, and in the station-day models
+season and zone weigh more than any factor. Third, temporal dependence is
+real and exploitable: the response lag raises the metropolitan-area AUC from
+0.882 to 0.898 and multiplies the odds by 3.83. Fourth, all models share a
+year effect that no predictor explains: 2024 and 2025 are the highest-ozone
+years of the series and also the best classified, and the performance
+expected in an arbitrary year is between 0.02 and 0.05 below that of the
+validation.

@@ -1,78 +1,74 @@
-\subsection{Análisis factorial exploratorio}
+\subsection{Exploratory factor analysis}
 \label{sec:analisis-factorial}
 
-El análisis factorial complementa al ACP (\cref{sec:pca}) al separar
-la varianza compartida entre variables de la específica de cada una.
-Para cada variable
-estandarizada se plantea
+Factor analysis complements PCA (\cref{sec:pca}) by separating the variance
+shared among variables from the variance specific to each. For each
+standardized variable,
 \begin{equation}
   z_j=\sum_{k=1}^{3}\lambda_{jk}f_k+\varepsilon_j,
   \qquad h_j^2=\sum_{k=1}^{3}\lambda_{jk}^2.
   \label{eq:af-modelo}
 \end{equation}
-Los $f_k$ son factores latentes y las cargas $\lambda_{jk}$ indican
-la magnitud y el sentido de su asociación con cada variable. Con
-factores ortogonales de varianza unitaria, la comunalidad $h_j^2$ es
-la proporción de varianza explicada; la unicidad $1-h_j^2$ recoge
-la parte específica y el error.
+The $f_k$ are latent factors, and the loadings $\lambda_{jk}$ give the
+magnitude and direction of their association with each variable. With
+orthogonal factors of unit variance, the communality $h_j^2$ is the
+proportion of variance explained; the uniqueness $1-h_j^2$ captures the
+specific part and the error.
 
-\paragraph{Adecuación y extracción}
-El diagnóstico inicial utiliza 15 predictores y 16,028 observaciones
-completas de 2021--2024. Bartlett
-rechaza la ausencia de correlaciones ($p<0.001$), aunque la dependencia
-temporal y espacial limita esta prueba. El KMO inicial de 0.647
-indica adecuación mediocre. Se retira \texttt{NOX\_06\_09} por su
-redundancia con NO y NO2 (VIF de 45.73). Sobre las 14 variables
-restantes, MAP de Velicer sugiere tres factores, frente a siete del
-análisis paralelo; se adopta MAP por parsimonia, conservando esta
-discrepancia como limitación.
+\paragraph{Adequacy and extraction}
+The initial diagnosis uses 15 predictors and 16,028 complete observations
+from 2021--2024. Bartlett's test rejects the absence of correlations
+($p<0.001$), although temporal and spatial dependence limit this test. The
+initial KMO of 0.647 indicates mediocre adequacy. \texttt{NOX\_06\_09} is
+removed because of its redundancy with NO and NO2 (VIF of 45.73). On the
+remaining 14 variables, Velicer's MAP suggests three factors, versus seven
+from parallel analysis; MAP is adopted for parsimony, and the discrepancy is
+kept as a limitation.
 
-La extracción por ejes principales iterados produce una comunalidad
-inadmisible de 1.093 para \texttt{RH\_min\_diurna}; se elimina esta
-variable y se conserva la humedad media. El bloque final de 13
-predictores alcanza un KMO de 0.677 y un VIF máximo de 2.54, sin
-comunalidades superiores a uno. Se mantienen tres factores y se
-aplica varimax para facilitar su interpretación mediante ejes
-ortogonales (\cref{fig:af-diagrama}).
+Iterated principal axis extraction produces an inadmissible communality of
+1.093 for \texttt{RH\_min\_diurna}; this variable is removed and mean
+humidity is kept. The final block of 13 predictors reaches a KMO of 0.677
+and a maximum VIF of 2.54, with no communalities above one. Three factors are
+retained and varimax is applied to ease their interpretation through
+orthogonal axes (\cref{fig:af-diagrama}).
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.92\linewidth]{af_diagrama_cargas.pdf}
-  \caption{Cargas varimax con $|\lambda|\geq0.30$. Flechas sólidas:
-  asociaciones positivas; discontinuas: negativas. Los valores grises
-  indican unicidades.}
+  \caption{Varimax loadings with $|\lambda|\geq0.30$. Solid arrows: positive
+    associations; dashed: negative. Gray values indicate uniquenesses.}
   \label{fig:af-diagrama}
 \end{figure}
 
-\paragraph{Interpretación}
-Los factores explican el 40.3\,\% de la varianza total de los 13
-predictores. \emph{Combustión primaria} (15.7\,\%) agrupa NO2 (0.74), NO
-(0.68), PM10 (0.63), CO (0.49) y SO2. \emph{Ventilación} (14.5\,\%) reúne
-la velocidad media y mínima del viento, con cargas de 0.88 y 0.77, y la
-componente zonal ($-0.52$). \emph{Forzamiento fotoquímico} (10.1\,\%)
-combina temperatura máxima (0.72), radiación acumulada (0.63) y humedad
-media ($-0.48$): días
-cálidos, soleados y secos. La presión tiene comunalidad de apenas
-0.13, por lo que el nombre ventilación resulta más preciso que
-atribuir al factor un mecanismo anticiclónico.
+\paragraph{Interpretation}
+The factors explain 40.3\,\% of the total variance of the 13 predictors.
+\emph{Primary combustion} (15.7\,\%) groups NO2 (0.74), NO (0.68), PM10
+(0.63), CO (0.49) and SO2. \emph{Ventilation} (14.5\,\%) gathers mean and
+minimum wind speed, with loadings of 0.88 and 0.77, and the zonal component
+($-0.52$). \emph{Photochemical forcing} (10.1\,\%) combines maximum
+temperature (0.72), cumulative radiation (0.63) and mean humidity ($-0.48$):
+warm, sunny, dry days. Pressure has a communality of only 0.13, so the name
+ventilation is more accurate than attributing an anticyclonic mechanism to
+the factor.
 
-Tres decisiones que se probaron y se descartaron en el camino ---el análisis paralelo de Horn, la extracción por máxima verosimilitud y la rotación oblicua--- se documentan en \cref{sec:tecnicas-descartadas}.
+Three choices that were tried and discarded along the way ---Horn's parallel
+analysis, maximum likelihood extraction and oblique rotation--- are
+documented in \cref{sec:tecnicas-descartadas}.
 
-\paragraph{Ajuste y alcance}
-El residuo cuadrático medio de las correlaciones reconstruidas
-(RMSR) es 0.0555; 26 de 78 pares conservan residuos absolutos mayores
-que 0.05. El ajuste es razonable, pero parcial. Los puntajes de
-Bartlett, aplicados a 2025 con pesos de entrenamiento, tienen VIF
-cercanos a 1.01 y correlación absoluta máxima de 0.097. Por eso son
-los predictores de los modelos de \cref{sec:clasificacion_tecs}, en lugar
-de las puntuaciones del ACP, cuyo contraste se reporta ahí.
+\paragraph{Fit and scope}
+The root mean square residual of the reconstructed correlations (RMSR) is
+0.0555; 26 of 78 pairs retain absolute residuals greater than 0.05. The fit
+is reasonable but partial. Bartlett scores, applied to 2025 with training
+weights, have VIFs close to 1.01 and a maximum absolute correlation of 0.097.
+That is why they, rather than the PCA scores, are the predictors of the
+models of \cref{sec:clasificacion_tecs}, where the comparison is reported.
 
-Los tres factores reaparecen en 2025 con congruencia de Tucker de
-0.973 para combustión, 0.939 para ventilación y 0.924 para fotoquímica:
-la estructura es estable fuera del periodo de ajuste. La determinación de
-los puntajes (correlación entre puntaje y factor) es 0.880, 0.918 y 0.833;
-el forzamiento fotoquímico comparte 69\,\% de su varianza con el factor
-que representa, y el resto es error de estimación. Persisten el KMO
-mediocre y la transformación Box--Cox estimada sobre todo el periodo. Los factores describen asociaciones; sin mediciones de
-compuestos orgánicos volátiles no permiten establecer mecanismos
-de formación de ozono.
+The three factors reappear in 2025 with Tucker congruence coefficients of
+0.973 for combustion, 0.939 for ventilation and 0.924 for photochemistry: the
+structure is stable outside the fitting period. The factor score determinacy
+(correlation between score and factor) is 0.880, 0.918 and 0.833;
+photochemical forcing shares 69\,\% of its variance with the factor it
+represents, and the rest is estimation error. The mediocre KMO and the
+Box--Cox transformation estimated on the full period remain as caveats. The
+factors describe associations; without measurements of volatile organic
+compounds they cannot establish ozone formation mechanisms.

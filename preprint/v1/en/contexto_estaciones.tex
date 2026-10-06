@@ -1,71 +1,70 @@
-\subsection{Las estaciones y su contexto geográfico}
+\subsection{The stations and their geographic context}
 \label{sec:contexto-estaciones}
 
-El AMM ocupa un valle a unos 500 msnm limitado al sur y al poniente por la
-Sierra Madre Oriental, al oriente por el Cerro de la Silla y al norte por el
-Cerro del Topo Chico y la Sierra de las Mitras. Las 15 estaciones del SIMA se
-reparten en ese valle a lo largo de un gradiente de elevación de 334 msnm,
-en la planicie del sureste, a 702 msnm, al pie de la sierra en el noroeste
-(\cref{tab:estaciones}). El código de cada estación indica su cuadrante, y a
-partir de él se homologan en siete zonas que los modelos de
-\cref{sec:clasificacion_tecs} usan como predictor categórico.
+The MMA occupies a valley at about 500 m above sea level (a.s.l.), bounded to
+the south and west by the Sierra Madre Oriental, to the east by Cerro de la
+Silla and to the north by Cerro del Topo Chico and Sierra de las Mitras. The
+15 SIMA stations are spread across this valley along an elevation gradient
+from 334 m a.s.l., on the southeastern plain, to 702 m a.s.l., at the foot of
+the mountains in the northwest (\cref{tab:estaciones}). Each station code
+indicates its quadrant, and from it the stations are grouped into seven
+zones that the models of \cref{sec:clasificacion_tecs} use as a categorical
+predictor.
 
 \begin{table}[t]
   \centering
-  \caption{Estaciones del SIMA, zona a la que se homologan y elevación.
-    Coordenadas en grados y minutos; todas en latitud norte y longitud
-    oeste.}
+  \caption{SIMA stations, the zone to which each is assigned, and elevation.
+    Coordinates in degrees and minutes; all north latitude and west
+    longitude.}
   \label{tab:estaciones}
   \small
   \begin{tabular}{llrll}
     \toprule
-    Código & Zona & msnm & Lat. & Long. \\
+    Code & Zone & m a.s.l. & Lat. & Long. \\
     \midrule
-    \texttt{SE3}  & Sureste  & 334 & 25°36' & 100°00'  \\
-    \texttt{NE3}  & Noreste  & 346 & 25°47' & 100°05' \\
-    \texttt{SE2}  & Sureste  & 387 & 25°39' & 100°06' \\
-    \texttt{NE2}  & Noreste  & 432 & 25°47' & 100°11' \\
-    \texttt{NE}   & Noreste  & 474 & 25°45' & 100°15' \\
-    \texttt{SE}   & Sureste  & 500 & 25°40' & 100°15' \\
-    \texttt{NTE}  & Norte    & 503 & 25°48' & 100°20' \\
-    \texttt{NTE2} & Norte    & 520 & 25°44' & 100°19' \\
-    \texttt{SUR}  & Sur      & 555 & 25°37' & 100°16' \\
-    \texttt{CE}   & Centro   & 562 & 25°41' & 100°20' \\
-    \texttt{NO}   & Noroeste & 568 & 25°46' & 100°22' \\
-    \texttt{NO3}  & Noroeste & 607 & 25°46' & 100°28' \\
-    \texttt{SO2}  & Suroeste & 636 & 25°40' & 100°25' \\
-    \texttt{SO}   & Suroeste & 674 & 25°41' & 100°27' \\
-    \texttt{NO2}  & Noroeste & 702 & 25°48' & 100°35' \\
+    \texttt{SE3}  & Southeast & 334 & 25°36' & 100°00'  \\
+    \texttt{NE3}  & Northeast & 346 & 25°47' & 100°05' \\
+    \texttt{SE2}  & Southeast & 387 & 25°39' & 100°06' \\
+    \texttt{NE2}  & Northeast & 432 & 25°47' & 100°11' \\
+    \texttt{NE}   & Northeast & 474 & 25°45' & 100°15' \\
+    \texttt{SE}   & Southeast & 500 & 25°40' & 100°15' \\
+    \texttt{NTE}  & North     & 503 & 25°48' & 100°20' \\
+    \texttt{NTE2} & North     & 520 & 25°44' & 100°19' \\
+    \texttt{SUR}  & South     & 555 & 25°37' & 100°16' \\
+    \texttt{CE}   & Center    & 562 & 25°41' & 100°20' \\
+    \texttt{NO}   & Northwest & 568 & 25°46' & 100°22' \\
+    \texttt{NO3}  & Northwest & 607 & 25°46' & 100°28' \\
+    \texttt{SO2}  & Southwest & 636 & 25°40' & 100°25' \\
+    \texttt{SO}   & Southwest & 674 & 25°41' & 100°27' \\
+    \texttt{NO2}  & Northwest & 702 & 25°48' & 100°35' \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Tres factores geográficos condicionan las mediciones. El primero es el
-viento: la mediana de la componente zonal del viento es negativa (\cref{tab:cuartiles-iqr}), es decir, el
-viento predominante entra del oriente y arrastra los precursores emitidos en
-el centro y el oriente de la ciudad hacia el poniente, donde la sierra frena
-su salida. El segundo es la elevación, que covaría con la distancia a las
-fuentes de \ce{NOx} y con el uso de suelo: la correlación entre la elevación
-de una estación y su tasa de excedencia es 0.827 sobre las 15 estaciones
-(\cref{fig:elevacion-excedencia}). El tercero es el encierro orográfico ya
-descrito en \cref{sec:objetivo}, que en episodios de alta presión y viento
-débil impide la dispersión vertical y horizontal. El resultado es un
-ordenamiento poniente--oriente estable en las cuatro temporadas: el Noroeste
-y el Suroeste concentran las tasas de excedencia más altas (43.3\,\% y
-42.1\,\%) y el Noreste la más baja (19.5\,\%).
+Three geographic factors shape the measurements. The first is wind: the
+median zonal wind component is negative (\cref{tab:cuartiles-iqr}), that is,
+the prevailing wind enters from the east and carries the precursors emitted
+in the center and east of the city toward the west, where the mountains
+block their exit. The second is elevation, which covaries with distance to
+\ce{NOx} sources and with land use: the correlation between a station's
+elevation and its exceedance rate is 0.827 across the 15 stations
+(\cref{fig:elevacion-excedencia}). The third is the orographic enclosure
+already described in \cref{sec:objetivo}, which prevents vertical and
+horizontal dispersion during episodes of high pressure and weak wind. The
+result is a west--east ordering that is stable across the four seasons: the
+Northwest and Southwest have the highest exceedance rates (43.3\,\% and
+42.1\,\%) and the Northeast the lowest (19.5\,\%).
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{elevacion_vs_excedencia.pdf}
-  \caption{Tasa de excedencia del MDA8 a 51 ppb contra elevación de cada
-    estación, 2021--2025. Con $n=15$ y estaciones vecinas correlacionadas, la
-    recta describe una asociación, no un efecto de la altitud.}
+  \caption{MDA8 exceedance rate at 51 ppb versus the elevation of each
+    station, 2021--2025. With $n=15$ and correlated neighboring stations,
+    the line describes an association, not an effect of altitude.}
   \label{fig:elevacion-excedencia}
 \end{figure}
 
-Dos consideraciones acotan la comparabilidad entre estaciones.
-\texttt{NO3} opera desde diciembre de 2022 y \texttt{NE3} entró en operación
-después que el resto, de modo que su ventana es más corta; y ninguna estación
-mide compuestos orgánicos volátiles, el segundo precursor del ozono, lo que
-limita toda interpretación química a los óxidos de nitrógeno y al \ce{CO}
-como sustituto.
+Two considerations limit comparability across stations. \texttt{NO3} has
+operated only since December 2022, so its window is shorter; and no station
+measures volatile organic compounds, the second ozone precursor, which
+restricts any chemical interpretation to nitrogen oxides, with \ce{CO} as a proxy.

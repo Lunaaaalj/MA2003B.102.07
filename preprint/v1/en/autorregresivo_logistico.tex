@@ -1,94 +1,95 @@
-\subsection{Modelo autorregresivo logístico}\label{sec:autorregresivo}
+\subsection{Autoregressive logistic model}\label{sec:autorregresivo}
 
-Un modelo autorregresivo explica el valor presente de una serie a partir de
-sus propios valores pasados. En su forma clásica, AR($p$), la observación
-$y_t$ es una combinación lineal de los $p$ rezagos $y_{t-1},\dots,y_{t-p}$
-más ruido. Aquí la respuesta es binaria (día de excedencia o no), así que la
-dependencia temporal no puede entrar como media lineal; entra como término
-del predictor de una regresión logística:
+An autoregressive model explains the present value of a series from its own
+past values. In its classical form, AR($p$), the observation $y_t$ is a
+linear combination of the $p$ lags $y_{t-1},\dots,y_{t-p}$ plus noise. Here
+the response is binary (exceedance day or not), so temporal dependence cannot
+enter as a linear mean; it enters as a term in the linear predictor of a
+logistic regression:
 \begin{equation}
   \operatorname{logit} P(y_t = 1 \mid y_{t-1}, x_t)
     = x_t'\beta + \sum_{i=1}^{p} \alpha_i\, y_{t-i},
   \label{eq:arlog}
 \end{equation}
-donde $x_t$ reúne los tres puntajes factoriales del mismo día
-(\cref{sec:analisis-factorial}) y los armónicos anual y semianual del
-calendario. La \cref{sec:serie-tiempo} mostró que la autocorrelación de
-rezago 1 sobrevive a la descomposición estacional; \cref{eq:arlog} es la
-forma de aprovecharla en lugar de declararla como limitación, como se hizo en
+where $x_t$ contains the three same-day factor scores
+(\cref{sec:analisis-factorial}) and the annual and semiannual calendar
+harmonics. \Cref{sec:serie-tiempo} showed that the lag-1 autocorrelation
+survives the seasonal decomposition; \cref{eq:arlog} is the way to exploit it
+instead of declaring it a limitation, as was done in
 \cref{sec:limitaciones-clasificacion}.
 
-\subsubsection{Proceso}
+\subsubsection{Procedure}
 
-El modelo se ajusta sobre la serie diaria de área metropolitana construida en
-\cref{sec:serie-tiempo}, con $y_t = 1$ cuando al menos la mitad de las
-estaciones que reportan excede el umbral de \texttt{excede\_anio\_5}. No se
-modela la fracción de estaciones como binomial: la correlación transversal
-produce una sobredispersión de 5.97, que subestimaría los errores estándar
-por un factor de 2.4. El ajuste usa 2021--2024 y la validación 2025, la misma
-partición que \cref{sec:clasificacion_tecs}. La especificación sale de cuatro
-diagnósticos, no de una elección a mano:
+The model is fitted on the daily metropolitan-area series built in
+\cref{sec:serie-tiempo}, with $y_t = 1$ when at least half of the reporting
+stations exceed the \texttt{excede\_anio\_5} threshold. The fraction of
+stations is not modeled as binomial: the cross-sectional correlation produces
+an overdispersion of 5.97, which would underestimate the standard errors by a
+factor of 2.4. Fitting uses 2021--2024 and validation 2025, the same
+partition as \cref{sec:clasificacion_tecs}. The specification follows from
+four diagnostics, not from a manual choice:
 
 \begin{enumerate}
-  \item \textbf{Orden $p$.} La PACF de $y_t$ corta después del primer rezago
-    (0.463 en el rezago 1, 0.100 en el 2) y el BIC, condicionado a las
-    covariables, se minimiza en $p=1$. El rezago sobrevive a los factores
-    contemporáneos ($LR = 71.4$, 1 g.l.): la persistencia no es un reflejo de
-    que la meteorología sea persistente.
-  \item \textbf{Estacionariedad.} Una serie binaria no puede tener raíz
-    unitaria; lo que se verifica es homogeneidad temporal. El coeficiente
-    autorregresivo no cambia entre 2021--2023 y 2024 ($p=0.64$), pero el
-    nivel sí: una indicadora de 2024 en adelante es significativa
-    ($p=0.0013$). Es un escalón que los factores no absorben y se declara
-    como limitación.
-  \item \textbf{Forma del predictor.} El \emph{linktest} rechaza sin
-    curvatura y deja de rechazar ($p=0.60$) al incluir los cuadrados de
-    ventilación y forzamiento fotoquímico, cuyos signos negativos indican
-    saturación del efecto. El \emph{link} logit es correcto.
-  \item \textbf{Dependencia residual.} Con el rezago, la autocorrelación de
-    los residuales de Pearson en el rezago 1 cae de 0.212 a 0.025. Queda un
-    residuo de 0.099 en el rezago 2 que no justifica un segundo rezago.
+  \item \textbf{Order $p$.} The PACF of $y_t$ cuts off after the first lag
+    (0.463 at lag 1, 0.100 at lag 2), and the BIC, conditional on the
+    covariates, is minimized at $p=1$. The lag survives the contemporaneous
+    factors ($LR = 71.4$, 1 d.f.): the persistence is not a reflection of
+    persistent meteorology.
+  \item \textbf{Stationarity.} A binary series cannot have a unit root; what
+    is checked is temporal homogeneity. The autoregressive coefficient does
+    not change between 2021--2023 and 2024 ($p=0.64$), but the level does: an
+    indicator for 2024 onward is significant ($p=0.0013$). It is a step that
+    the factors do not absorb, and it is declared as a limitation.
+  \item \textbf{Form of the predictor.} The \emph{linktest} rejects without
+    curvature and stops rejecting ($p=0.60$) when the squares of ventilation
+    and photochemical forcing are included; their negative signs indicate
+    saturation of the effect. The logit \emph{link} is correct.
+  \item \textbf{Residual dependence.} With the lag, the lag-1 autocorrelation
+    of the Pearson residuals drops from 0.212 to 0.025. A residual of 0.099
+    remains at lag 2, which does not justify a second lag.
 \end{enumerate}
 
-\subsubsection{Resultados e interpretación}
+\subsubsection{Results and interpretation}
 
-Los coeficientes se leen como razones de momios, igual que en la
-\cref{tab:momios-log}, y ningún intervalo del 95\,\% cruza el 1. Haber
-excedido el día anterior multiplica los momios de exceder hoy por 3.83: es
-el efecto que justifica el término autorregresivo. Entre los factores, el
-forzamiento fotoquímico es el de mayor efecto (3.69 por desviación
-estándar), seguido de la combustión primaria (2.37); la ventilación es el
-único factor protector (0.32). Los cuadráticos quedan por debajo de 1 (0.70
-y 0.69): el efecto marginal disminuye cuando el factor ya es alto.
+The coefficients are read as odds ratios, as in \cref{tab:momios-log}, and no
+95\,\% interval crosses 1. Having exceeded the previous day multiplies the
+odds of exceeding today by 3.83: this is the effect that justifies the
+autoregressive term. Among the factors, photochemical forcing has the largest
+effect (3.69 per standard deviation), followed by primary combustion (2.37);
+ventilation is the only protective factor (0.32). The quadratic terms are
+below 1 (0.70 and 0.69): the marginal effect decreases when the factor is
+already high.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{nowcast_roc.pdf}
-  \caption{Curvas ROC en validación (2025) del modelo autorregresivo y de
-    las dos líneas base. La persistencia produce tres vértices porque su
-    predictor es binario.}
+  \caption{ROC curves in validation (2025) of the autoregressive model and
+    the two baselines. Persistence produces three vertices because its
+    predictor is binary.}
   \label{fig:nowcast-roc}
 \end{figure}
 
-Un AUC alto no basta; hay que compararlo contra lo que se obtendría sin
-modelo. Las dos líneas base son la climatología (solo el calendario, AUC
-0.668) y la persistencia (hoy será como ayer, AUC 0.717). El modelo alcanza
-0.898 en 2025 y supera a ambas con $p<10^{-5}$ en la prueba de DeLong
-(\cref{fig:nowcast-roc}). Con el umbral de Youden fijado sobre el ajuste
-(0.327), no sobre la validación, la sensibilidad es de 0.759 y la
-especificidad de 0.841: de 170 días de excedencia detecta 129, con 31 falsas
-alarmas en 195 días limpios.
+A high AUC is not enough; it must be compared with what would be obtained
+without a model. The two baselines are climatology (calendar only, AUC 0.668)
+and persistence (today will be like yesterday, AUC 0.717). The model reaches
+0.898 in 2025 and outperforms both with $p<10^{-5}$ in DeLong's test
+(\cref{fig:nowcast-roc}). With Youden's threshold set on the fitting data
+(0.327), not on the validation data, sensitivity is 0.759 and specificity
+0.841: of 170 exceedance days it detects 129, with 31 false alarms in 195
+clean days.
 
-La validación cruzada dejando un año fuera separa el desempeño de la
-partición del esperado en un año cualquiera: el AUC va de 0.840 (2021) a
-0.915 (2024), con un agrupado de 0.878, IC 95\,\% $[0.859, 0.897]$. Esa
-segunda cifra es la estimación de generalización; el 0.898 de 2025 cae
-dentro del rango. El efecto de año no se explica por la prevalencia ni por la
-cobertura de estaciones y es la limitación principal del modelo.
+Leave-one-year-out cross-validation separates the performance on the
+partition from the performance expected in an arbitrary year: the AUC ranges
+from 0.840 (2021) to 0.915 (2024), with a pooled value of 0.878, 95\,\% CI
+$[0.859, 0.897]$. That second figure is the generalization estimate; the
+0.898 of 2025 falls within the range. The year effect is not explained by
+prevalence or by station coverage, and it is the main limitation of the
+model.
 
-Dos precisiones acotan la lectura. El modelo subpredice en 2025 (media
-predicha 0.338 contra 0.466 observado) por el escalón de nivel de 2024, y no
-se recalibra porque sería ajustar un parámetro al periodo de prueba. Y es
-\emph{nowcasting}, no pronóstico: los factores son del mismo día que la
-respuesta, de modo que el modelo distingue días dentro de una temporada ---lo
-que la climatología no puede hacer--- pero no anticipa el ozono de mañana.
+Two caveats bound the reading. The model underpredicts in 2025 (mean
+prediction 0.338 versus 0.466 observed) because of the 2024 level step, and
+it is not recalibrated because that would fit a parameter to the test
+period. And it is \emph{nowcasting}, not forecasting: the factors are from
+the same day as the response, so the model distinguishes days within a
+season ---which climatology cannot do--- but does not anticipate tomorrow's
+ozone.

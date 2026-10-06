@@ -1,60 +1,92 @@
-\subsection{Análisis de componentes principales}
+\subsection{Principal component analysis}
 \label{sec:pca}
 
-El procedimiento de ACP es esencial para tratar la multicolinealidad de los predictores antes de su uso en el modelo: \texttt{NO} y \texttt{NOX} se correlacionan por 0.95. El resultado esperado son los componentes principales con nombres interpretables al contexto y las relaciones de las cargas. Se realiza el procedimiento a partir de los datos en estación-día.
-Las variables categóricas (\texttt{tipo\_dia}, \texttt{temporada}, \texttt{festivo}, \texttt{zona}) no entran al proceso; así como las derivadas de \texttt{O3} y los indicadores de excedencia son la variable respuesta, usar estos se consideraría fuga de información, se construirían componentes que tienen información que se quiere predecir.
+PCA is needed to handle the multicollinearity of the predictors before they
+enter the models: \texttt{NO} and \texttt{NOX} correlate at 0.95. The
+expected outcome is a set of principal components with names that are
+interpretable in context, together with the structure of their loadings. The
+procedure is applied to the station-day data. The categorical variables
+(\texttt{tipo\_dia}, \texttt{temporada}, \texttt{festivo}, \texttt{zona}) are
+excluded, as are the variables derived from \texttt{O3} and the exceedance
+indicators: these are the response, and using them would leak information,
+building components that contain what is meant to be predicted. Of the 16
+continuous daily variables, \texttt{PM2.5} is also excluded, because station
+\texttt{NE3} does not measure it and listwise deletion would remove that
+station entirely; its signal is largely carried by \texttt{PM10} ($r=0.70$).
+PCA therefore runs on 15 predictors.
 
-Se ajusta solo con 2021--2024 y se aplica a 2025 (\cref{sec:modelacion}).
+It is fitted on 2021--2024 only and applied to 2025 (\cref{sec:modelacion}).
 
-Se calculan los eigenvalores y se construye el gráfico scree (\cref{fig:scree_pca}). Sobre él se determina por el método del codo el número de componentes que se mantienen. La curvatura ubica el corte en el tercer componente principal.
+The eigenvalues are computed and the scree plot is built
+(\cref{fig:scree_pca}); the number of components to retain is set by the
+elbow method. The curvature places the cut at the third principal component.
 
-Las cargas son el producto de los eigenvectores y la raíz de sus eigenvalores correspondientes, de modo que se interpretan como la correlación entre las variables y los componentes (\cref{tab:pca-cargas}).
+The loadings are the product of the eigenvectors and the square root of the
+corresponding eigenvalues, so they are interpreted as the correlation between
+the variables and the components (\cref{tab:pca-cargas}).
 
-El primer componente tiene cargas altas con, \texttt{NOX}, \texttt{NO2}, \texttt{NO}, \texttt{PM10} y \texttt{WSR\_min} negativa con $-0.48$, la relación de estas variables es principalmente que son las substancias que actúan en las reacciones químicas que forman el ozono, cuya fuente principal es la quema de combustibles fósiles, y la velocidad del viento (con carga negativa) actúa como dispersión; por esta razón \texttt{PC1} se denomina \textit{Carga primaria de combustión}.
+The first component has high loadings on \texttt{NOX}, \texttt{NO2},
+\texttt{NO} and \texttt{PM10}, and a negative loading on \texttt{WSR\_min}
+($-0.48$). These variables are mainly the substances that take part in the
+chemical reactions that form ozone, whose main source is the burning of
+fossil fuels, while wind speed (with a negative loading) acts as dispersion;
+for this reason \texttt{PC1} is named \textit{primary combustion load}.
 
-\texttt{PC2} tiene cargas altas negativas con la humedad relativa y cargas altas con la radiación solar y la temperatura, estas variables siguen una relación, ya que al aumentar la temperatura, la humedad relativa baja, dado que el aire caliente puede admitir más vapor; los días más soleados y secos aumentan la producción de ozono. Este componente principal es el \textit{Forzamiento fotoquímico}.
+\texttt{PC2} has high negative loadings on relative humidity and high
+positive loadings on solar radiation and temperature. These variables are
+related: as temperature rises, relative humidity falls, since warm air can
+hold more water vapor, and sunnier, drier days increase ozone production.
+This component is \textit{photochemical forcing}.
 
-El tercer componente es una relación de las condiciones que afectan el estancamiento de las partículas de contaminantes, al aumentar presión, aumenta el estancamiento, lo contrario al aumentar la velocidad del viento, este componente es el \textit{Estancamiento atmosférico} (\cref{fig:pca_biplot}).
+The third component gathers the conditions that affect the stagnation of
+pollutants: higher pressure increases stagnation, and higher wind speed
+reduces it. This component is \textit{atmospheric stagnation}
+(\cref{fig:pca_biplot}).
 
-Los tres componentes acumulan 55.9\,\% de la varianza de los 15 predictores.
-La referencia para juzgar esa cifra no es el 100\,\%, sino la que producirían
-tres componentes sobre variables independientes: con $p = 15$ cada eigenvalor
-valdría 1 y tres acumularían 20\,\%. Los retenidos valen 3.92, 2.97 y 1.50,
-2.8 veces el nulo. La correlación entre \texttt{NO} y \texttt{NOX} que motivó
-el análisis queda absorbida en \texttt{PC1}, y las tres coordenadas que
-heredan los modelos posteriores son ortogonales por construcción. Las medias de las puntuaciones de 2025 no son cero (\texttt{PC1} $-0.39$, \texttt{PC3} $+0.35$): 2025 tiene menos carga primaria y más estancamiento que el promedio de 2021--2024, el efecto de año de \cref{sec:modelacion}, no un error de ajuste.
+The three components account for 55.9\,\% of the variance of the 15
+predictors. The benchmark for that figure is not 100\,\% but what three
+components would produce on independent variables: with $p = 15$ each
+eigenvalue would equal 1 and three would account for 20\,\%. The retained
+eigenvalues are 3.92, 2.97 and 1.50, 2.8 times the null. The correlation
+between \texttt{NO} and \texttt{NOX} that motivated the analysis is absorbed
+into \texttt{PC1}, and the three coordinates inherited by the subsequent
+models are orthogonal by construction. The mean 2025 scores are not zero
+(\texttt{PC1} $-0.39$, \texttt{PC3} $+0.35$): 2025 has less primary load and
+more stagnation than the 2021--2024 average, the year effect of
+\cref{sec:modelacion}, not a fitting error.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width = \linewidth]{pca_scree.pdf}
-  \caption{Varianza explicada por cada componente. El decremento mayor ocurre en el tercer componente; a partir de ahí es marginal.}
+  \caption{Variance explained by each component. The largest drop occurs at
+    the third component; beyond it the gain is marginal.}
   \label{fig:scree_pca}
 \end{figure}
 
-\begin{table}[h]
+\begin{table}[ht]
   \centering
-  \caption{Cargas dominantes de los componentes retenidos, con la varianza que
-    explica cada uno.}
+  \caption{Dominant loadings of the retained components, with the variance
+    explained by each.}
   \label{tab:pca-cargas}
   \begin{tabular}{lr}
     \toprule
-    Componente y variable & Carga \\
+    Component and variable & Loading \\
     \midrule
-    \multicolumn{2}{l}{\emph{Carga primaria de combustión} (26.1\,\%)} \\
+    \multicolumn{2}{l}{\emph{Primary combustion load} (26.1\,\%)} \\
     \quad \texttt{NOX}      & 0.88 \\
     \quad \texttt{NO}       & 0.82 \\
     \quad \texttt{NO2}      & 0.81 \\
     \quad \texttt{PM10}     & 0.66 \\
     \quad \texttt{WSR\_min} & $-0.48$ \\
     \midrule
-    \multicolumn{2}{l}{\emph{Forzamiento fotoquímico} (19.8\,\%)} \\
+    \multicolumn{2}{l}{\emph{Photochemical forcing} (19.8\,\%)} \\
     \quad \texttt{RH\_min\_diurna} & $-0.77$ \\
     \quad \texttt{TOUT\_max}       & 0.72 \\
     \quad \texttt{RH\_media}       & $-0.70$ \\
     \quad \texttt{SR\_acum}        & 0.64 \\
     \quad \texttt{WSR\_media}      & 0.61 \\
     \midrule
-    \multicolumn{2}{l}{\emph{Estancamiento atmosférico} (10.0\,\%)} \\
+    \multicolumn{2}{l}{\emph{Atmospheric stagnation} (10.0\,\%)} \\
     \quad \texttt{WSR\_min}        & $-0.50$ \\
     \quad \texttt{viento\_u\_media} & 0.48 \\
     \quad \texttt{WSR\_media}      & $-0.41$ \\
@@ -67,6 +99,11 @@ heredan los modelos posteriores son ortogonales por construcción. Las medias de
 \begin{figure}[t]
   \centering
   \includegraphics[width = \linewidth]{pca_biplot.pdf}
-  \caption{Biplot de los ejes retenidos. Puntos: submuestra de 3,000 observaciones de entrenamiento por temporada. Flechas: cargas escaladas al marco. Nombres abreviados: \texttt{TOUT} y \texttt{SR} son máximo y acumulado diarios; \texttt{NO}, \texttt{NO2}, \texttt{NOX} y \texttt{CO} son la ventana 06--09 h; el resto son medias diarias, salvo \texttt{WSR} mín y \texttt{RH} mín.}
+  \caption{Biplot of the retained axes. Points: subsample of 3,000 training
+    observations, colored by season. Arrows: loadings scaled to the frame.
+    Abbreviated names: \texttt{TOUT} and \texttt{SR} are the daily maximum
+    and total; \texttt{NO}, \texttt{NO2}, \texttt{NOX} and \texttt{CO} are
+    the 06--09 h window; the rest are daily means, except \texttt{WSR} min
+    and \texttt{RH} min.}
   \label{fig:pca_biplot}
 \end{figure}

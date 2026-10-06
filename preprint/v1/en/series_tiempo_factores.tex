@@ -1,81 +1,81 @@
-\subsection{Serie de tiempo de los puntajes factoriales y la excedencia}\label{sec:serie-tiempo}
+\subsection{Time series of the factor scores and exceedance}\label{sec:serie-tiempo}
 
-Los tres puntajes factoriales de \cref{sec:analisis-factorial} y \texttt{excede\_anio\_5}
-(\cref{sec:obj:objetivo}) se caracterizan aquí en el tiempo: no se reabre su
-origen ni su validez, ya establecidos, sino su comportamiento como series.
+The response \texttt{excede\_anio\_5} (\cref{sec:obj:objetivo}) and the
+three factor scores of \cref{sec:analisis-factorial} are characterized here
+over time: their origin and validity, already established, are not
+revisited, only their behavior as series.
 
-\subsubsection{De día-estación a área metropolitana}
+\subsubsection{From station-day to metropolitan area}
 
-Antes de aplicar cualquier descomposición de serie de tiempo hace falta una
-serie sin huecos, y el panel día-estación no lo es. Solo 2 de las 15
-estaciones (\texttt{CE}, \texttt{SE3}) superan 85\,\% de cobertura de
-día-estación válido sobre el calendario 2021--2025, y la peor,
-\texttt{NO3}, llega a 25\,\%; la cobertura global es 68.0\,\%. Filtrar a las estaciones de mejor
-cobertura no resuelve el problema, lo esconde en las tres que sobreviven al
-corte.
+Any time-series decomposition requires a series without gaps, and the
+station-day panel is not one. Only 2 of the 15 stations (\texttt{CE},
+\texttt{SE3}) exceed 85\,\% coverage of valid station-days over the
+2021--2025 calendar, and the worst, \texttt{NO3}, reaches 25\,\%; overall
+coverage is 68.0\,\%. Filtering to the best-covered stations does not solve
+the problem, it hides it in the three that survive the cut.
 
-La alternativa es agregar las 15 estaciones a un valor diario de área
-metropolitana, lo que solo es razonable si las estaciones no son
-independientes entre sí el mismo día. La correlación transversal (Pearson,
-estación contra estación, mismo día) va de una media de 0.50 en ventilación a
-0.85 en forzamiento fotoquímico, con un mínimo apenas negativo únicamente en
-ventilación. Es coherente con la física: la temperatura y la radiación solar
-son fenómenos de escala regional, y el viento depende de la topografía local
-del valle. Esta correlación es también la violación de independencia más
-grande del conjunto de datos, relevante para cualquier modelo que trate cada
-fila día-estación como una observación --- incluida la limitación de
-autocorrelación ya declarada en \cref{sec:limitaciones-clasificacion}.
+The alternative is to aggregate the 15 stations into a daily
+metropolitan-area value, which is only reasonable if stations are not
+independent of one another on the same day. The cross-sectional correlation
+(Pearson, station against station, same day) ranges from a mean of 0.50 for
+ventilation to 0.85 for photochemical forcing, with a barely negative
+minimum only for ventilation. This is consistent with the physics:
+temperature and solar radiation are regional-scale phenomena, whereas wind
+depends on the local topography of the valley. This correlation is also the
+largest violation of independence in the dataset, relevant to any model that
+treats each station-day row as an observation ---including the
+autocorrelation limitation already declared in
+\cref{sec:limitaciones-clasificacion}.
 
-Con la cobertura insuficiente por estación y la correlación transversal alta,
-se agrega a nivel área metropolitana promediando las estaciones que reportan
-cada día. El promedio recupera 99.94\,\% de cobertura del calendario diario;
-un único día, el 2021-02-16, se queda sin ninguna estación y se imputa por
-interpolación lineal --- solo porque la descomposición MSTL exige una serie
-sin huecos, no porque el hueco deje de existir.
+Given the insufficient coverage per station and the high cross-sectional
+correlation, the data are aggregated at the metropolitan-area level by
+averaging the stations that report each day. The average recovers
+99.94\,\% coverage of the daily calendar; a single day, 2021-02-16, has no
+station at all and is imputed by linear interpolation ---only because the
+MSTL decomposition requires a series without gaps, not because the gap
+ceases to exist.
 
-\subsubsection{Descomposición MSTL}
+\subsubsection{MSTL decomposition}
 
-Se ajusta MSTL con periodos semanal (7) y anual (365, no 365.25: MSTL exige
-periodos enteros y el corrimiento acumulado en 4.5 años es de un día,
-despreciable) a las cuatro series de área metropolitana. El ciclo semanal es
-más fuerte en combustión primaria --- el patrón entre semana / fin de semana
-del tráfico y la actividad industrial --- y más débil en la fracción de
-estaciones que excede el umbral, que diluye ese patrón al depender de varios
-factores a la vez.
+MSTL is fitted with weekly (7) and annual (365, not 365.25: MSTL requires
+integer periods and the accumulated drift over 5 years is about one day,
+negligible) periods to the four metropolitan-area series. The weekly cycle is
+strongest for primary combustion ---the weekday/weekend pattern of traffic
+and industrial activity--- and weakest for the fraction of stations above the
+threshold, which dilutes that pattern because it depends on several factors
+at once.
 
-\subsubsection{Autocorrelación residual}
+\subsubsection{Residual autocorrelation}
 
-La prueba de Ljung-Box en los rezagos 7, 14 y 30 rechaza con $p<0.001$ en las
-cuatro series, en ambas versiones (cruda y residual de MSTL) --- el mismo
-problema que \cref{sec:analisis-factorial} documentó para Bartlett: con $n=1{,}826$
-observaciones diarias, el estadístico crece con $n$ y rechaza cualquier
-autocorrelación no trivial, incluida la del residual donde la estacionalidad
-ya se removió. La prueba no discrimina; la magnitud de la ACF sí
-(\cref{fig:acf-excedencia}).
+The Ljung-Box test at lags 7, 14 and 30 rejects with $p<0.001$ for all four
+series, in both versions (raw and MSTL residual) ---the same problem that
+\cref{sec:analisis-factorial} noted for Bartlett: with $n=1{,}826$ daily
+observations, the statistic grows with $n$ and rejects any non-trivial
+autocorrelation, including that of the residual, where seasonality has
+already been removed. The test does not discriminate; the magnitude of the
+ACF does (\cref{fig:acf-excedencia}).
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{acf_pacf_frac_excede_anio_5.pdf}
-  \caption{ACF y PACF hasta el rezago 40 de la fracción que excede: serie
-    cruda (arriba) contra residual de la descomposición MSTL (abajo), con
-    banda $\pm 1.96/\sqrt{n}$.}
+  \caption{ACF and PACF up to lag 40 of the exceeding fraction: raw series
+    (top) versus MSTL decomposition residual (bottom), with
+    $\pm 1.96/\sqrt{n}$ band.}
   \label{fig:acf-excedencia}
 \end{figure}
 
-Tras MSTL, la autocorrelación en el rezago 7 cae de 0.19--0.45 a valores
-entre $-0.15$ y 0.05 en las cuatro series --- la estacionalidad semanal
-prácticamente desaparece. La del rezago 1, en cambio, se mantiene entre 0.49 y
-0.71 en el residual de las cuatro series. Esa persistencia de un día para
-otro no es estacionalidad: es autocorrelación genuina de corto plazo, que
-MSTL no está diseñado para remover. Cuantifica, con una serie continua y sin
-huecos, la misma dependencia temporal que \cref{sec:limitaciones-clasificacion}
-señaló como razón de que los errores estándar del modelo logístico sean
-optimistas.
+After MSTL, the lag-7 autocorrelation falls from 0.19--0.45 to values between
+$-0.15$ and 0.05 in the four series ---the weekly seasonality practically
+disappears. The lag-1 autocorrelation, by contrast, remains between 0.49 and
+0.71 in the residual of all four series. That day-to-day persistence is not
+seasonality: it is genuine short-term autocorrelation, which MSTL is not
+designed to remove. It quantifies, with a continuous series without gaps, the
+same temporal dependence that \cref{sec:limitaciones-clasificacion} identified
+as the reason the standard errors of the logistic model are optimistic.
 
-Dos consecuencias pasan al modelo autorregresivo de
-\cref{sec:autorregresivo}: los rezagos deben calcularse sobre la serie de
-área metropolitana reindexada a calendario diario regular, nunca sobre la
-tabla día-estación, donde la fila anterior puede estar a una semana de
-distancia; y la dependencia de un día para otro es genuina, no un artefacto
-de estacionalidad, así que un modelo que la ignore deja estructura en los
-residuales.
+Two consequences carry over to the autoregressive model of
+\cref{sec:autorregresivo}: lags must be computed on the metropolitan-area
+series reindexed to a regular daily calendar, never on the station-day
+table, where the previous row may be a week away; and the day-to-day
+dependence is genuine, not an artifact of seasonality, so a model that
+ignores it leaves structure in the residuals.

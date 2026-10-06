@@ -1,149 +1,193 @@
-\section{Preparación de la base de datos}
+\section{Data preparation}
 \label{sec:preparacion-datos}
 
-\subsection{Consolidación y limpieza}
+\subsection{Consolidation and cleaning}
 
-Los seis archivos anuales del SIMA no comparten estructura: cambian los
-encabezados, la posición de la fila de unidades y el número de estaciones
-(13 en 2020, 15 desde 2024). Se consolidan en una sola tabla horaria de 15
-parámetros por estación y fecha, 754,603 registros entre 2020 y 2025. La
-auditoría de calidad detecta valores centinela ($-9999$, el código de
-faltante del registrador) y físicamente imposibles (humedad relativa de
-hasta 725\,\%, temperaturas de 785\,°C), que se convierten a faltante en vez
-de imputarse; el detalle está en el diccionario de datos
-(\cref{sec:dic:centinela}). El porcentaje de faltantes por parámetro va de
-3.66\,\% en la radiación solar a 25.23\,\% en \ce{PM2.5}, pero no se reparte
-de forma pareja entre años ni estaciones, lo que determina la ventana de
-estudio.
+The six annual SIMA files do not share a structure: the headers, the
+position of the units row and the number of stations change (13 in 2020,
+15 from 2022 onward). They are consolidated into a single hourly table of
+15 parameters by station and date, 754,603 records between 2020 and 2025.
+The quality audit detects sentinel values ($-9999$, the logger's missing-data
+code) and physically impossible values (relative humidity of up to
+725\,\%, temperatures of 785\,°C), which are set to missing rather than
+imputed; details are given in the data dictionary (\cref{sec:dic:centinela}).
+The share of missing data per parameter ranges from 3.66\,\% for solar
+radiation to 25.23\,\% for \ce{PM2.5}, but it is not evenly distributed
+across years or stations, which determines the study window.
 
-\subsection{Selección de datos}
+\subsection{Data selection}
 
-A partir del diccionario de datos y del diagnóstico de calidad se construye
-el conjunto de datos de los procesos subsiguientes.
+The dataset for the subsequent steps is built from the data dictionary and
+the quality diagnosis.
 
-Dado que el objetivo es analizar el comportamiento del ozono troposférico, se evalúa cada variable y se determina, con base en la literatura, si existe un mecanismo documentado por el cual influya en la formación de \ce{O3}, ya sea químico, físico o meteorológico.
+Since the objective is to analyze the behavior of tropospheric ozone, each
+variable is assessed to determine, based on the literature, whether there is
+a documented mechanism ---chemical, physical or meteorological--- through
+which it influences \ce{O3} formation.
 
-Se fija como variable objetivo el \ce{O3} proveniente de la base de datos:
+The target variable is the \ce{O3} from the database:
 
 \begin{table*}[t]
   \centering
-  \caption{Variable objetivo: ozono troposférico (\ce{O3}).}
+  \caption{Target variable: tropospheric ozone (\ce{O3}).}
   \label{tab:variable-objetivo}
   \begin{tabular}{lcccc}
     \toprule
-    Unidad & Rango de operación & Rango observado & Mediana & Nulos (\%) \\
+    Unit & Operating range & Observed range & Median & Missing (\%) \\
     \midrule
-    ppb & 0--153 a 0--185 & 0.5--265.0 & 23.00 & 14.73 \\
+    ppb & 0--153 to 0--185 & 0.5--265.0 & 23.00 & 14.73 \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
 \begin{quote}
-    Las estaciones reportan resultados cada hora, lo que implica 24 mediciones diarias. La métrica normativa MDA8 colapsa esas 24 mediciones en un único valor por estación y día, ya que la NOM-020-SSA1 fija el límite de ozono sobre el promedio de 8 horas, no sobre el valor horario.
+    Stations report results every hour, i.e., 24 measurements per day. The
+    regulatory MDA8 metric collapses those 24 measurements into a single
+    value per station and day, since NOM-020-SSA1 sets the ozone limit on
+    the 8-hour average, not on the hourly value.
 \end{quote}
 
-El \cref{tab:nom-limites} reúne los valores límite vigentes en México para el
-ozono y el material particulado. Nótese que el indicador normativo del \ce{O3} no
-es la concentración horaria sino el promedio móvil de ocho horas, y que el
-criterio de evaluación es el máximo de los máximos diarios de dichos promedios;
-esto justifica adoptar el máximo diario del promedio móvil de ocho horas (MDA8)
-como variable objetivo del análisis.
+\Cref{tab:nom-limites} lists the current Mexican limit values for ozone and
+particulate matter. Note that the regulatory indicator for \ce{O3} is not the
+hourly concentration but the 8-hour moving average, and that the evaluation
+criterion is the maximum of the daily maxima of those averages; this
+justifies adopting the daily maximum 8-hour moving average (MDA8) as the
+target variable of the analysis.
 
 \begin{table*}[t]
   \centering
-  \caption{Valores límite de calidad del aire vigentes en México para los
-    contaminantes de interés. Los años indican el calendario de cumplimiento
-    gradual establecido por cada norma
-    \parencite{nom020ssa1, nom025ssa1}.}
+  \caption{Current Mexican air quality limit values for the pollutants of
+    interest. The years indicate the gradual compliance schedule set by each
+    standard \parencite{nom020ssa1, nom025ssa1}.}
   \label{tab:nom-limites}
   \footnotesize
   \begin{tabular}{p{2.6cm} p{7.2cm} ccc}
     \toprule
-    & & \multicolumn{3}{c}{Valor límite} \\
+    & & \multicolumn{3}{c}{Limit value} \\
     \cmidrule(lr){3-5}
-    Indicador & Criterio de evaluación & Año 1 & Año 3 & Año 5 \\
+    Indicator & Evaluation criterion & Year 1 & Year 3 & Year 5 \\
     \midrule
-    \multicolumn{5}{l}{\textbf{\ce{PM10}} ($\mu$g/m$^{3}$) --- NOM-025-SSA1-2021, DOF 27-oct-2021} \\
+    \multicolumn{5}{l}{\textbf{\ce{PM10}} ($\mu$g/m$^{3}$) --- NOM-025-SSA1-2021, DOF 27 Oct 2021} \\
     \addlinespace[2pt]
-    24 horas & Percentil 99 (frecuencia tolerada: 1\,\% de veces al año) & 70 & 60 & 50 \\
-    Anual    & Promedio anual de los promedios de 24 horas              & 36 & 28 & 20 \\
+    24 hours & 99th percentile (tolerated frequency: 1\,\% of the time per year) & 70 & 60 & 50 \\
+    Annual   & Annual mean of the 24-hour averages                              & 36 & 28 & 20 \\
     \midrule
-    \multicolumn{5}{l}{\textbf{\ce{PM2.5}} ($\mu$g/m$^{3}$) --- NOM-025-SSA1-2021, DOF 27-oct-2021} \\
+    \multicolumn{5}{l}{\textbf{\ce{PM2.5}} ($\mu$g/m$^{3}$) --- NOM-025-SSA1-2021, DOF 27 Oct 2021} \\
     \addlinespace[2pt]
-    24 horas & Percentil 99 (frecuencia tolerada: 1\,\% de veces al año) & 41 & 33 & 25 \\
-    Anual    & Promedio anual de los promedios de 24 horas              & 10 & 10 & 10 \\
+    24 hours & 99th percentile (tolerated frequency: 1\,\% of the time per year) & 41 & 33 & 25 \\
+    Annual   & Annual mean of the 24-hour averages                              & 10 & 10 & 10 \\
     \midrule
-    \multicolumn{5}{l}{\textbf{Ozono} (\ce{O3}, ppm) --- NOM-020-SSA1-2021, DOF 28-oct-2021} \\
+    \multicolumn{5}{l}{\textbf{Ozone} (\ce{O3}, ppm) --- NOM-020-SSA1-2021, DOF 28 Oct 2021} \\
     \addlinespace[2pt]
-    1 hora                     & Máximo de los máximos diarios de las concentraciones horarias                        & 0,090 & 0,090 & 0,090 \\
-    Promedio móvil de 8 horas  & Máximo de los máximos diarios de las concentraciones de los promedios móviles de 8 horas & 0,065 & 0,060 & 0,051 \\
+    1 hour                 & Maximum of the daily maxima of the hourly concentrations                  & 0.090 & 0.090 & 0.090 \\
+    8-hour moving average  & Maximum of the daily maxima of the 8-hour moving average concentrations   & 0.065 & 0.060 & 0.051 \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
-Los valores faltantes de \ce{O3} por estación y año (\cref{sec:dic:faltantes}) muestran que 2020 es inutilizable: de las 13 estaciones que operaban ese año, 7 registran entre $89\%$ y $100\%$ de datos faltantes. Se descarta por completo el año 2020.
+Missing \ce{O3} values by station and year (\cref{sec:dic:faltantes}) show
+that 2020 is unusable: of the 13 stations operating that year, 7 have between
+89\,\% and 100\,\% missing data. The year 2020 is discarded entirely.
 
-En 2021 los faltantes siguen siendo elevados en varias estaciones, pero dentro de un rango que permite el análisis; de 2022 en adelante ninguna estación supera el $20\%$, salvo \texttt{NO3} en 2025 (30.3\,\%). Se conservan, por lo tanto, los años 2021 a 2025 completos: 1,826 días de calendario.
+In 2021 missing data remain high at several stations, but within a range
+that allows the analysis; from 2022 onward no station exceeds 20\,\%, except
+\texttt{NO3} in 2025 (30.3\,\%). The full years 2021 to 2025 are therefore
+retained: 1,826 calendar days.
 
-Dentro de esta ventana, ninguna estación presenta faltantes que justifiquen excluirla, por lo que se conservan los 15 niveles de la variable \texttt{estacion}. Esta no se somete al mismo criterio que los parámetros medidos: no es una magnitud fisicoquímica sino un identificador
-que define la estructura espacial del conjunto de datos.
+Within this window, no station has enough missing data to justify excluding
+it, so the 15 levels of the variable \texttt{estacion} (station) are kept.
+This variable is not subject to the same criterion as the measured
+parameters: it is not a physicochemical quantity but an identifier that
+defines the spatial structure of the dataset.
 
-A continuación se identifican las variables que afectan los niveles de ozono troposférico. A partir de fuentes de la literatura, se recopila información sobre los procesos químicos, físicos y meteorológicos que facilitan u obstaculizan la síntesis de \ce{O3}.
+Next, the variables that affect tropospheric ozone levels are identified.
+Information on the chemical, physical and meteorological processes that
+promote or hinder \ce{O3} formation is compiled from the literature.
 
 \begin{itemize}
-    \item \textbf{Radiación solar}: en verano, la luz solar es más intensa y las temperaturas incrementan, lo que acelera las reacciones fotoquímicas y produce niveles de ozono más altos.
-    \item \textbf{Variación estacional cuantificada}: concentraciones promedio de $45.6\,\mu\mathrm{g}/\mathrm{m}^{3}$ en verano, $47.3\,\mu\mathrm{g}/\mathrm{m}^{3}$ en primavera, $38.0\,\mu\mathrm{g}/\mathrm{m}^{3}$ en otoño y $33.6\,\mu\mathrm{g}/\mathrm{m}^{3}$ en invierno.
-    \item \textbf{Variación diurna}: los niveles de ozono tienden a ser más altos al final de la tarde y disminuyen de noche por falta de luz solar y por la reacción de titulación con \ce{NO}, que consume ozono.
-    \item \textbf{Topografía}: valles rodeados de montañas atrapan contaminantes y favorecen la formación de ozono (efecto de estancamiento), lo cual aplica en particular a la zona metropolitana de Monterrey.
-    \item \textbf{Eventos agudos}: las olas de calor causan incrementos atípicos de corto plazo.
+    \item \textbf{Solar radiation}: in summer, sunlight is more intense and
+      temperatures rise, which accelerates photochemical reactions and
+      produces higher ozone levels.
+    \item \textbf{Quantified seasonal variation}: mean concentrations of
+      $45.6\,\mu\mathrm{g}/\mathrm{m}^{3}$ in summer,
+      $47.3\,\mu\mathrm{g}/\mathrm{m}^{3}$ in spring,
+      $38.0\,\mu\mathrm{g}/\mathrm{m}^{3}$ in autumn and
+      $33.6\,\mu\mathrm{g}/\mathrm{m}^{3}$ in winter.
+    \item \textbf{Diurnal variation}: ozone levels tend to peak in the late
+      afternoon and decrease at night due to the lack of sunlight and to
+      titration by \ce{NO}, which consumes ozone.
+    \item \textbf{Topography}: valleys surrounded by mountains trap pollutants
+      and favor ozone formation (stagnation effect), which applies in
+      particular to the Monterrey metropolitan area.
+    \item \textbf{Acute events}: heat waves cause atypical short-term
+      increases.
 \end{itemize}
 
-La sección química del artículo de Sillman \parencite{SanfordSillman} describe el mecanismo de formación del ozono troposférico:
+The chemistry section of Sillman's article \parencite{SanfordSillman}
+describes the formation mechanism of tropospheric ozone:
 
 \begin{quote}
-    La formación de ozono en la atmósfera baja es resultado de una serie de reacciones fotoquímicas que involucran precursores emitidos por fuentes naturales y antropogénicas. Estas reacciones comienzan con la fotólisis del dióxido de nitrógeno (\ce{NO2}) bajo luz solar, que produce oxígeno atómico (\ce{O}). Este oxígeno atómico reacciona luego con oxígeno molecular (\ce{O2}) para formar ozono (\ce{O3}).
+    Ozone formation in the lower atmosphere results from a series of
+    photochemical reactions involving precursors emitted by natural and
+    anthropogenic sources. These reactions begin with the photolysis of
+    nitrogen dioxide (\ce{NO2}) under sunlight, which produces atomic oxygen
+    (\ce{O}). This atomic oxygen then reacts with molecular oxygen (\ce{O2})
+    to form ozone (\ce{O3}).
 \end{quote}
 
-El ciclo completo:
+The complete cycle:
 
 \begin{enumerate}
-    \item $\ce{NO2} + h\nu \to \ce{NO}+\ce{O}$ (fotólisis)
-    \item $\ce{O} + \ce{O2} + \ce{M} \to \ce{O3} + \ce{M}$ (formación de ozono)
-    \item Los COV (compuestos orgánicos volátiles) reaccionan con radicales libres para generar \ce{NO2} adicional, alimentando el ciclo continuamente.
+    \item $\ce{NO2} + h\nu \to \ce{NO}+\ce{O}$ (photolysis)
+    \item $\ce{O} + \ce{O2} + \ce{M} \to \ce{O3} + \ce{M}$ (ozone formation)
+    \item VOCs (volatile organic compounds) react with free radicals to
+      generate additional \ce{NO2}, feeding the cycle continuously.
 \end{enumerate}
 
-A partir de esta información se determinan las variables meteorológicas utilizadas en el resto del análisis.
+From this information, the meteorological variables used in the rest of the
+analysis are determined.
 
 \begin{itemize}
-    \item \texttt{TOUT} (temperatura ambiente): a mayor temperatura, la formación de ozono se acelera.
-    \item \texttt{RAINF} (precipitación): la precipitación implica cielo nublado, lo cual disminuye la exposición a radiación solar.
-    \item \texttt{PRS} (presión atmosférica): las altas presiones provocan días despejados, cielos sin nubes y vientos casi nulos, y funcionan además como una \textit{tapa}: el aire pesado desciende, comprime los contaminantes contra el suelo e impide que se dispersen.
-    \item \texttt{WSR} y \texttt{WDR} (velocidad y dirección del viento): determinan la capacidad del ambiente para dispersar los contaminantes.
+    \item \texttt{TOUT} (ambient temperature): the higher the temperature,
+      the faster ozone forms.
+    \item \texttt{RAINF} (precipitation): precipitation implies cloudy skies,
+      which reduce exposure to solar radiation.
+    \item \texttt{PRS} (atmospheric pressure): high pressure brings clear,
+      cloudless days and near-calm winds, and also acts as a \textit{lid}:
+      the heavy air sinks, compresses pollutants against the ground and
+      prevents their dispersion.
+    \item \texttt{WSR} and \texttt{WDR} (wind speed and direction):
+      determine the ability of the atmosphere to disperse pollutants.
 \end{itemize}
 
-De los contaminantes atmosféricos:
+Among the air pollutants:
 
 \begin{itemize}
-    \item \ce{CO} (monóxido de carbono) actúa como sustituto de los COV que reaccionan con radicales libres.
-    \item \ce{NO2} es el ingrediente principal en la reacción fotoquímica con la radiación solar.
-    \item NOX es el grupo $\ce{NO2} + \ce{NO}$, esencial para la formación de \ce{O3}.
-    \item \texttt{PM10} y \texttt{PM2.5} no son gases, sino fragmentos sólidos suspendidos en el aire; una concentración elevada actúa como pantalla contra la luz solar y atenúa las reacciones.
+    \item \ce{CO} (carbon monoxide) acts as a proxy for the VOCs that react
+      with free radicals.
+    \item \ce{NO2} is the main ingredient of the photochemical reaction with
+      solar radiation.
+    \item \ce{NOx} is the group $\ce{NO2} + \ce{NO}$, essential to \ce{O3}
+      formation.
+    \item \texttt{PM10} and \texttt{PM2.5} are not gases but solid particles
+      suspended in the air; high concentrations act as a screen against
+      sunlight and attenuate the reactions.
 \end{itemize}
 
-\subsection{Agregación diaria}
+\subsection{Daily aggregation}
 \label{sec:agregacion-diaria}
 
-La unidad de análisis de los modelos es el día-estación, porque la norma se
-evalúa sobre el MDA8 y no sobre la hora. La tabla horaria limpia se colapsa
-a una fila por día y estación con 16 resúmenes continuos: los precursores
-\ce{NO}, \ce{NO2}, \ce{NOx} y \ce{CO} como media de la ventana 06--09 h;
-temperatura máxima, radiación acumulada, humedad media y mínima diurna,
-presión media, velocidad de viento media y mínima, componentes vectoriales
-medias del viento y medias diarias de \ce{PM10}, \ce{PM2.5} y \ce{SO2}. El
-MDA8 se declara válido solo si al menos 18 de las 24 ventanas móviles de
-8 horas del día están completas; de las 26,691 filas día-estación, 25,100
-cumplen esa regla. Cada resumen y la regla de completitud se justifican en la
-bitácora de agregación del repositorio. Al día-estación se añaden
-\texttt{zona}, \texttt{temporada} y \texttt{tipo\_dia}, que distingue
-laborable, sábado, domingo y los 71 días festivos del periodo, cuyo patrón de
-tráfico es anómalo.
+The unit of analysis of the models is the station-day, because the standard
+is evaluated on the MDA8 and not on the hour. The clean hourly table is
+collapsed to one row per day and station with 16 continuous summaries: the
+precursors \ce{NO}, \ce{NO2}, \ce{NOx} and \ce{CO} as the mean of the
+06--09 h window; maximum temperature, cumulative radiation, mean and
+daytime-minimum humidity, mean pressure, mean and minimum wind speed, mean
+vector wind components, and daily means of \ce{PM10}, \ce{PM2.5} and
+\ce{SO2}. The MDA8 is declared valid only if at least 18 of the 24 8-hour
+moving windows of the day are complete; of the 26,691 station-day rows,
+25,100 meet this rule. Each summary and the completeness rule are justified
+in the aggregation log of the repository. Each station-day is assigned its
+\texttt{zona} (zone), \texttt{temporada} (season) and \texttt{tipo\_dia}
+(day type), which distinguishes weekdays, Saturdays, Sundays and the 81
+public holidays of the period, whose traffic pattern is anomalous.

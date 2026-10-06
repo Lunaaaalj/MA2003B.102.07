@@ -1,156 +1,154 @@
-\section{Diccionario de datos transformados}\label{sec:diccionario-transformado}
-Esta sección documenta el conjunto de datos diario resultante de las
-transformaciones de \cref{sec:transformaciones}. El archivo
-\texttt{data/processed/sima\_transformado\_diario.parquet} constituye la entrada
-de los análisis multivariados posteriores.
+\section{Dictionary of the transformed data}\label{sec:diccionario-transformado}
+This appendix documents the daily dataset that results from the
+transformations of \cref{sec:transformaciones}. The file
+\texttt{data/processed/sima\_transformado\_diario.parquet} is the input of the
+subsequent multivariate analyses.
 
-\subsection{Dimensión y cobertura}
-El conjunto transformado contiene 26,691 observaciones día-estación y 34
-columnas. Comprende 15 estaciones y cubre del 1 de enero de 2021 al 31 de diciembre
-de 2025. Se transformaron y estandarizaron 16 predictores continuos medidos. Las
-18 columnas restantes se conservaron en su escala original.
+\subsection{Size and coverage}
+The transformed dataset contains 26,691 station-day observations and 34
+columns. It comprises 15 stations and covers 1 January 2021 to 31 December
+2025. Sixteen measured continuous predictors were transformed and
+standardized; the remaining 18 columns were kept on their original scale.
 
-El criterio de \cref{sec:transformaciones} se reaplicó sobre la tabla diaria sin
-modificar el método. De las 16 variables continuas, 13 requirieron Box-Cox y
-estandarización z. \texttt{PRS\_media}, \texttt{RH\_media} y
-\texttt{RH\_min\_diurna} cumplieron el criterio de sesgo desde la escala
-original y solo se estandarizaron. Los valores faltantes se conservaron sin
-imputación.
+The criterion of \cref{sec:transformaciones} was reapplied to the daily table
+without changing the method. Of the 16 continuous variables, 13 required
+Box-Cox and $z$-standardization. \texttt{PRS\_media}, \texttt{RH\_media} and
+\texttt{RH\_min\_diurna} met the skewness criterion on their original scale
+and were only standardized. Missing values were kept without imputation.
 
-\subsection{Variables del conjunto diario}
-La \cref{tab:dic-diario-continuas} presenta los 16 predictores continuos. Las
-unidades corresponden a la escala original, antes de la transformación y la
-estandarización.
+\subsection{Variables of the daily dataset}
+\Cref{tab:dic-diario-continuas} presents the 16 continuous predictors. Units
+refer to the original scale, before transformation and standardization.
 
 \begin{table*}[t]
   \centering
-  \caption{Predictores continuos transformados y estandarizados del conjunto
-    diario. Las unidades corresponden a la escala original.}
+  \caption{Transformed and standardized continuous predictors of the daily
+    dataset. Units refer to the original scale.}
   \label{tab:dic-diario-continuas}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
   \begin{tabular}{lp{7.2cm}llr}
     \toprule
-    Variable & Descripción & Unidad & Tratamiento & Faltantes \\
+    Variable & Description & Unit & Treatment & Missing \\
     \midrule
-    \texttt{TOUT\_max} & Máximo diario de temperatura ambiente
+    \texttt{TOUT\_max} & Daily maximum ambient temperature
       & $^{\circ}\mathrm{C}$ & Box-Cox + z & 1,561 \\
-    \texttt{SR\_acum} & Acumulado diario de radiación solar
+    \texttt{SR\_acum} & Daily total solar radiation
       & $\mathrm{kWh}/\mathrm{m}^{2}$ & Box-Cox + z & 1,123 \\
-    \texttt{NO\_06\_09} & Media de NO entre las 06:00 y las 09:00 h
+    \texttt{NO\_06\_09} & Mean NO between 06:00 and 09:00 h
       & ppb & Box-Cox + z & 1,757 \\
-    \texttt{NO2\_06\_09} & Media de NO$_2$ entre las 06:00 y las 09:00 h
+    \texttt{NO2\_06\_09} & Mean NO$_2$ between 06:00 and 09:00 h
       & ppb & Box-Cox + z & 1,776 \\
-    \texttt{NOX\_06\_09} & Media de NO$_x$ entre las 06:00 y las 09:00 h
+    \texttt{NOX\_06\_09} & Mean NO$_x$ between 06:00 and 09:00 h
       & ppb & Box-Cox + z & 1,790 \\
-    \texttt{CO\_06\_09} & Media de CO entre las 06:00 y las 09:00 h
+    \texttt{CO\_06\_09} & Mean CO between 06:00 and 09:00 h
       & ppm & Box-Cox + z & 1,937 \\
-    \texttt{WSR\_media} & Media diaria de la velocidad del viento
+    \texttt{WSR\_media} & Daily mean wind speed
       & km/h & Box-Cox + z & 1,008 \\
-    \texttt{WSR\_min} & Mínimo diario de la velocidad del viento
+    \texttt{WSR\_min} & Daily minimum wind speed
       & km/h & Box-Cox + z & 1,008 \\
-    \texttt{PRS\_media} & Media diaria de la presión atmosférica
-      & mmHg & solo z & 886 \\
-    \texttt{RH\_media} & Media diaria de la humedad relativa
-      & \% & solo z & 2,649 \\
-    \texttt{RH\_min\_diurna} & Mínimo diurno de la humedad relativa
-      & \% & solo z & 2,575 \\
-    \texttt{viento\_u\_media} & Media vectorial diaria del viento en la
-      componente este-oeste & --- & Box-Cox + z & 1,447 \\
-    \texttt{viento\_v\_media} & Media vectorial diaria del viento en la
-      componente norte-sur & --- & Box-Cox + z & 1,447 \\
-    \texttt{PM10\_media} & Media diaria de partículas PM$_{10}$
+    \texttt{PRS\_media} & Daily mean atmospheric pressure
+      & mmHg & z only & 886 \\
+    \texttt{RH\_media} & Daily mean relative humidity
+      & \% & z only & 2,649 \\
+    \texttt{RH\_min\_diurna} & Daytime minimum relative humidity
+      & \% & z only & 2,575 \\
+    \texttt{viento\_u\_media} & Daily vector mean of the east--west wind
+      component & --- & Box-Cox + z & 1,447 \\
+    \texttt{viento\_v\_media} & Daily vector mean of the north--south wind
+      component & --- & Box-Cox + z & 1,447 \\
+    \texttt{PM10\_media} & Daily mean PM$_{10}$
       & $\mu\mathrm{g}/\mathrm{m}^{3}$ & Box-Cox + z & 940 \\
-    \texttt{PM2.5\_media} & Media diaria de partículas PM$_{2.5}$
+    \texttt{PM2.5\_media} & Daily mean PM$_{2.5}$
       & $\mu\mathrm{g}/\mathrm{m}^{3}$ & Box-Cox + z & 5,965 \\
-    \texttt{SO2\_media} & Media diaria de SO$_2$
+    \texttt{SO2\_media} & Daily mean SO$_2$
       & ppb & Box-Cox + z & 1,933 \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
-Con el 2025 completo el sesgo de \texttt{SR\_acum} sube a 0.53 y ya no
-cumple el criterio, por lo que se transforma ($\lambda=0.755$); se conserva
-como predictor continuo y no se convierte en binaria. Las 16 variables de la
-\cref{tab:dic-diario-continuas} quedan dentro del criterio
-$|\mathrm{sesgo}|<0.5$.
+With 2025 complete, the skewness of \texttt{SR\_acum} rises to 0.53 and no
+longer meets the criterion, so it is transformed ($\lambda=0.755$); it is
+kept as a continuous predictor and is not converted to a binary one. All 16
+variables of \cref{tab:dic-diario-continuas} fall within the
+$|\mathrm{skewness}|<0.5$ criterion.
 
-La \cref{tab:dic-diario-originales} reúne las 18 columnas que no se
-transformaron. \texttt{msnm} se conserva porque representa un atributo de la
-estación, con 15 valores repetidos, y no una medición diaria. \texttt{MDA8} y
-\texttt{O3\_max\_1h} permanecen en ppb porque definen las variables objetivo y
-sus umbrales deben conservar una interpretación física directa.
+\Cref{tab:dic-diario-originales} gathers the 18 columns that were not
+transformed. \texttt{msnm} (elevation) is kept because it is an attribute of
+the station, with 15 repeated values, not a daily measurement. \texttt{MDA8}
+and \texttt{O3\_max\_1h} remain in ppb because they define the target
+variables, and their thresholds must keep a direct physical interpretation.
 
 \begin{table*}[t]
   \centering
-  \caption{Columnas conservadas en la escala original dentro del conjunto
-    diario transformado.}
+  \caption{Columns kept on the original scale in the transformed daily
+    dataset.}
   \label{tab:dic-diario-originales}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
   \begin{tabular}{llp{8.0cm}lr}
     \toprule
-    Variable & Tipo & Descripción & Unidad & Faltantes \\
+    Variable & Type & Description & Unit & Missing \\
     \midrule
-    \texttt{estacion} & nominal & Estación de monitoreo SIMA, con 15 niveles
+    \texttt{estacion} & nominal & SIMA monitoring station, with 15 levels
       & --- & 0 \\
-    \texttt{fecha} & fecha & Día calendario de la observación
+    \texttt{fecha} & date & Calendar day of the observation
       & --- & 0 \\
-    \texttt{zona} & nominal & Zona geográfica del catálogo SIMA, con siete
-      niveles & --- & 0 \\
-    \texttt{msnm} & continua & Elevación de la estación sobre el nivel del mar
+    \texttt{zona} & nominal & Geographic zone from the SIMA catalog, with seven
+      levels & --- & 0 \\
+    \texttt{msnm} & continuous & Station elevation above sea level
       & m & 0 \\
-    \texttt{anio} & discreta & Año calendario
+    \texttt{anio} & discrete & Calendar year
       & --- & 0 \\
-    \texttt{mes} & discreta & Mes calendario
+    \texttt{mes} & discrete & Calendar month
       & --- & 0 \\
-    \texttt{temporada} & nominal & Temporada del año, con cuatro niveles
+    \texttt{temporada} & nominal & Season of the year, with four levels
       & --- & 0 \\
-    \texttt{tipo\_dia} & nominal & Día laborable, sábado, domingo o festivo
+    \texttt{tipo\_dia} & nominal & Weekday, Saturday, Sunday or holiday
       & --- & 0 \\
-    \texttt{festivo} & binaria & Indicadora de día de asueto
+    \texttt{festivo} & binary & Public holiday indicator
       & 0/1 & 0 \\
-    \texttt{fin\_de\_semana} & binaria & Indicadora de sábado o domingo
+    \texttt{fin\_de\_semana} & binary & Saturday or Sunday indicator
       & 0/1 & 0 \\
-    \texttt{llovio} & binaria & Indicadora de al menos una hora del día con
-      precipitación & 0/1 & 800 \\
-    \texttt{MDA8} & continua & Máximo diario de la media móvil de 8 h de O$_3$
-      & ppb & 1,591 \\
-    \texttt{ventanas\_validas} & discreta & Número de ventanas móviles de 8 h válidas
-      durante el día, de un máximo de 24 & ventanas & 0 \\
-    \texttt{O3\_max\_1h} & continua & Máximo horario de O$_3$ durante el día
+    \texttt{llovio} & binary & Indicator of at least one hour of the day with
+      precipitation & 0/1 & 800 \\
+    \texttt{MDA8} & continuous & Daily maximum of the 8-h moving average of
+      O$_3$ & ppb & 1,591 \\
+    \texttt{ventanas\_validas} & discrete & Number of valid 8-h moving windows
+      during the day, out of a maximum of 24 & windows & 0 \\
+    \texttt{O3\_max\_1h} & continuous & Hourly maximum of O$_3$ during the day
       & ppb & 838 \\
-    \texttt{excede\_anio\_1} & binaria & Excedencia de MDA8 sobre 65 ppb
+    \texttt{excede\_anio\_1} & binary & MDA8 exceedance above 65 ppb
       & 0/1 & 1,591 \\
-    \texttt{excede\_anio\_3} & binaria & Excedencia de MDA8 sobre 60 ppb
+    \texttt{excede\_anio\_3} & binary & MDA8 exceedance above 60 ppb
       & 0/1 & 1,591 \\
-    \texttt{excede\_anio\_5} & binaria & Excedencia de MDA8 sobre 51 ppb
+    \texttt{excede\_anio\_5} & binary & MDA8 exceedance above 51 ppb
       & 0/1 & 1,591 \\
-    \texttt{excede\_1h} & binaria & Excedencia del máximo horario sobre 95 ppb
-      & 0/1 & 0 \\
+    \texttt{excede\_1h} & binary & Exceedance of the hourly maximum above
+      90 ppb & 0/1 & 0 \\
     \bottomrule
   \end{tabular}
 \end{table*}
 
-\subsection{Sesgo y curtosis}
-La \cref{tab:dic-diario-sesgo} compara la forma de las distribuciones antes y
-después del tratamiento. La estandarización z es una transformación lineal y no
-modifica el sesgo ni la curtosis. Por ello, las tres variables que solo se
-estandarizaron conservan los valores de la escala original.
+\subsection{Skewness and kurtosis}
+\Cref{tab:dic-diario-sesgo} compares the shape of the distributions before
+and after treatment. $z$-standardization is a linear transformation and does
+not change skewness or kurtosis. Therefore, the three variables that were only
+standardized keep the values of the original scale.
 
 \begin{table*}[t]
   \centering
-  \caption{Sesgo y curtosis de exceso, con referencia normal igual a cero, de
-    las variables continuas del conjunto diario antes y después del
-    tratamiento.}
+  \caption{Skewness and excess kurtosis (normal reference equal to zero) of
+    the continuous variables of the daily dataset before and after
+    treatment.}
   \label{tab:dic-diario-sesgo}
   \small
   \setlength{\tabcolsep}{6pt}
   \begin{tabular}{lrrrrrr}
     \toprule
-    & & & \multicolumn{2}{c}{Sesgo} & \multicolumn{2}{c}{Curtosis} \\
+    & & & \multicolumn{2}{c}{Skewness} & \multicolumn{2}{c}{Kurtosis} \\
     \cmidrule(lr){4-5}\cmidrule(lr){6-7}
-    Variable & Despl. & $\lambda$ & Antes & Después & Antes & Después \\
+    Variable & Shift & $\lambda$ & Before & After & Before & After \\
     \midrule
     \texttt{TOUT\_max} & 1.55 & 2.118 & $-0.86$ & $-0.16$ & 0.60 & $-0.49$ \\
     \texttt{SR\_acum} & 1.00 & 0.755 & 0.53 & 0.00 & 3.04 & 0.99 \\
@@ -172,13 +170,14 @@ estandarizaron conservan los valores de la escala original.
   \end{tabular}
 \end{table*}
 
-La agregación diaria redujo la curtosis de exceso de las componentes
-\texttt{viento\_u\_media} y \texttt{viento\_v\_media} de 37.5 a 27.4 y de 38.7
-a 28.3, respectivamente. Esta disminución equivale aproximadamente a 27 \% y
-no elimina por sí sola las colas pesadas. Box-Cox las reduce a 5.25 y 4.97.
+Daily aggregation reduced the excess kurtosis of the
+\texttt{viento\_u\_media} and \texttt{viento\_v\_media} components from 40.5
+to 27.2 and from 40.1 to 27.7, respectively. This reduction is about one
+third and does not by itself remove the heavy tails. Box-Cox reduces them to
+5.23 and 4.86.
 
-Las mayores curtosis antes de la transformación corresponden a
-\texttt{WSR\_min}, con 342.92, y \texttt{WSR\_media}, con 142.35. Después de
-Box-Cox disminuyen a 0.93 y 4.02. Aunque todas las variables cumplen el criterio
-de sesgo, la curtosis residual del bloque de viento debe considerarse al
-interpretar el análisis discriminante lineal.
+The largest kurtosis values before transformation belong to
+\texttt{WSR\_min}, with 347.89, and \texttt{WSR\_media}, with 149.74. After
+Box-Cox they fall to 0.94 and 3.94. Although all variables meet the skewness
+criterion, the residual kurtosis of the wind block should be kept in mind
+when interpreting the linear discriminant analysis.
