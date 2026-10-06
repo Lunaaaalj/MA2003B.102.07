@@ -5,7 +5,7 @@
 
 Los seis archivos anuales del SIMA no comparten estructura: cambian los
 encabezados, la posición de la fila de unidades y el número de estaciones
-(13 en 2020, 15 desde 2024). Se consolidan en una sola tabla horaria de 15
+(13 en 2020, 15 desde 2022). Se consolidan en una sola tabla horaria de 15
 parámetros por estación y fecha, 754,603 registros entre 2020 y 2025. La
 auditoría de calidad detecta valores centinela ($-9999$, el código de
 faltante del registrador) y físicamente imposibles (humedad relativa de
@@ -75,8 +75,8 @@ como variable objetivo del análisis.
     \midrule
     \multicolumn{5}{l}{\textbf{Ozono} (\ce{O3}, ppm) --- NOM-020-SSA1-2021, DOF 28-oct-2021} \\
     \addlinespace[2pt]
-    1 hora                     & Máximo de los máximos diarios de las concentraciones horarias                        & 0,090 & 0,090 & 0,090 \\
-    Promedio móvil de 8 horas  & Máximo de los máximos diarios de las concentraciones de los promedios móviles de 8 horas & 0,065 & 0,060 & 0,051 \\
+    1 hora                     & Máximo de los máximos diarios de las concentraciones horarias                        & 0.090 & 0.090 & 0.090 \\
+    Promedio móvil de 8 horas  & Máximo de los máximos diarios de las concentraciones de los promedios móviles de 8 horas & 0.065 & 0.060 & 0.051 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -145,5 +145,5 @@ MDA8 se declara válido solo si al menos 18 de las 24 ventanas móviles de
 cumplen esa regla. Cada resumen y la regla de completitud se justifican en la
 bitácora de agregación del repositorio. Al día-estación se añaden
 \texttt{zona}, \texttt{temporada} y \texttt{tipo\_dia}, que distingue
-laborable, sábado, domingo y los 71 días festivos del periodo, cuyo patrón de
+laborable, sábado, domingo y los 81 días festivos del periodo, cuyo patrón de
 tráfico es anómalo.
