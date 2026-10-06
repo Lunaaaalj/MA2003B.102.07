@@ -126,7 +126,7 @@ sus umbrales deben conservar una interpretación física directa.
       & 0/1 & 1,591 \\
     \texttt{excede\_anio\_5} & binaria & Excedencia de MDA8 sobre 51 ppb
       & 0/1 & 1,591 \\
-    \texttt{excede\_1h} & binaria & Excedencia del máximo horario sobre 95 ppb
+    \texttt{excede\_1h} & binaria & Excedencia del máximo horario sobre 90 ppb
       & 0/1 & 0 \\
     \bottomrule
   \end{tabular}
@@ -173,12 +173,12 @@ estandarizaron conservan los valores de la escala original.
 \end{table*}
 
 La agregación diaria redujo la curtosis de exceso de las componentes
-\texttt{viento\_u\_media} y \texttt{viento\_v\_media} de 37.5 a 27.4 y de 38.7
-a 28.3, respectivamente. Esta disminución equivale aproximadamente a 27 \% y
-no elimina por sí sola las colas pesadas. Box-Cox las reduce a 5.25 y 4.97.
+\texttt{viento\_u\_media} y \texttt{viento\_v\_media} de 40.5 a 27.2 y de 40.1
+a 27.7, respectivamente. Esta disminución equivale aproximadamente a un tercio y
+no elimina por sí sola las colas pesadas. Box-Cox las reduce a 5.23 y 4.86.
 
 Las mayores curtosis antes de la transformación corresponden a
-\texttt{WSR\_min}, con 342.92, y \texttt{WSR\_media}, con 142.35. Después de
-Box-Cox disminuyen a 0.93 y 4.02. Aunque todas las variables cumplen el criterio
+\texttt{WSR\_min}, con 347.89, y \texttt{WSR\_media}, con 149.74. Después de
+Box-Cox disminuyen a 0.94 y 3.94. Aunque todas las variables cumplen el criterio
 de sesgo, la curtosis residual del bloque de viento debe considerarse al
 interpretar el análisis discriminante lineal.
