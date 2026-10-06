@@ -1,0 +1,81 @@
+\subsection{Serie de tiempo de los puntajes factoriales y la excedencia}\label{sec:serie-tiempo}
+
+Los tres puntajes factoriales de \cref{sec:analisis-factorial} y \texttt{excede\_anio\_5}
+(\cref{sec:obj:objetivo}) se caracterizan aquí en el tiempo: no se reabre su
+origen ni su validez, ya establecidos, sino su comportamiento como series.
+
+\subsubsection{De día-estación a área metropolitana}
+
+Antes de aplicar cualquier descomposición de serie de tiempo hace falta una
+serie sin huecos, y el panel día-estación no lo es. Solo 2 de las 15
+estaciones (\texttt{CE}, \texttt{SE3}) superan 85\,\% de cobertura de
+día-estación válido sobre el calendario 2021--2025, y la peor,
+\texttt{NO3}, llega a 25\,\%; la cobertura global es 68.0\,\%. Filtrar a las estaciones de mejor
+cobertura no resuelve el problema, lo esconde en las tres que sobreviven al
+corte.
+
+La alternativa es agregar las 15 estaciones a un valor diario de área
+metropolitana, lo que solo es razonable si las estaciones no son
+independientes entre sí el mismo día. La correlación transversal (Pearson,
+estación contra estación, mismo día) va de una media de 0.50 en ventilación a
+0.85 en forzamiento fotoquímico, con un mínimo apenas negativo únicamente en
+ventilación. Es coherente con la física: la temperatura y la radiación solar
+son fenómenos de escala regional, y el viento depende de la topografía local
+del valle. Esta correlación es también la violación de independencia más
+grande del conjunto de datos, relevante para cualquier modelo que trate cada
+fila día-estación como una observación --- incluida la limitación de
+autocorrelación ya declarada en \cref{sec:limitaciones-clasificacion}.
+
+Con la cobertura insuficiente por estación y la correlación transversal alta,
+se agrega a nivel área metropolitana promediando las estaciones que reportan
+cada día. El promedio recupera 99.94\,\% de cobertura del calendario diario;
+un único día, el 2021-02-16, se queda sin ninguna estación y se imputa por
+interpolación lineal --- solo porque la descomposición MSTL exige una serie
+sin huecos, no porque el hueco deje de existir.
+
+\subsubsection{Descomposición MSTL}
+
+Se ajusta MSTL con periodos semanal (7) y anual (365, no 365.25: MSTL exige
+periodos enteros y el corrimiento acumulado en 4.5 años es de un día,
+despreciable) a las cuatro series de área metropolitana. El ciclo semanal es
+más fuerte en combustión primaria --- el patrón entre semana / fin de semana
+del tráfico y la actividad industrial --- y más débil en la fracción de
+estaciones que excede el umbral, que diluye ese patrón al depender de varios
+factores a la vez.
+
+\subsubsection{Autocorrelación residual}
+
+La prueba de Ljung-Box en los rezagos 7, 14 y 30 rechaza con $p<0.001$ en las
+cuatro series, en ambas versiones (cruda y residual de MSTL) --- el mismo
+problema que \cref{sec:analisis-factorial} documentó para Bartlett: con $n=1{,}826$
+observaciones diarias, el estadístico crece con $n$ y rechaza cualquier
+autocorrelación no trivial, incluida la del residual donde la estacionalidad
+ya se removió. La prueba no discrimina; la magnitud de la ACF sí
+(\cref{fig:acf-excedencia}).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{acf_pacf_frac_excede_anio_5.pdf}
+  \caption{ACF y PACF hasta el rezago 40 de la fracción que excede: serie
+    cruda (arriba) contra residual de la descomposición MSTL (abajo), con
+    banda $\pm 1.96/\sqrt{n}$.}
+  \label{fig:acf-excedencia}
+\end{figure}
+
+Tras MSTL, la autocorrelación en el rezago 7 cae de 0.19--0.45 a valores
+entre $-0.15$ y 0.05 en las cuatro series --- la estacionalidad semanal
+prácticamente desaparece. La del rezago 1, en cambio, se mantiene entre 0.49 y
+0.71 en el residual de las cuatro series. Esa persistencia de un día para
+otro no es estacionalidad: es autocorrelación genuina de corto plazo, que
+MSTL no está diseñado para remover. Cuantifica, con una serie continua y sin
+huecos, la misma dependencia temporal que \cref{sec:limitaciones-clasificacion}
+señaló como razón de que los errores estándar del modelo logístico sean
+optimistas.
+
+Dos consecuencias pasan al modelo autorregresivo de
+\cref{sec:autorregresivo}: los rezagos deben calcularse sobre la serie de
+área metropolitana reindexada a calendario diario regular, nunca sobre la
+tabla día-estación, donde la fila anterior puede estar a una semana de
+distancia; y la dependencia de un día para otro es genuina, no un artefacto
+de estacionalidad, así que un modelo que la ignore deja estructura en los
+residuales.

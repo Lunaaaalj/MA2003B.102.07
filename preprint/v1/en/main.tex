@@ -1,0 +1,141 @@
+\documentclass[5p,nonatbib]{elsarticle}
+
+\makeatletter
+\def\ps@pprintTitle{%
+  \let\@oddhead\@empty
+  \let\@evenhead\@empty
+  \let\@oddfoot\@empty
+  \let\@evenfoot\@empty}
+\makeatother
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{microtype}
+
+\emergencystretch=2em
+
+\usepackage[english]{babel}
+\usepackage{csquotes}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{multicol}
+\graphicspath{{./}}
+
+\usepackage{flushend}
+
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{2pt}
+
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.55}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\dblfloatpagefraction}{0.55}
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+\setcounter{dbltopnumber}{3}
+
+\usepackage{enumitem}
+\setlist{noitemsep, topsep=3pt, partopsep=0pt}
+
+\usepackage[backend=biber,style=apa,sorting=nyt,maxbibnames=99]{biblatex}
+\addbibresource{references.bib}
+\renewcommand*{\bibfont}{\small}
+\setlength{\bibitemsep}{0pt}
+\setlength{\bibhang}{1em}
+
+\usepackage[colorlinks=true, linkcolor=blue,citecolor=blue]{hyperref}
+\usepackage[capitalise]{cleveref}
+
+\usepackage{mhchem}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Discriminating daily ozone exceedances in the Monterrey Metropolitan
+Area\\
+\large Station-day classification under the 51 ppb threshold of
+NOM-020-SSA1-2021 at 15 SIMA stations, 2021--2025}
+
+\author[tec]{Eduardo Luna}
+\author[tec]{Jenaro Alcaraz}
+\author[tec]{Emilia Rico}
+\author[tec]{Mar Fernández}
+\author[tec]{Sofía Fernández}
+\address[tec]{Instituto Tecnológico y de Estudios Superiores de Monterrey, Monterrey, Nuevo León, Mexico}
+
+\begin{abstract}
+This work discriminates ozone exceedance days in the Monterrey Metropolitan
+Area, defined as a daily maximum 8-hour average (MDA8) above 51 ppb, the
+5-year target of the Mexican standard NOM-020-SSA1-2021. Hourly records from
+15 stations of the Nuevo León Integrated Environmental Monitoring System
+(SIMA) between 2021 and 2025 are aggregated into 25,100 station-days; the
+years 2021--2024 are used for fitting and 2025 for validation. An exploratory
+factor analysis reduces 13 meteorological and primary-pollutant predictors to
+three factors ---primary combustion, ventilation and photochemical
+forcing--- that are recovered in 2025. On these factors, a logistic regression
+and a linear discriminant analysis reach an area under the ROC curve of 0.850
+and 0.846 in validation; one additional standard deviation of photochemical
+forcing multiplies the odds of exceedance by 2.78, and ventilation is the
+only protective factor. An autoregressive logistic model on the metropolitan
+series raises the area to 0.898. Exceedance emerges as a seasonal, regional
+phenomenon modulated by wind; a year effect that no predictor explains and
+the lack of volatile organic compound measurements are the main limitations.
+\end{abstract}
+
+\begin{keyword}
+tropospheric ozone \sep factor analysis \sep principal component analysis
+\sep logistic regression \sep linear discriminant analysis \sep
+autoregressive model \sep Monterrey Metropolitan Area
+\end{keyword}
+
+\end{frontmatter}
+
+\input{introduccion}
+\input{revi_medio_ambiente}
+\input{res_sima}
+\input{contexto_estaciones}
+
+\input{objetivo_tecnicas}
+
+\input{seleccion_datos}
+\input{transformaciones}
+
+\input{descript_quant}
+\input{eda_cualitativas}
+
+\input{modelacion}
+\input{pca}
+\input{analisis_factorial}
+\input{series_tiempo_factores}%
+\input{regresion_logistica}
+\input{autorregresivo_logistico}
+
+\input{resultados}
+
+\input{discusion_conclusiones}
+
+\input{disponibilidad_ia}
+
+\printbibliography
+
+\appendix
+\input{tecnicas_no_funcionaron}
+\input{diccionario_datos}
+\input{diccionario_datos_transformadas}
+
+
+\end{document}

@@ -1,0 +1,87 @@
+\subsection{Transformaciones de datos}\label{sec:transformaciones}
+
+El análisis de rangos y normalidad muestra que las variables cuantitativas
+presentan sesgo marcado y escalas heterogéneas, que sin tratamiento previo
+distorsionarían el análisis multivariado subsecuente. A continuación se
+documentan las decisiones de transformación que producen el conjunto de datos
+final.
+
+El procedimiento abarca todas las variables cuantitativas disponibles; las
+cualitativas y binarias quedan fuera. \texttt{RAINF}, que mide la
+precipitación en $mm/h$, presenta un sesgo de 144.85, muy por encima del rango
+de $-1.4$ a 13.3 en que se sitúan las demás variables. La causa es la frecuencia
+desproporcionada de ceros, consecuencia de que los días sin lluvia superan
+ampliamente a los días con lluvia: la variable se clasifica como
+\textbf{variable inflada de ceros} y requiere un tratamiento distinto al del
+resto. En su lugar se deriva la variable binaria \texttt{llovio}, definida
+como
+
+\begin{align}
+     \texttt{llovio}=\begin{cases}
+        0\;\texttt{RAINF} = 0\\
+        1\;\texttt{RAINF} > 0
+    \end{cases}
+\end{align}
+
+El criterio que determina si una variable se transforma es
+
+\begin{align}
+    |\text{skewness}(x_i)|<0.5\,\forall\, x_i\in X\;\;i=1\,,2\,\dots,n
+\end{align}
+
+La transformación de Box-Cox exige observaciones positivas, por lo que se
+aplica un desplazamiento previo a las variables que registran valores no
+positivos:
+
+\begin{align}
+    \forall i\in X\;\forall j\in x_i\;x_{ij} \leq0 \implies x_i = x_i - \min{x} + 1
+\end{align}
+
+Los sesgos antes y después de la transformación se reportan en
+\cref{tab:sesgos-transformacion}.
+
+\begin{table}[h]
+  \centering
+  \caption{Sesgo de cada variable cuantitativa antes y después de la transformación Box-Cox con desplazamiento.}
+  \label{tab:sesgos-transformacion}
+  \begin{tabular}{lrr}
+    \toprule
+    Variable & Sesgo original & Sesgo transformado \\
+    \midrule
+    O3        & 1.28   & $-0.07$ \\
+    CO        & 1.91   & 0.01 \\
+    NO        & 6.87   & $-0.01$ \\
+    NO2       & 1.91   & 0.02 \\
+    NOX       & 4.49   & 0.00 \\
+    SO2       & 13.31  & 0.00 \\
+    PM10      & 3.66   & $-0.04$ \\
+    PM2.5     & 5.70   & 0.09 \\
+    TOUT      & $-0.43$ & $-0.06$ \\
+    RH        & $-0.32$ & $-0.17$ \\
+    SR        & 1.52   & 1.02 \\
+    RAINF     & 144.85 & --\footnotemark \\
+    PRS       & 0.09   & 0.00 \\
+    WSR       & 6.89   & 0.10 \\
+    viento\_u & $-1.42$ & 0.75 \\
+    viento\_v & $-0.50$ & 0.62 \\
+    O3\_8h    & 0.96   & 0.01 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\footnotetext{\texttt{RAINF} no se transformó: al ser una variable inflada de ceros, Box-Cox no reduce su sesgo. Se sustituyó por la variable binaria \texttt{llovio}.}
+
+Tres variables no alcanzan el criterio tras Box-Cox: \texttt{SR}, por el bloque de ceros nocturnos (1.02), y las dos componentes del viento (0.75 y 0.62). Se conservan porque la agregación diaria de \cref{sec:agregacion-diaria} las resume (radiación acumulada, medias vectoriales) y sobre esos resúmenes el mismo criterio sí se cumple, con parámetros reestimados que se documentan en \cref{tab:dic-diario-sesgo}.
+
+Tras el escalamiento ($z$-score), las densidades de las variables quedan centradas y comparables entre sí (\cref{fig:densidad-escaladas}).
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{densidad_variables_escaladas.pdf}
+  \caption{Distribución (densidad) de las variables cuantitativas tras la transformación Box-Cox y el escalamiento.}
+  \label{fig:densidad-escaladas}
+\end{figure}
+
+El diccionario del conjunto transformado, con la descripción completa de cada
+variable, su tratamiento y su sesgo antes y después, se documenta en el
+\cref{sec:diccionario-transformado}.
+

@@ -1,0 +1,1331 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nyt/apasortcite//global/global/global}
+    \entry{abdulwahab2005}{article}{}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=1bea8746d8a1bd78bdccc127480d40c5}{%
+           family={Abdul-Wahab},
+           familyi={A\bibinithyphendelim W\bibinitperiod},
+           given={Sabah\bibnamedelima Ahmed},
+           giveni={S\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=6999d9986634801bf97b5ffde8a21d87}{%
+           family={Bakheit},
+           familyi={B\bibinitperiod},
+           given={Charles\bibnamedelima S.},
+           giveni={C\bibinitperiod\bibinitdelim S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ce5e9e076d29e8b4f9341ad0c18a8991}{%
+           family={Al-Alawi},
+           familyi={A\bibinithyphendelim A\bibinitperiod},
+           given={Sabah\bibnamedelima M.},
+           giveni={S\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{955c55d902eca21cb007519eabf07a32}
+      \strng{fullhash}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \strng{fullhashraw}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \strng{bibnamehash}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \strng{authorbibnamehash}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \strng{authornamehash}{955c55d902eca21cb007519eabf07a32}
+      \strng{authorfullhash}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \strng{authorfullhashraw}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Environmental Modelling \& Software}
+      \field{number}{10}
+      \field{title}{Principal component and multiple regression analysis in modelling of ground-level ozone and factors affecting its concentrations}
+      \field{volume}{20}
+      \field{year}{2005}
+      \field{pages}{1263\bibrangedash 1271}
+      \range{pages}{9}
+      \verb{doi}
+      \verb 10.1016/j.envsoft.2004.09.001
+      \endverb
+    \endentry
+    \entry{nlAirenlgobmxNormatividad}{misc}{}{}
+      \field{sortinit}{a}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeldatesource}{nodate}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{http://aire.nl.gob.mx/nor\_normatividad.html}}
+      \field{note}{[Accessed 21-08-2026]}
+      \field{title}{aire.nl.gob.mx | {N}ormatividad --- aire.nl.gob.mx}
+    \endentry
+    \entry{Bernhard2023-lk}{article}{}{}
+      \name{author}{6}{}{%
+        {{un=0,uniquepart=base,hash=cee39c50cc601cffd5810de2906d2808}{%
+           family={Bernhard},
+           familyi={B\bibinitperiod},
+           given={G\bibnamedelima H},
+           giveni={G\bibinitperiod\bibinitdelim H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=651cc96e21c8d877cb5ef315a7d1ac35}{%
+           family={Bais},
+           familyi={B\bibinitperiod},
+           given={A\bibnamedelima F},
+           giveni={A\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a28aaa67625e2df95639b5a51e0e7a9f}{%
+           family={Aucamp},
+           familyi={A\bibinitperiod},
+           given={P\bibnamedelima J},
+           giveni={P\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=24a14e03f6027c65d4dd336209967e20}{%
+           family={Klekociuk},
+           familyi={K\bibinitperiod},
+           given={A\bibnamedelima R},
+           giveni={A\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=efa0b4a4fc23344b74509e383a19408e}{%
+           family={Liley},
+           familyi={L\bibinitperiod},
+           given={J\bibnamedelima B},
+           giveni={J\bibinitperiod\bibinitdelim B\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b38ab7e907cf247af5b6ac8abef2bfe4}{%
+           family={McKenzie},
+           familyi={M\bibinitperiod},
+           given={R\bibnamedelima L},
+           giveni={R\bibinitperiod\bibinitdelim L\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{76431373f9bc7fa0f0f1b77460a0af74}
+      \strng{fullhash}{4b4637cc8783248402aa01621a1c5ad2}
+      \strng{fullhashraw}{4b4637cc8783248402aa01621a1c5ad2}
+      \strng{bibnamehash}{4b4637cc8783248402aa01621a1c5ad2}
+      \strng{authorbibnamehash}{4b4637cc8783248402aa01621a1c5ad2}
+      \strng{authornamehash}{76431373f9bc7fa0f0f1b77460a0af74}
+      \strng{authorfullhash}{4b4637cc8783248402aa01621a1c5ad2}
+      \strng{authorfullhashraw}{4b4637cc8783248402aa01621a1c5ad2}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{This assessment provides a comprehensive update of the effects of changes in stratospheric ozone and other factors (aerosols, surface reflectivity, solar activity, and climate) on the intensity of ultraviolet (UV) radiation at the Earth's surface. The assessment is performed in the context of the Montreal Protocol on Substances that Deplete the Ozone Layer and its Amendments and Adjustments. Changes in UV radiation at low- and mid-latitudes (0-60°) during the last 25 years have generally been small (e.g., typically less than 4\% per decade, increasing at some sites and decreasing at others) and were mostly driven by changes in cloud cover and atmospheric aerosol content, caused partly by climate change and partly by measures to control tropospheric pollution. Without the Montreal Protocol, erythemal (sunburning) UV irradiance at northern and southern latitudes of less than 50° would have increased by 10-20\% between 1996 and 2020. For southern latitudes exceeding 50°, the UV Index (UVI) would have surged by between 25\% (year-round at the southern tip of South America) and more than 100\% (South Pole in spring). Variability of erythemal irradiance in Antarctica was very large during the last four years. In spring 2019, erythemal UV radiation was at the minimum of the historical (1991-2018) range at the South Pole, while near record-high values were observed in spring 2020, which were up to 80\% above the historical mean. In the Arctic, some of the highest erythemal irradiances on record were measured in March and April 2020. For example in March 2020, the monthly average UVI over a site in the Canadian Arctic was up to 70\% higher than the historical (2005-2019) average, often exceeding this mean by three standard deviations. Under the presumption that all countries will adhere to the Montreal Protocol in the future and that atmospheric aerosol concentrations remain constant, erythemal irradiance at mid-latitudes (30-60°) is projected to decrease between 2015 and 2090 by 2-5\% in the north and by 4-6\% in the south due to recovering ozone. Changes projected for the tropics are $\leq$ 3\%. However, in industrial regions that are currently affected by air pollution, UV radiation will increase as measures to reduce air pollutants will gradually restore UV radiation intensities to those of a cleaner atmosphere. Since most substances controlled by the Montreal Protocol are also greenhouse gases, the phase-out of these substances may have avoided warming by 0.5-1.0 °C over mid-latitude regions of the continents, and by more than 1.0 °C in the Arctic; however, the uncertainty of these calculations is large. We also assess the effects of changes in stratospheric ozone on climate, focusing on the poleward shift of climate zones, and discuss the role of the small Antarctic ozone hole in 2019 on the devastating ``Black Summer'' fires in Australia. Additional topics include the assessment of advances in measuring and modeling of UV radiation; methods for determining personal UV exposure; the effect of solar radiation management (stratospheric aerosol injections) on UV radiation relevant for plants; and possible revisions to the vitamin D action spectrum, which describes the wavelength dependence of the synthesis of previtamin D3 in human skin upon exposure to UV radiation.}
+      \field{journaltitle}{Photochem. Photobiol. Sci.}
+      \field{month}{5}
+      \field{number}{5}
+      \field{title}{Stratospheric ozone, {UV} radiation, and climate interactions}
+      \field{volume}{22}
+      \field{year}{2023}
+      \field{pages}{937\bibrangedash 989}
+      \range{pages}{53}
+    \endentry
+    \entry{atmos15070779}{article}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=e73df7de462297ae8a187b9883ca7edc}{%
+           family={Donzelli},
+           familyi={D\bibinitperiod},
+           given={Gabriele},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=96c143763c01d8342e6b37443181a10a}{%
+           family={Suarez-Varela},
+           familyi={S\bibinithyphendelim V\bibinitperiod},
+           given={Maria\bibnamedelima Morales},
+           giveni={M\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{fullhash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{fullhashraw}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{bibnamehash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{authorbibnamehash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{authornamehash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{authorfullhash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{authorfullhashraw}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Tropospheric ozone is a significant air pollutant with severe adverse effects on human health. The complex dynamics of ozone formation, distribution, and health impacts underscore the need for a comprehensive understanding of this pollutant. Despite well-documented health risks, including an estimated 423,100 deaths annually due to ozone exposure, millions of people in major countries continue to be exposed to unhealthy levels. Notably, the epidemiological evidence linking long-term ozone exposure to health outcomes is limited compared to short-term exposure studies, leaving some findings incomplete. Regulatory standards vary globally, with the implementation of the World Health Organization recommendation for an 8-h average limit of 50 ppb to protect public health remaining heterogeneous, leading to significant disparities in adoption across countries, and often significantly higher. Emissions from diesel and gasoline vehicles are major sources of VOCs and NOx in urban areas, and their reduction is a key strategy. Additionally, climate change may exacerbate ozone pollution through increased natural precursor emissions, leading to higher ground-level ozone in polluted regions, like the eastern US, southern Europe, and parts of Asia. Addressing tropospheric ozone effectively requires an integrated approach that considers both natural and anthropogenic sources to reduce concentrations and mitigate health impacts.}
+      \field{issn}{2073-4433}
+      \field{journaltitle}{Atmosphere}
+      \field{number}{7}
+      \field{title}{Tropospheric Ozone: A Critical Review of the Literature on Emissions, Exposure, and Health Effects}
+      \field{volume}{15}
+      \field{year}{2024}
+      \verb{doi}
+      \verb 10.3390/atmos15070779
+      \endverb
+      \verb{urlraw}
+      \verb https://www.mdpi.com/2073-4433/15/7/779
+      \endverb
+      \verb{url}
+      \verb https://www.mdpi.com/2073-4433/15/7/779
+      \endverb
+    \endentry
+    \entry{gobiernoNL2026PIGECA}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=19b4a00bd2ca22d71ebf221c9d59b801}{%
+           family={{Gobierno del Estado de Nuevo León}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{bibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorbibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authornamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \field{extraname}{1}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradate}{1}
+      \field{labeldatesource}{nodate}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Estrategia para la Calidad del Aire de Nuevo León}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://aire.nl.gob.mx/PIGECA.html
+      \endverb
+      \verb{url}
+      \verb https://aire.nl.gob.mx/PIGECA.html
+      \endverb
+    \endentry
+    \entry{aireNL2026}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=19b4a00bd2ca22d71ebf221c9d59b801}{%
+           family={{Gobierno del Estado de Nuevo León}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{bibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorbibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authornamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \field{extraname}{2}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradate}{2}
+      \field{labeldatesource}{nodate}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Home}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://aire.nl.gob.mx/
+      \endverb
+      \verb{url}
+      \verb https://aire.nl.gob.mx/
+      \endverb
+    \endentry
+    \entry{gobiernoNL2026ModernizacionSIMA}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=19b4a00bd2ca22d71ebf221c9d59b801}{%
+           family={{Gobierno del Estado de Nuevo León}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{bibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorbibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authornamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \field{extraname}{3}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradate}{3}
+      \field{labeldatesource}{nodate}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Nuevo León anuncia histórica modernización del Sistema Integral de Monitoreo Ambiental (SIMA)}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.nl.gob.mx/es/boletines/nuevo-leon-anuncia-historica-modernizacion-del-sistema-integral-de-monitoreo-ambiental
+      \endverb
+      \verb{url}
+      \verb https://www.nl.gob.mx/es/boletines/nuevo-leon-anuncia-historica-modernizacion-del-sistema-integral-de-monitoreo-ambiental
+      \endverb
+    \endentry
+    \entry{hosmer2013}{book}{}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=c5d69e28c3787fb088bba39b98f2e16e}{%
+           family={Hosmer},
+           familyi={H\bibinitperiod},
+           given={David\bibnamedelima W.},
+           giveni={D\bibinitperiod\bibinitdelim W\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=8cc8d044dfc89abe88de140d014c99fd}{%
+           family={Lemeshow},
+           familyi={L\bibinitperiod},
+           given={Stanley},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=0feba8187e3000f7fb1b5c0e58c8a42a}{%
+           family={Sturdivant},
+           familyi={S\bibinitperiod},
+           given={Rodney\bibnamedelima X.},
+           giveni={R\bibinitperiod\bibinitdelim X\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Hoboken, NJ}%
+      }
+      \list{publisher}{1}{%
+        {John Wiley \& Sons}%
+      }
+      \strng{namehash}{6ce1effc42679f971b60a08f5c3bdff8}
+      \strng{fullhash}{15c2f61df8eec462a7b1bd81b66dd944}
+      \strng{fullhashraw}{15c2f61df8eec462a7b1bd81b66dd944}
+      \strng{bibnamehash}{15c2f61df8eec462a7b1bd81b66dd944}
+      \strng{authorbibnamehash}{15c2f61df8eec462a7b1bd81b66dd944}
+      \strng{authornamehash}{6ce1effc42679f971b60a08f5c3bdff8}
+      \strng{authorfullhash}{15c2f61df8eec462a7b1bd81b66dd944}
+      \strng{authorfullhashraw}{15c2f61df8eec462a7b1bd81b66dd944}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{3}
+      \field{title}{Applied Logistic Regression}
+      \field{year}{2013}
+    \endentry
+    \entry{oms2021}{report}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=5b1551aad81d4130cd5a1bb90cf506c1}{%
+           family={{Organización Mundial de la Salud}},
+           familyi={O\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Organización Mundial de la Salud}%
+      }
+      \list{location}{1}{%
+        {Ginebra}%
+      }
+      \strng{namehash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{fullhash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{fullhashraw}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{bibnamehash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{authorbibnamehash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{authornamehash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{authorfullhash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{authorfullhashraw}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{langid}{spanish}
+      \field{title}{Directrices mundiales de la OMS sobre la calidad del aire: partículas en suspensión (PM2.5 y PM10), ozono, dióxido de nitrógeno, dióxido de azufre y monóxido de carbono}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{year}{2021}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.who.int/publications/i/item/9789240034228
+      \endverb
+      \verb{url}
+      \verb https://www.who.int/publications/i/item/9789240034228
+      \endverb
+    \endentry
+    \entry{otero2016}{article}{}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=ed0d450073009c125c6dad60e838c5c2}{%
+           family={Otero},
+           familyi={O\bibinitperiod},
+           given={Noelia},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=32771522bea466d875c04f17cf7e2a9e}{%
+           family={Sillmann},
+           familyi={S\bibinitperiod},
+           given={Jana},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4327541839423c2120c84114f6051aa6}{%
+           family={Schnell},
+           familyi={S\bibinitperiod},
+           given={Jordan\bibnamedelima L.},
+           giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9fbed8b297fe1a3f52d061d448fee56a}{%
+           family={Rust},
+           familyi={R\bibinitperiod},
+           given={Henning\bibnamedelima W.},
+           giveni={H\bibinitperiod\bibinitdelim W\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=58949bc71e490a03ccdc0f1f0cde68e7}{%
+           family={Butler},
+           familyi={B\bibinitperiod},
+           given={Tim},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{84b24e8986db2ebf576a044d86158daf}
+      \strng{fullhash}{68b80480734123c4ca69849fef4ee57b}
+      \strng{fullhashraw}{68b80480734123c4ca69849fef4ee57b}
+      \strng{bibnamehash}{68b80480734123c4ca69849fef4ee57b}
+      \strng{authorbibnamehash}{68b80480734123c4ca69849fef4ee57b}
+      \strng{authornamehash}{84b24e8986db2ebf576a044d86158daf}
+      \strng{authorfullhash}{68b80480734123c4ca69849fef4ee57b}
+      \strng{authorfullhashraw}{68b80480734123c4ca69849fef4ee57b}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Environmental Research Letters}
+      \field{number}{2}
+      \field{title}{Synoptic and meteorological drivers of extreme ozone concentrations over {Europe}}
+      \field{volume}{11}
+      \field{year}{2016}
+      \field{pages}{024005}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1088/1748-9326/11/2/024005
+      \endverb
+    \endentry
+    \entry{NOMCalidadAireAmbiente}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8dcbf52c08f944d05d289aadda77e677}{%
+           family={Protección\bibnamedelimb contra\bibnamedelimb Riesgos\bibnamedelima Sanitarios},
+           familyi={P\bibinitperiod\bibinitdelim c\bibinitperiod\bibinitdelim R\bibinitperiod\bibinitdelim S\bibinitperiod},
+           given={Comisión\bibnamedelima Federal},
+           giveni={C\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0,
+           prefix={para\bibnamedelima la},
+           prefixi={p\bibinitperiod\bibinitdelim l\bibinitperiod}}}%
+      }
+      \strng{namehash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{fullhash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{fullhashraw}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{bibnamehash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{authorbibnamehash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{authornamehash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{authorfullhash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{authorfullhashraw}{8dcbf52c08f944d05d289aadda77e677}
+      \field{sortinit}{p}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeldatesource}{nodate}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://www.gob.mx/cofepris/acciones-y-programas/4-normas-oficiales-mexicanas-nom-de-calidad-del-aire-ambiente}}
+      \field{note}{[Accessed 20-08-2026]}
+      \field{title}{{N}ormas {O}ficiales {M}exicanas ({N}{O}{M}) de {C}alidad del {A}ire {A}mbiente}
+    \endentry
+    \entry{saito2015}{article}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=0878cb63c98130499e8a134f65d41c69}{%
+           family={Saito},
+           familyi={S\bibinitperiod},
+           given={Takaya},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=60dc389b7245183342f8261b15a87e51}{%
+           family={Rehmsmeier},
+           familyi={R\bibinitperiod},
+           given={Marc},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{768d060c7634a71068641481ebdd8624}
+      \strng{fullhash}{768d060c7634a71068641481ebdd8624}
+      \strng{fullhashraw}{768d060c7634a71068641481ebdd8624}
+      \strng{bibnamehash}{768d060c7634a71068641481ebdd8624}
+      \strng{authorbibnamehash}{768d060c7634a71068641481ebdd8624}
+      \strng{authornamehash}{768d060c7634a71068641481ebdd8624}
+      \strng{authorfullhash}{768d060c7634a71068641481ebdd8624}
+      \strng{authorfullhashraw}{768d060c7634a71068641481ebdd8624}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{PLOS ONE}
+      \field{number}{3}
+      \field{title}{The precision-recall plot is more informative than the {ROC} plot when evaluating binary classifiers on imbalanced datasets}
+      \field{volume}{10}
+      \field{year}{2015}
+      \field{pages}{e0118432}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.1371/journal.pone.0118432
+      \endverb
+    \endentry
+    \entry{nom020ssa1}{report}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=3c444f8be64b711d49e62737b32fdc63}{%
+           family={{Secretaría de Salud}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Secretaría de Salud}%
+      }
+      \list{location}{1}{%
+        {México}%
+      }
+      \strng{namehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{fullhash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{fullhashraw}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{bibnamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorbibnamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authornamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorfullhash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorfullhashraw}{3c444f8be64b711d49e62737b32fdc63}
+      \field{extraname}{1}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradate}{1}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{28}
+      \field{langid}{spanish}
+      \field{month}{10}
+      \field{note}{Publicada en el Diario Oficial de la Federación}
+      \field{title}{NOM-020-SSA1-2021. Salud ambiental. Criterio para evaluar la calidad del aire ambiente con respecto al ozono (O3). Valores normados para la concentración de ozono (O3) en el aire ambiente como medida de protección a la salud de la población}
+      \field{type}{Norma Oficial Mexicana}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{year}{2021}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.dof.gob.mx/nota_detalle.php?codigo=5633855
+      \endverb
+      \verb{url}
+      \verb https://www.dof.gob.mx/nota_detalle.php?codigo=5633855
+      \endverb
+    \endentry
+    \entry{nom025ssa1}{report}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=3c444f8be64b711d49e62737b32fdc63}{%
+           family={{Secretaría de Salud}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Secretaría de Salud}%
+      }
+      \list{location}{1}{%
+        {México}%
+      }
+      \strng{namehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{fullhash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{fullhashraw}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{bibnamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorbibnamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authornamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorfullhash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorfullhashraw}{3c444f8be64b711d49e62737b32fdc63}
+      \field{extraname}{2}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradate}{2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{27}
+      \field{langid}{spanish}
+      \field{month}{10}
+      \field{note}{Publicada en el Diario Oficial de la Federación}
+      \field{title}{NOM-025-SSA1-2021. Salud ambiental. Criterio para evaluar la calidad del aire ambiente con respecto a las partículas suspendidas PM10 y PM2.5. Valores normados para la concentración de partículas suspendidas PM10 y PM2.5 en el aire ambiente como medida de protección a la salud de la población}
+      \field{type}{Norma Oficial Mexicana}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{year}{2021}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.dof.gob.mx/nota_detalle.php?codigo=5633855
+      \endverb
+      \verb{url}
+      \verb https://www.dof.gob.mx/nota_detalle.php?codigo=5633855
+      \endverb
+    \endentry
+    \entry{SanfordSillman}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=d42a0361c936a23ffcb9df93151121c8}{%
+           family={Sillman},
+           familyi={S\bibinitperiod},
+           given={Sanford},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{fullhash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{fullhashraw}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{bibnamehash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{authorbibnamehash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{authornamehash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{authorfullhash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{authorfullhashraw}{d42a0361c936a23ffcb9df93151121c8}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeldatesource}{nodate}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://public.websites.umich.edu/~sillman/Sillman-webOZONE.pdf}}
+      \field{note}{[Accessed 20-08-2026]}
+      \field{title}{{O}verview: {T}ropospheric ozone, smog and ozone-{N}{O}{X}-{V}{O}{C} sensitivity}
+    \endentry
+    \entry{villasaez2024}{article}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8d982f3fcafa4eb9efdc928b33c38fca}{%
+           family={Villasáez},
+           familyi={V\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{fullhash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{fullhashraw}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{bibnamehash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{authorbibnamehash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{authornamehash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{authorfullhash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{authorfullhashraw}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \field{sortinit}{V}
+      \field{sortinithash}{afb52128e5b4dc4b843768c0113d673b}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{21}
+      \field{journaltitle}{El Norte}
+      \field{month}{11}
+      \field{title}{Cumple SIMA 32 años de medir calidad del aire}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.elnorte.com/cumple-sima-32-anos-de-medir-calidad-del-aire/ar2910518
+      \endverb
+      \verb{url}
+      \verb https://www.elnorte.com/cumple-sima-32-anos-de-medir-calidad-del-aire/ar2910518
+      \endverb
+    \endentry
+  \enddatalist
+  \datalist[entry]{nyt/global//global/global/global}
+    \entry{abdulwahab2005}{article}{}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=1bea8746d8a1bd78bdccc127480d40c5}{%
+           family={Abdul-Wahab},
+           familyi={A\bibinithyphendelim W\bibinitperiod},
+           given={Sabah\bibnamedelima Ahmed},
+           giveni={S\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=6999d9986634801bf97b5ffde8a21d87}{%
+           family={Bakheit},
+           familyi={B\bibinitperiod},
+           given={Charles\bibnamedelima S.},
+           giveni={C\bibinitperiod\bibinitdelim S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ce5e9e076d29e8b4f9341ad0c18a8991}{%
+           family={Al-Alawi},
+           familyi={A\bibinithyphendelim A\bibinitperiod},
+           given={Sabah\bibnamedelima M.},
+           giveni={S\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{955c55d902eca21cb007519eabf07a32}
+      \strng{fullhash}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \strng{fullhashraw}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \strng{bibnamehash}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \strng{authorbibnamehash}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \strng{authornamehash}{955c55d902eca21cb007519eabf07a32}
+      \strng{authorfullhash}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \strng{authorfullhashraw}{62a5afa1afad489b8bb2bed62ae3d16b}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Environmental Modelling \& Software}
+      \field{number}{10}
+      \field{title}{Principal component and multiple regression analysis in modelling of ground-level ozone and factors affecting its concentrations}
+      \field{volume}{20}
+      \field{year}{2005}
+      \field{pages}{1263\bibrangedash 1271}
+      \range{pages}{9}
+      \verb{doi}
+      \verb 10.1016/j.envsoft.2004.09.001
+      \endverb
+    \endentry
+    \entry{nlAirenlgobmxNormatividad}{misc}{}{}
+      \field{sortinit}{a}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{labeldatesource}{nodate}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{http://aire.nl.gob.mx/nor\_normatividad.html}}
+      \field{note}{[Accessed 21-08-2026]}
+      \field{title}{aire.nl.gob.mx | {N}ormatividad --- aire.nl.gob.mx}
+    \endentry
+    \entry{Bernhard2023-lk}{article}{}{}
+      \name{author}{6}{}{%
+        {{un=0,uniquepart=base,hash=cee39c50cc601cffd5810de2906d2808}{%
+           family={Bernhard},
+           familyi={B\bibinitperiod},
+           given={G\bibnamedelima H},
+           giveni={G\bibinitperiod\bibinitdelim H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=651cc96e21c8d877cb5ef315a7d1ac35}{%
+           family={Bais},
+           familyi={B\bibinitperiod},
+           given={A\bibnamedelima F},
+           giveni={A\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a28aaa67625e2df95639b5a51e0e7a9f}{%
+           family={Aucamp},
+           familyi={A\bibinitperiod},
+           given={P\bibnamedelima J},
+           giveni={P\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=24a14e03f6027c65d4dd336209967e20}{%
+           family={Klekociuk},
+           familyi={K\bibinitperiod},
+           given={A\bibnamedelima R},
+           giveni={A\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=efa0b4a4fc23344b74509e383a19408e}{%
+           family={Liley},
+           familyi={L\bibinitperiod},
+           given={J\bibnamedelima B},
+           giveni={J\bibinitperiod\bibinitdelim B\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b38ab7e907cf247af5b6ac8abef2bfe4}{%
+           family={McKenzie},
+           familyi={M\bibinitperiod},
+           given={R\bibnamedelima L},
+           giveni={R\bibinitperiod\bibinitdelim L\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{76431373f9bc7fa0f0f1b77460a0af74}
+      \strng{fullhash}{4b4637cc8783248402aa01621a1c5ad2}
+      \strng{fullhashraw}{4b4637cc8783248402aa01621a1c5ad2}
+      \strng{bibnamehash}{4b4637cc8783248402aa01621a1c5ad2}
+      \strng{authorbibnamehash}{4b4637cc8783248402aa01621a1c5ad2}
+      \strng{authornamehash}{76431373f9bc7fa0f0f1b77460a0af74}
+      \strng{authorfullhash}{4b4637cc8783248402aa01621a1c5ad2}
+      \strng{authorfullhashraw}{4b4637cc8783248402aa01621a1c5ad2}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{This assessment provides a comprehensive update of the effects of changes in stratospheric ozone and other factors (aerosols, surface reflectivity, solar activity, and climate) on the intensity of ultraviolet (UV) radiation at the Earth's surface. The assessment is performed in the context of the Montreal Protocol on Substances that Deplete the Ozone Layer and its Amendments and Adjustments. Changes in UV radiation at low- and mid-latitudes (0-60°) during the last 25 years have generally been small (e.g., typically less than 4\% per decade, increasing at some sites and decreasing at others) and were mostly driven by changes in cloud cover and atmospheric aerosol content, caused partly by climate change and partly by measures to control tropospheric pollution. Without the Montreal Protocol, erythemal (sunburning) UV irradiance at northern and southern latitudes of less than 50° would have increased by 10-20\% between 1996 and 2020. For southern latitudes exceeding 50°, the UV Index (UVI) would have surged by between 25\% (year-round at the southern tip of South America) and more than 100\% (South Pole in spring). Variability of erythemal irradiance in Antarctica was very large during the last four years. In spring 2019, erythemal UV radiation was at the minimum of the historical (1991-2018) range at the South Pole, while near record-high values were observed in spring 2020, which were up to 80\% above the historical mean. In the Arctic, some of the highest erythemal irradiances on record were measured in March and April 2020. For example in March 2020, the monthly average UVI over a site in the Canadian Arctic was up to 70\% higher than the historical (2005-2019) average, often exceeding this mean by three standard deviations. Under the presumption that all countries will adhere to the Montreal Protocol in the future and that atmospheric aerosol concentrations remain constant, erythemal irradiance at mid-latitudes (30-60°) is projected to decrease between 2015 and 2090 by 2-5\% in the north and by 4-6\% in the south due to recovering ozone. Changes projected for the tropics are $\leq$ 3\%. However, in industrial regions that are currently affected by air pollution, UV radiation will increase as measures to reduce air pollutants will gradually restore UV radiation intensities to those of a cleaner atmosphere. Since most substances controlled by the Montreal Protocol are also greenhouse gases, the phase-out of these substances may have avoided warming by 0.5-1.0 °C over mid-latitude regions of the continents, and by more than 1.0 °C in the Arctic; however, the uncertainty of these calculations is large. We also assess the effects of changes in stratospheric ozone on climate, focusing on the poleward shift of climate zones, and discuss the role of the small Antarctic ozone hole in 2019 on the devastating ``Black Summer'' fires in Australia. Additional topics include the assessment of advances in measuring and modeling of UV radiation; methods for determining personal UV exposure; the effect of solar radiation management (stratospheric aerosol injections) on UV radiation relevant for plants; and possible revisions to the vitamin D action spectrum, which describes the wavelength dependence of the synthesis of previtamin D3 in human skin upon exposure to UV radiation.}
+      \field{journaltitle}{Photochem. Photobiol. Sci.}
+      \field{month}{5}
+      \field{number}{5}
+      \field{title}{Stratospheric ozone, {UV} radiation, and climate interactions}
+      \field{volume}{22}
+      \field{year}{2023}
+      \field{pages}{937\bibrangedash 989}
+      \range{pages}{53}
+    \endentry
+    \entry{atmos15070779}{article}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=e73df7de462297ae8a187b9883ca7edc}{%
+           family={Donzelli},
+           familyi={D\bibinitperiod},
+           given={Gabriele},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=96c143763c01d8342e6b37443181a10a}{%
+           family={Suarez-Varela},
+           familyi={S\bibinithyphendelim V\bibinitperiod},
+           given={Maria\bibnamedelima Morales},
+           giveni={M\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{fullhash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{fullhashraw}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{bibnamehash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{authorbibnamehash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{authornamehash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{authorfullhash}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \strng{authorfullhashraw}{d8087d31f23cf8c4b9045ddea5b6d15f}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Tropospheric ozone is a significant air pollutant with severe adverse effects on human health. The complex dynamics of ozone formation, distribution, and health impacts underscore the need for a comprehensive understanding of this pollutant. Despite well-documented health risks, including an estimated 423,100 deaths annually due to ozone exposure, millions of people in major countries continue to be exposed to unhealthy levels. Notably, the epidemiological evidence linking long-term ozone exposure to health outcomes is limited compared to short-term exposure studies, leaving some findings incomplete. Regulatory standards vary globally, with the implementation of the World Health Organization recommendation for an 8-h average limit of 50 ppb to protect public health remaining heterogeneous, leading to significant disparities in adoption across countries, and often significantly higher. Emissions from diesel and gasoline vehicles are major sources of VOCs and NOx in urban areas, and their reduction is a key strategy. Additionally, climate change may exacerbate ozone pollution through increased natural precursor emissions, leading to higher ground-level ozone in polluted regions, like the eastern US, southern Europe, and parts of Asia. Addressing tropospheric ozone effectively requires an integrated approach that considers both natural and anthropogenic sources to reduce concentrations and mitigate health impacts.}
+      \field{issn}{2073-4433}
+      \field{journaltitle}{Atmosphere}
+      \field{number}{7}
+      \field{title}{Tropospheric Ozone: A Critical Review of the Literature on Emissions, Exposure, and Health Effects}
+      \field{volume}{15}
+      \field{year}{2024}
+      \verb{doi}
+      \verb 10.3390/atmos15070779
+      \endverb
+      \verb{urlraw}
+      \verb https://www.mdpi.com/2073-4433/15/7/779
+      \endverb
+      \verb{url}
+      \verb https://www.mdpi.com/2073-4433/15/7/779
+      \endverb
+    \endentry
+    \entry{gobiernoNL2026PIGECA}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=19b4a00bd2ca22d71ebf221c9d59b801}{%
+           family={{Gobierno del Estado de Nuevo León}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{bibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorbibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authornamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \field{extraname}{1}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradate}{1}
+      \field{labeldatesource}{nodate}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Estrategia para la Calidad del Aire de Nuevo León}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://aire.nl.gob.mx/PIGECA.html
+      \endverb
+      \verb{url}
+      \verb https://aire.nl.gob.mx/PIGECA.html
+      \endverb
+    \endentry
+    \entry{aireNL2026}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=19b4a00bd2ca22d71ebf221c9d59b801}{%
+           family={{Gobierno del Estado de Nuevo León}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{bibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorbibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authornamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \field{extraname}{2}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradate}{2}
+      \field{labeldatesource}{nodate}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Home}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://aire.nl.gob.mx/
+      \endverb
+      \verb{url}
+      \verb https://aire.nl.gob.mx/
+      \endverb
+    \endentry
+    \entry{gobiernoNL2026ModernizacionSIMA}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=19b4a00bd2ca22d71ebf221c9d59b801}{%
+           family={{Gobierno del Estado de Nuevo León}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{fullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{bibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorbibnamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authornamehash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhash}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \strng{authorfullhashraw}{19b4a00bd2ca22d71ebf221c9d59b801}
+      \field{extraname}{3}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradate}{3}
+      \field{labeldatesource}{nodate}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Nuevo León anuncia histórica modernización del Sistema Integral de Monitoreo Ambiental (SIMA)}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.nl.gob.mx/es/boletines/nuevo-leon-anuncia-historica-modernizacion-del-sistema-integral-de-monitoreo-ambiental
+      \endverb
+      \verb{url}
+      \verb https://www.nl.gob.mx/es/boletines/nuevo-leon-anuncia-historica-modernizacion-del-sistema-integral-de-monitoreo-ambiental
+      \endverb
+    \endentry
+    \entry{hosmer2013}{book}{}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=c5d69e28c3787fb088bba39b98f2e16e}{%
+           family={Hosmer},
+           familyi={H\bibinitperiod},
+           given={David\bibnamedelima W.},
+           giveni={D\bibinitperiod\bibinitdelim W\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=8cc8d044dfc89abe88de140d014c99fd}{%
+           family={Lemeshow},
+           familyi={L\bibinitperiod},
+           given={Stanley},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=0feba8187e3000f7fb1b5c0e58c8a42a}{%
+           family={Sturdivant},
+           familyi={S\bibinitperiod},
+           given={Rodney\bibnamedelima X.},
+           giveni={R\bibinitperiod\bibinitdelim X\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Hoboken, NJ}%
+      }
+      \list{publisher}{1}{%
+        {John Wiley \& Sons}%
+      }
+      \strng{namehash}{6ce1effc42679f971b60a08f5c3bdff8}
+      \strng{fullhash}{15c2f61df8eec462a7b1bd81b66dd944}
+      \strng{fullhashraw}{15c2f61df8eec462a7b1bd81b66dd944}
+      \strng{bibnamehash}{15c2f61df8eec462a7b1bd81b66dd944}
+      \strng{authorbibnamehash}{15c2f61df8eec462a7b1bd81b66dd944}
+      \strng{authornamehash}{6ce1effc42679f971b60a08f5c3bdff8}
+      \strng{authorfullhash}{15c2f61df8eec462a7b1bd81b66dd944}
+      \strng{authorfullhashraw}{15c2f61df8eec462a7b1bd81b66dd944}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{3}
+      \field{title}{Applied Logistic Regression}
+      \field{year}{2013}
+    \endentry
+    \entry{oms2021}{report}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=5b1551aad81d4130cd5a1bb90cf506c1}{%
+           family={{Organización Mundial de la Salud}},
+           familyi={O\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Organización Mundial de la Salud}%
+      }
+      \list{location}{1}{%
+        {Ginebra}%
+      }
+      \strng{namehash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{fullhash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{fullhashraw}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{bibnamehash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{authorbibnamehash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{authornamehash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{authorfullhash}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \strng{authorfullhashraw}{5b1551aad81d4130cd5a1bb90cf506c1}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{langid}{spanish}
+      \field{title}{Directrices mundiales de la OMS sobre la calidad del aire: partículas en suspensión (PM2.5 y PM10), ozono, dióxido de nitrógeno, dióxido de azufre y monóxido de carbono}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{year}{2021}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.who.int/publications/i/item/9789240034228
+      \endverb
+      \verb{url}
+      \verb https://www.who.int/publications/i/item/9789240034228
+      \endverb
+    \endentry
+    \entry{otero2016}{article}{}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=ed0d450073009c125c6dad60e838c5c2}{%
+           family={Otero},
+           familyi={O\bibinitperiod},
+           given={Noelia},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=32771522bea466d875c04f17cf7e2a9e}{%
+           family={Sillmann},
+           familyi={S\bibinitperiod},
+           given={Jana},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4327541839423c2120c84114f6051aa6}{%
+           family={Schnell},
+           familyi={S\bibinitperiod},
+           given={Jordan\bibnamedelima L.},
+           giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9fbed8b297fe1a3f52d061d448fee56a}{%
+           family={Rust},
+           familyi={R\bibinitperiod},
+           given={Henning\bibnamedelima W.},
+           giveni={H\bibinitperiod\bibinitdelim W\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=58949bc71e490a03ccdc0f1f0cde68e7}{%
+           family={Butler},
+           familyi={B\bibinitperiod},
+           given={Tim},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{84b24e8986db2ebf576a044d86158daf}
+      \strng{fullhash}{68b80480734123c4ca69849fef4ee57b}
+      \strng{fullhashraw}{68b80480734123c4ca69849fef4ee57b}
+      \strng{bibnamehash}{68b80480734123c4ca69849fef4ee57b}
+      \strng{authorbibnamehash}{68b80480734123c4ca69849fef4ee57b}
+      \strng{authornamehash}{84b24e8986db2ebf576a044d86158daf}
+      \strng{authorfullhash}{68b80480734123c4ca69849fef4ee57b}
+      \strng{authorfullhashraw}{68b80480734123c4ca69849fef4ee57b}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Environmental Research Letters}
+      \field{number}{2}
+      \field{title}{Synoptic and meteorological drivers of extreme ozone concentrations over {Europe}}
+      \field{volume}{11}
+      \field{year}{2016}
+      \field{pages}{024005}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1088/1748-9326/11/2/024005
+      \endverb
+    \endentry
+    \entry{NOMCalidadAireAmbiente}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8dcbf52c08f944d05d289aadda77e677}{%
+           family={Protección\bibnamedelimb contra\bibnamedelimb Riesgos\bibnamedelima Sanitarios},
+           familyi={P\bibinitperiod\bibinitdelim c\bibinitperiod\bibinitdelim R\bibinitperiod\bibinitdelim S\bibinitperiod},
+           given={Comisión\bibnamedelima Federal},
+           giveni={C\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0,
+           prefix={para\bibnamedelima la},
+           prefixi={p\bibinitperiod\bibinitdelim l\bibinitperiod}}}%
+      }
+      \strng{namehash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{fullhash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{fullhashraw}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{bibnamehash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{authorbibnamehash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{authornamehash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{authorfullhash}{8dcbf52c08f944d05d289aadda77e677}
+      \strng{authorfullhashraw}{8dcbf52c08f944d05d289aadda77e677}
+      \field{sortinit}{p}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labeldatesource}{nodate}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://www.gob.mx/cofepris/acciones-y-programas/4-normas-oficiales-mexicanas-nom-de-calidad-del-aire-ambiente}}
+      \field{note}{[Accessed 20-08-2026]}
+      \field{title}{{N}ormas {O}ficiales {M}exicanas ({N}{O}{M}) de {C}alidad del {A}ire {A}mbiente}
+    \endentry
+    \entry{saito2015}{article}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=0878cb63c98130499e8a134f65d41c69}{%
+           family={Saito},
+           familyi={S\bibinitperiod},
+           given={Takaya},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=60dc389b7245183342f8261b15a87e51}{%
+           family={Rehmsmeier},
+           familyi={R\bibinitperiod},
+           given={Marc},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{768d060c7634a71068641481ebdd8624}
+      \strng{fullhash}{768d060c7634a71068641481ebdd8624}
+      \strng{fullhashraw}{768d060c7634a71068641481ebdd8624}
+      \strng{bibnamehash}{768d060c7634a71068641481ebdd8624}
+      \strng{authorbibnamehash}{768d060c7634a71068641481ebdd8624}
+      \strng{authornamehash}{768d060c7634a71068641481ebdd8624}
+      \strng{authorfullhash}{768d060c7634a71068641481ebdd8624}
+      \strng{authorfullhashraw}{768d060c7634a71068641481ebdd8624}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{PLOS ONE}
+      \field{number}{3}
+      \field{title}{The precision-recall plot is more informative than the {ROC} plot when evaluating binary classifiers on imbalanced datasets}
+      \field{volume}{10}
+      \field{year}{2015}
+      \field{pages}{e0118432}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.1371/journal.pone.0118432
+      \endverb
+    \endentry
+    \entry{nom020ssa1}{report}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=3c444f8be64b711d49e62737b32fdc63}{%
+           family={{Secretaría de Salud}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Secretaría de Salud}%
+      }
+      \list{location}{1}{%
+        {México}%
+      }
+      \strng{namehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{fullhash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{fullhashraw}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{bibnamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorbibnamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authornamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorfullhash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorfullhashraw}{3c444f8be64b711d49e62737b32fdc63}
+      \field{extraname}{1}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradate}{1}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{28}
+      \field{langid}{spanish}
+      \field{month}{10}
+      \field{note}{Publicada en el Diario Oficial de la Federación}
+      \field{title}{NOM-020-SSA1-2021. Salud ambiental. Criterio para evaluar la calidad del aire ambiente con respecto al ozono (O3). Valores normados para la concentración de ozono (O3) en el aire ambiente como medida de protección a la salud de la población}
+      \field{type}{Norma Oficial Mexicana}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{year}{2021}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.dof.gob.mx/nota_detalle.php?codigo=5633855
+      \endverb
+      \verb{url}
+      \verb https://www.dof.gob.mx/nota_detalle.php?codigo=5633855
+      \endverb
+    \endentry
+    \entry{nom025ssa1}{report}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=3c444f8be64b711d49e62737b32fdc63}{%
+           family={{Secretaría de Salud}},
+           familyi={S\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Secretaría de Salud}%
+      }
+      \list{location}{1}{%
+        {México}%
+      }
+      \strng{namehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{fullhash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{fullhashraw}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{bibnamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorbibnamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authornamehash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorfullhash}{3c444f8be64b711d49e62737b32fdc63}
+      \strng{authorfullhashraw}{3c444f8be64b711d49e62737b32fdc63}
+      \field{extraname}{2}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradate}{2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{27}
+      \field{langid}{spanish}
+      \field{month}{10}
+      \field{note}{Publicada en el Diario Oficial de la Federación}
+      \field{title}{NOM-025-SSA1-2021. Salud ambiental. Criterio para evaluar la calidad del aire ambiente con respecto a las partículas suspendidas PM10 y PM2.5. Valores normados para la concentración de partículas suspendidas PM10 y PM2.5 en el aire ambiente como medida de protección a la salud de la población}
+      \field{type}{Norma Oficial Mexicana}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{year}{2021}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.dof.gob.mx/nota_detalle.php?codigo=5633855
+      \endverb
+      \verb{url}
+      \verb https://www.dof.gob.mx/nota_detalle.php?codigo=5633855
+      \endverb
+    \endentry
+    \entry{SanfordSillman}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=d42a0361c936a23ffcb9df93151121c8}{%
+           family={Sillman},
+           familyi={S\bibinitperiod},
+           given={Sanford},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{fullhash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{fullhashraw}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{bibnamehash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{authorbibnamehash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{authornamehash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{authorfullhash}{d42a0361c936a23ffcb9df93151121c8}
+      \strng{authorfullhashraw}{d42a0361c936a23ffcb9df93151121c8}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labeldatesource}{nodate}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{\url{https://public.websites.umich.edu/~sillman/Sillman-webOZONE.pdf}}
+      \field{note}{[Accessed 20-08-2026]}
+      \field{title}{{O}verview: {T}ropospheric ozone, smog and ozone-{N}{O}{X}-{V}{O}{C} sensitivity}
+    \endentry
+    \entry{villasaez2024}{article}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8d982f3fcafa4eb9efdc928b33c38fca}{%
+           family={Villasáez},
+           familyi={V\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{fullhash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{fullhashraw}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{bibnamehash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{authorbibnamehash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{authornamehash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{authorfullhash}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \strng{authorfullhashraw}{8d982f3fcafa4eb9efdc928b33c38fca}
+      \field{sortinit}{V}
+      \field{sortinithash}{afb52128e5b4dc4b843768c0113d673b}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{21}
+      \field{journaltitle}{El Norte}
+      \field{month}{11}
+      \field{title}{Cumple SIMA 32 años de medir calidad del aire}
+      \field{urlday}{20}
+      \field{urlmonth}{8}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.elnorte.com/cumple-sima-32-anos-de-medir-calidad-del-aire/ar2910518
+      \endverb
+      \verb{url}
+      \verb https://www.elnorte.com/cumple-sima-32-anos-de-medir-calidad-del-aire/ar2910518
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

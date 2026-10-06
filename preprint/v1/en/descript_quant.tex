@@ -1,0 +1,125 @@
+\section{Análisis exploratorio}
+\label{sec:eda}
+
+\subsection{Variables cuantitativas}
+
+\subsubsection{Cuartiles y límites de outliers}
+
+Los cuartiles y límites de $1.5\times$IQR de las variables horarias se
+reportan en sus unidades originales (\cref{tab:cuartiles-iqr}) y son los
+mismos que usó la limpieza como criterio de outliers. \texttt{RAINF} y
+\texttt{WDR} quedan fuera: \texttt{WDR} es circular y \texttt{RAINF} está
+inflada de ceros, así que su IQR no es interpretable como límite
+(\cref{sec:dic:meteorologicos}). Dos lecturas importan para lo que sigue: la
+mediana de la componente zonal del viento es negativa, es decir, el viento
+predominante entra del oriente (\cref{sec:contexto-estaciones}); y el límite
+superior de \texttt{O3\_8h} (66.22 ppb) queda por encima del umbral de
+51 ppb, de modo que la excedencia no es un outlier sino parte del rango
+habitual de la variable.
+
+\begin{table}[t]
+  \centering
+  \caption{Cuartiles y límites de outlier (criterio $1.5\times$IQR) de las
+    variables cuantitativas horarias, en sus unidades originales.}
+  \label{tab:cuartiles-iqr}
+  \small
+  \begin{tabular}{lrrrr}
+    \toprule
+    Variable & Q1 & Q3 & Lím. inf. & Lím. sup. \\
+    \midrule
+    \texttt{O3}       &    13.00 &    37.00 &  $-23.00$ &    73.00 \\
+    \texttt{CO}       &     0.71 &     1.83 &   $-0.96$ &     3.50 \\
+    \texttt{NO2}      &     6.90 &    19.70 &  $-12.30$ &    38.90 \\
+    \texttt{NOX}      &    10.95 &    30.70 &  $-18.68$ &    60.33 \\
+    \texttt{PM10}     &    35.00 &    74.00 &  $-23.50$ &   132.50 \\
+    \texttt{PM2.5}    &    10.00 &    26.74 &  $-15.11$ &    51.85 \\
+    \texttt{TOUT}     &    18.49 &    28.39 &      3.64 &    43.24 \\
+    \texttt{PRS}      &   709.70 &   721.70 &    691.70 &   739.70 \\
+    \texttt{WSR}      &     4.70 &    11.60 &   $-5.65$ &    21.95 \\
+    \texttt{O3\_8h}   &    15.44 &    35.75 &  $-15.03$ &    66.22 \\
+    \texttt{viento\_u}&  $-8.56$ &     0.21 &  $-21.73$ &    13.37 \\
+    \texttt{viento\_v}&  $-3.38$ &     3.98 &  $-14.41$ &    15.01 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+La \cref{fig:boxplot-medidas} muestra la distribución de cada variable en
+unidades originales. Todas las concentraciones de contaminantes presentan
+cola derecha larga, con outliers que multiplican varias veces el tercer
+cuartil; es la asimetría que motivó Box-Cox en \cref{sec:transformaciones}.
+Las meteorológicas son más simétricas, salvo la velocidad del viento.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width = \linewidth]{boxplots_medidas.pdf}
+    \caption{Diagramas de caja de cada variable cuantitativa horaria, en
+      unidades originales.}
+    \label{fig:boxplot-medidas}
+\end{figure}
+
+\subsubsection{Correlación}
+
+A resolución horaria y sobre la escala transformada, los pares más fuertes
+son \texttt{NO2}--\texttt{NOX} ($r=0.89$), multicolinealidad esperada entre
+precursores del mismo ciclo de reacción; \texttt{O3}--\texttt{O3\_8h}
+($r=0.69$), por construcción; \texttt{PM10}--\texttt{PM2.5} ($r=0.62$),
+material particulado de origen común; \texttt{O3}--\texttt{TOUT} ($r=0.52$)
+y \texttt{O3}--\texttt{WSR} ($r=0.43$), consistentes con el mecanismo
+fotoquímico; y \texttt{O3}--\texttt{NOX} ($r=-0.43$), que refleja el consumo
+de \ce{O3} por titulación con \ce{NO} cerca de fuentes de tráfico.
+
+El ACP corre sobre la tabla diaria y necesita su propia matriz: agregar a
+día cambia el tamaño de muestra y, típicamente, sube la correlación al
+cancelar ruido de medición. Se calcula sobre las 16 variables continuas del
+conjunto diario transformado, en el subconjunto con las 16 simultáneamente
+completas ($n=15{,}856$ de 26,691 días-estación, 59.4\,\%), la misma regla
+de descarte por lista que usa el modelado y que garantiza una matriz
+semidefinida positiva (\cref{fig:mapa-calor-diario}).
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width = \linewidth]{mapa_calor_correlacion_diario.pdf}
+    \caption{Mapa de calor de correlación de Pearson entre las 16 variables
+      continuas del conjunto diario transformado, $n=15{,}856$ días-estación
+      completos.}
+    \label{fig:mapa-calor-diario}
+\end{figure}
+
+De los pares horarios, tres tienen análogo directo en el conjunto diario:
+\texttt{NO2}--\texttt{NOX} no cambia (0.89), \texttt{PM10}--\texttt{PM2.5}
+sube a 0.70 y \texttt{viento\_u}--\texttt{WSR} sube en magnitud a $-0.48$.
+El orden sí cambia: dominan \texttt{NO}--\texttt{NOX} ($r=0.95$) y
+\texttt{RH\_media}--\texttt{RH\_min\_diurna} ($r=0.89$), inexistentes en el
+mapa horario porque \texttt{NO} y \texttt{RH} no formaban parte de ese
+conjunto. El primero es la redundancia definicional \texttt{NOX} $\approx$
+\texttt{NO} + \texttt{NO2}; el segundo, y también
+\texttt{WSR\_media}--\texttt{WSR\_min} ($r=0.71$), es la misma variable
+resumida dos veces sobre ventanas distintas del día. Estas redundancias de
+construcción son las que el análisis factorial (\cref{sec:analisis-factorial})
+termina por expulsar.
+
+Los diagnósticos previos al ACP confirman la multicolinealidad
+(\cref{tab:diagnostico-pca}): el determinante es cercano a 0 y el número de
+condición es alto. La prueba de esfericidad de Bartlett rechaza que la
+matriz sea la identidad ($\chi^2(120)=169{,}140.7$, $p<0.001$), y el KMO
+total libra el umbral convencional de 0.6; a nivel variable,
+\texttt{RH\_media} (0.587), \texttt{PRS\_media} (0.589) y \texttt{TOUT\_max}
+(0.596) quedan justo debajo sin arrastrar el total. Los cuatro diagnósticos
+justifican aplicar ACP sobre los predictores diarios.
+
+\begin{table}[t]
+  \centering
+  \caption{Diagnósticos previos al ACP sobre la matriz de correlación
+    diaria ($n=15{,}856$, 16 variables).}
+  \label{tab:diagnostico-pca}
+  \small
+  \begin{tabular}{lr}
+    \toprule
+    Diagnóstico          & Valor \\
+    \midrule
+    Determinante          & $2.32\times10^{-5}$ \\
+    Número de condición   & 322.8 \\
+    KMO total             & 0.660 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
