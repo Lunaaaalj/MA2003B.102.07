@@ -1,0 +1,109 @@
+% Seccion 7 de la rubrica: discusion y conclusiones (1 a 2 paginas), con los
+% resultados mas relevantes, recomendaciones y las preguntas nuevas que deja
+% el analisis.
+
+\section{Discusión y conclusiones}
+\label{sec:conclusiones}
+
+\subsection{Discusión}
+
+El objetivo era clasificar cada día-estación como excedencia o no del MDA8
+a 51 ppb a partir de las condiciones del mismo día, con AUC de al menos
+0.75, e identificar las condiciones latentes que explican esa
+clasificación. Se cumple: los tres clasificadores superan el criterio, y las
+técnicas de interdependencia producen tres ejes con lectura física estable
+fuera del periodo de ajuste.
+
+La excedencia de ozono en el AMM es, ante todo, un fenómeno estacional y
+regional. La temporada es el predictor de mayor efecto en los modelos
+día-estación ---la primavera triplica los momios del invierno--- y el
+forzamiento fotoquímico, el eje de temperatura, radiación y sequedad, es el
+factor continuo dominante. Que el forzamiento pese más que la carga de
+precursores es coherente con la química del ozono como contaminante
+secundario: los ingredientes son necesarios, pero es la energía disponible
+la que fija la velocidad de las reacciones. La ventilación es el único
+mecanismo protector medido, y el AF muestra que es el viento, no la presión,
+lo que define ese eje.
+
+Sobre ese fondo estacional hay una señal espacial que la meteorología medida
+no explica. A igual temporada y condiciones, el Noroeste y el Suroeste casi
+cuadruplican los momios del Noreste, y la tasa de excedencia de una estación
+correlaciona 0.83 con su elevación. El viento predominante del oriente
+arrastra los precursores hacia el pie de la sierra, donde la orografía frena
+su salida; el ordenamiento poniente--oriente es estable en las cuatro
+temporadas. Los contrastes de zona descansan, sin embargo, en 15 unidades
+espaciales, y su precisión es la que 15 unidades pueden dar.
+
+La dependencia temporal es el tercer hallazgo. La autocorrelación de un día
+para otro sobrevive a la descomposición estacional en las cuatro series de
+área metropolitana, y un solo rezago de la respuesta captura casi toda esa
+dependencia: haber excedido ayer casi cuadruplica los momios de exceder hoy,
+controlando por factores y calendario. El modelo autorregresivo distingue
+días dentro de una temporada, lo que la climatología no puede hacer.
+
+Dos limitaciones acotan todo lo anterior. La primera es el efecto de año:
+2024 y 2025 tienen un nivel de excedencia que los factores no explican, y
+ningún modelo generaliza igual de bien a 2021 que a 2024. Con estos datos
+no puede decidirse si es un cambio de emisiones, de instrumentación o dos
+años meteorológicamente atípicos. La segunda es la ausencia de compuestos
+orgánicos volátiles: sin ellos, los ejes se describen como consistentes con
+combustión, ventilación o fotoquímica, y ninguna afirmación sobre el régimen
+que limita la formación de ozono es contestable.
+
+\subsection{Conclusiones}
+
+\begin{enumerate}[label=\roman*.]
+  \item Los tres clasificadores alcanzan AUC de 0.846 a 0.898 en 2025 y
+    superan el criterio de logro. La logística y el discriminante son
+    equivalentes en la práctica, de modo que la interpretación de las razones
+    de momios no depende del supuesto de normalidad.
+  \item La excedencia es principalmente estacional: la temporada pesa más
+    que cualquier factor continuo, y entre estos domina el forzamiento
+    fotoquímico (2.78 por desviación estándar) sobre la combustión primaria
+    (1.92); la ventilación protege (0.90).
+  \item Existe una señal espacial no explicada por la meteorología medida:
+    el poniente del AMM casi cuadruplica los momios del Noreste, en
+    correspondencia con la elevación y el viento predominante.
+  \item El calendario laboral apenas influye; solo el domingo tiene un
+    efecto claro y pequeño, y el del sábado desaparece al corregir los
+    errores estándar por dependencia.
+  \item La dependencia día a día es genuina y un modelo AR(1) la aprovecha:
+    supera a la climatología y a la persistencia con generalización esperada
+    de 0.878.
+\end{enumerate}
+
+\subsection{Recomendaciones}
+
+Para la gestión de la calidad del aire, el modelo autorregresivo sobre la
+serie de área metropolitana puede operar como sistema de \emph{nowcasting}
+de excedencia con las mediciones del propio día, con un umbral de decisión
+que privilegie la sensibilidad, porque el costo de no avisar de un día malo
+supera al de una alerta de más. Las zonas Noroeste y Suroeste merecen
+vigilancia y medidas de control específicas, ya que su riesgo excede lo que
+explican sus condiciones meteorológicas. Y la incorporación de mediciones de
+compuestos orgánicos volátiles a la red del SIMA es la única vía para pasar
+de asociaciones a mecanismo.
+
+Para el análisis, tres mejoras metodológicas quedan identificadas: estimar
+el parámetro de Box-Cox solo sobre el ajuste, para cerrar la única fuga que
+persiste; incluir un término de media móvil sobre los residuales, que el
+residuo de segundo orden del modelo autorregresivo justifica; y extender el
+modelo a pronóstico rezagando los factores, con validación propia.
+
+\subsection{Preguntas nuevas}
+
+\begin{itemize}
+  \item ¿Qué produjo el escalón de 2024? Distinguir entre cambio de
+    emisiones, de instrumentación y años atípicos exige inventarios de
+    emisiones y bitácoras de calibración que este trabajo no tuvo.
+  \item ¿Qué característica del poniente explica el exceso de riesgo que
+    la zona conserva tras controlar por meteorología? Uso de suelo,
+    distancia a fuentes industriales y recirculación orográfica son las
+    candidatas.
+  \item ¿Cuánto del efecto de la temporada es fotoquímica y cuánto es
+    régimen de vientos? Los factores lo capturan en parte, pero la temporada
+    conserva un efecto propio que sugiere una variable estacional no medida.
+  \item ¿Hasta qué horizonte es útil el pronóstico? El tiempo de mezcla de
+    1.3 días de la cadena binaria sugiere que más allá de dos o tres días la
+    predicción converge a la climatología del mes.
+\end{itemize}

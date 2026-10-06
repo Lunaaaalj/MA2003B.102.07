@@ -1,0 +1,19 @@
+# Auxiliares de LaTeX: se regeneran en cada compilacion.
+*.aux
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.spl
+*.synctex.gz
+
+# El .bbl SI se versiona: arXiv no corre biber y necesita el ya generado.
+# (el .gitignore de la raiz ignora *.bbl, de ahi la negacion)
+!main.bbl
+
+# PDF compilado y paquetes para arXiv: se regeneran.
+main.pdf
+*.tar.gz

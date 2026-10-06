@@ -1,0 +1,77 @@
+% Continuacion de la introduccion (\subsection). Contexto geografico de las
+% estaciones: la rubrica pide describir ubicacion y factores geograficos que
+% podrian influir en las mediciones. Coordenadas y elevacion vienen del
+% catalogo docs/Ubicacion de las estaciones de monitoreo.docx; la lectura
+% espacial, de docs/05_estacionalidad_ozono.pdf.
+
+\subsection{Las estaciones y su contexto geográfico}
+\label{sec:contexto-estaciones}
+
+El AMM ocupa un valle a unos 500 msnm limitado al sur y al poniente por la
+Sierra Madre Oriental, al oriente por el Cerro de la Silla y al norte por el
+Cerro del Topo Chico y la Sierra de las Mitras. Las 15 estaciones del SIMA se
+reparten en ese valle a lo largo de un gradiente de elevación de 334 msnm,
+en la planicie del sureste, a 702 msnm, al pie de la sierra en el noroeste
+(\cref{tab:estaciones}). El código de cada estación indica su cuadrante, y a
+partir de él se homologan en siete zonas que los modelos de
+\cref{sec:clasificacion_tecs} usan como predictor categórico.
+
+\begin{table}[t]
+  \centering
+  \caption{Estaciones del SIMA, zona a la que se homologan y elevación.
+    Coordenadas en grados y minutos; todas en latitud norte y longitud
+    oeste.}
+  \label{tab:estaciones}
+  \small
+  \begin{tabular}{llrll}
+    \toprule
+    Código & Zona & msnm & Lat. & Long. \\
+    \midrule
+    \texttt{SE3}  & Sureste  & 334 & 25°36' & 100°00'  \\
+    \texttt{NE3}  & Noreste  & 346 & 25°47' & 100°05' \\
+    \texttt{SE2}  & Sureste  & 387 & 25°39' & 100°06' \\
+    \texttt{NE2}  & Noreste  & 432 & 25°47' & 100°11' \\
+    \texttt{NE}   & Noreste  & 474 & 25°45' & 100°15' \\
+    \texttt{SE}   & Sureste  & 500 & 25°40' & 100°15' \\
+    \texttt{NTE}  & Norte    & 503 & 25°48' & 100°20' \\
+    \texttt{NTE2} & Norte    & 520 & 25°44' & 100°19' \\
+    \texttt{SUR}  & Sur      & 555 & 25°37' & 100°16' \\
+    \texttt{CE}   & Centro   & 562 & 25°41' & 100°20' \\
+    \texttt{NO}   & Noroeste & 568 & 25°46' & 100°22' \\
+    \texttt{NO3}  & Noroeste & 607 & 25°46' & 100°28' \\
+    \texttt{SO2}  & Suroeste & 636 & 25°40' & 100°25' \\
+    \texttt{SO}   & Suroeste & 674 & 25°41' & 100°27' \\
+    \texttt{NO2}  & Noroeste & 702 & 25°48' & 100°35' \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Tres factores geográficos condicionan las mediciones. El primero es el
+viento: la mediana de la componente zonal del viento es negativa (\cref{tab:cuartiles-iqr}), es decir, el
+viento predominante entra del oriente y arrastra los precursores emitidos en
+el centro y el oriente de la ciudad hacia el poniente, donde la sierra frena
+su salida. El segundo es la elevación, que covaría con la distancia a las
+fuentes de \ce{NOx} y con el uso de suelo: la correlación entre la elevación
+de una estación y su tasa de excedencia es 0.827 sobre las 15 estaciones
+(\cref{fig:elevacion-excedencia}). El tercero es el encierro orográfico ya
+descrito en \cref{sec:objetivo}, que en episodios de alta presión y viento
+débil impide la dispersión vertical y horizontal. El resultado es un
+ordenamiento poniente--oriente estable en las cuatro temporadas: el Noroeste
+y el Suroeste concentran las tasas de excedencia más altas (43.3\,\% y
+42.1\,\%) y el Noreste la más baja (19.5\,\%).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{elevacion_vs_excedencia.pdf}
+  \caption{Tasa de excedencia del MDA8 a 51 ppb contra elevación de cada
+    estación, 2021--2025. Con $n=15$ y estaciones vecinas correlacionadas, la
+    recta describe una asociación, no un efecto de la altitud.}
+  \label{fig:elevacion-excedencia}
+\end{figure}
+
+Dos consideraciones acotan la comparabilidad entre estaciones.
+\texttt{NO3} opera desde diciembre de 2022 y \texttt{NE3} entró en operación
+después que el resto, de modo que su ventana es más corta; y ninguna estación
+mide compuestos orgánicos volátiles, el segundo precursor del ozono, lo que
+limita toda interpretación química a los óxidos de nitrógeno y al \ce{CO}
+como sustituto.

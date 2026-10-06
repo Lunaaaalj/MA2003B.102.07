@@ -1,0 +1,149 @@
+\section{Preparación de la base de datos}
+\label{sec:preparacion-datos}
+
+\subsection{Consolidación y limpieza}
+
+Los seis archivos anuales del SIMA no comparten estructura: cambian los
+encabezados, la posición de la fila de unidades y el número de estaciones
+(13 en 2020, 15 desde 2024). Se consolidan en una sola tabla horaria de 15
+parámetros por estación y fecha, 754,603 registros entre 2020 y 2025. La
+auditoría de calidad detecta valores centinela ($-9999$, el código de
+faltante del registrador) y físicamente imposibles (humedad relativa de
+hasta 725\,\%, temperaturas de 785\,°C), que se convierten a faltante en vez
+de imputarse; el detalle está en el diccionario de datos
+(\cref{sec:dic:centinela}). El porcentaje de faltantes por parámetro va de
+3.66\,\% en la radiación solar a 25.23\,\% en \ce{PM2.5}, pero no se reparte
+de forma pareja entre años ni estaciones, lo que determina la ventana de
+estudio.
+
+\subsection{Selección de datos}
+
+A partir del diccionario de datos y del diagnóstico de calidad se construye
+el conjunto de datos de los procesos subsiguientes.
+
+Dado que el objetivo es analizar el comportamiento del ozono troposférico, se evalúa cada variable y se determina, con base en la literatura, si existe un mecanismo documentado por el cual influya en la formación de \ce{O3}, ya sea químico, físico o meteorológico.
+
+Se fija como variable objetivo el \ce{O3} proveniente de la base de datos:
+
+\begin{table*}[t]
+  \centering
+  \caption{Variable objetivo: ozono troposférico (\ce{O3}).}
+  \label{tab:variable-objetivo}
+  \begin{tabular}{lcccc}
+    \toprule
+    Unidad & Rango de operación & Rango observado & Mediana & Nulos (\%) \\
+    \midrule
+    ppb & 0--153 a 0--185 & 0.5--265.0 & 23.00 & 14.73 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\begin{quote}
+    Las estaciones reportan resultados cada hora, lo que implica 24 mediciones diarias. La métrica normativa MDA8 colapsa esas 24 mediciones en un único valor por estación y día, ya que la NOM-020-SSA1 fija el límite de ozono sobre el promedio de 8 horas, no sobre el valor horario.
+\end{quote}
+
+El \cref{tab:nom-limites} reúne los valores límite vigentes en México para el
+ozono y el material particulado. Nótese que el indicador normativo del \ce{O3} no
+es la concentración horaria sino el promedio móvil de ocho horas, y que el
+criterio de evaluación es el máximo de los máximos diarios de dichos promedios;
+esto justifica adoptar el máximo diario del promedio móvil de ocho horas (MDA8)
+como variable objetivo del análisis.
+
+\begin{table*}[t]
+  \centering
+  \caption{Valores límite de calidad del aire vigentes en México para los
+    contaminantes de interés. Los años indican el calendario de cumplimiento
+    gradual establecido por cada norma
+    \parencite{nom020ssa1, nom025ssa1}.}
+  \label{tab:nom-limites}
+  \footnotesize
+  \begin{tabular}{p{2.6cm} p{7.2cm} ccc}
+    \toprule
+    & & \multicolumn{3}{c}{Valor límite} \\
+    \cmidrule(lr){3-5}
+    Indicador & Criterio de evaluación & Año 1 & Año 3 & Año 5 \\
+    \midrule
+    \multicolumn{5}{l}{\textbf{\ce{PM10}} ($\mu$g/m$^{3}$) --- NOM-025-SSA1-2021, DOF 27-oct-2021} \\
+    \addlinespace[2pt]
+    24 horas & Percentil 99 (frecuencia tolerada: 1\,\% de veces al año) & 70 & 60 & 50 \\
+    Anual    & Promedio anual de los promedios de 24 horas              & 36 & 28 & 20 \\
+    \midrule
+    \multicolumn{5}{l}{\textbf{\ce{PM2.5}} ($\mu$g/m$^{3}$) --- NOM-025-SSA1-2021, DOF 27-oct-2021} \\
+    \addlinespace[2pt]
+    24 horas & Percentil 99 (frecuencia tolerada: 1\,\% de veces al año) & 41 & 33 & 25 \\
+    Anual    & Promedio anual de los promedios de 24 horas              & 10 & 10 & 10 \\
+    \midrule
+    \multicolumn{5}{l}{\textbf{Ozono} (\ce{O3}, ppm) --- NOM-020-SSA1-2021, DOF 28-oct-2021} \\
+    \addlinespace[2pt]
+    1 hora                     & Máximo de los máximos diarios de las concentraciones horarias                        & 0,090 & 0,090 & 0,090 \\
+    Promedio móvil de 8 horas  & Máximo de los máximos diarios de las concentraciones de los promedios móviles de 8 horas & 0,065 & 0,060 & 0,051 \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+Los valores faltantes de \ce{O3} por estación y año (\cref{sec:dic:faltantes}) muestran que 2020 es inutilizable: de las 13 estaciones que operaban ese año, 7 registran entre $89\%$ y $100\%$ de datos faltantes. Se descarta por completo el año 2020.
+
+En 2021 los faltantes siguen siendo elevados en varias estaciones, pero dentro de un rango que permite el análisis; de 2022 en adelante ninguna estación supera el $20\%$, salvo \texttt{NO3} en 2025 (30.3\,\%). Se conservan, por lo tanto, los años 2021 a 2025 completos: 1,826 días de calendario.
+
+Dentro de esta ventana, ninguna estación presenta faltantes que justifiquen excluirla, por lo que se conservan los 15 niveles de la variable \texttt{estacion}. Esta no se somete al mismo criterio que los parámetros medidos: no es una magnitud fisicoquímica sino un identificador
+que define la estructura espacial del conjunto de datos.
+
+A continuación se identifican las variables que afectan los niveles de ozono troposférico. A partir de fuentes de la literatura, se recopila información sobre los procesos químicos, físicos y meteorológicos que facilitan u obstaculizan la síntesis de \ce{O3}.
+
+\begin{itemize}
+    \item \textbf{Radiación solar}: en verano, la luz solar es más intensa y las temperaturas incrementan, lo que acelera las reacciones fotoquímicas y produce niveles de ozono más altos.
+    \item \textbf{Variación estacional cuantificada}: concentraciones promedio de $45.6\,\mu\mathrm{g}/\mathrm{m}^{3}$ en verano, $47.3\,\mu\mathrm{g}/\mathrm{m}^{3}$ en primavera, $38.0\,\mu\mathrm{g}/\mathrm{m}^{3}$ en otoño y $33.6\,\mu\mathrm{g}/\mathrm{m}^{3}$ en invierno.
+    \item \textbf{Variación diurna}: los niveles de ozono tienden a ser más altos al final de la tarde y disminuyen de noche por falta de luz solar y por la reacción de titulación con \ce{NO}, que consume ozono.
+    \item \textbf{Topografía}: valles rodeados de montañas atrapan contaminantes y favorecen la formación de ozono (efecto de estancamiento), lo cual aplica en particular a la zona metropolitana de Monterrey.
+    \item \textbf{Eventos agudos}: las olas de calor causan incrementos atípicos de corto plazo.
+\end{itemize}
+
+La sección química del artículo de Sillman \parencite{SanfordSillman} describe el mecanismo de formación del ozono troposférico:
+
+\begin{quote}
+    La formación de ozono en la atmósfera baja es resultado de una serie de reacciones fotoquímicas que involucran precursores emitidos por fuentes naturales y antropogénicas. Estas reacciones comienzan con la fotólisis del dióxido de nitrógeno (\ce{NO2}) bajo luz solar, que produce oxígeno atómico (\ce{O}). Este oxígeno atómico reacciona luego con oxígeno molecular (\ce{O2}) para formar ozono (\ce{O3}).
+\end{quote}
+
+El ciclo completo:
+
+\begin{enumerate}
+    \item $\ce{NO2} + h\nu \to \ce{NO}+\ce{O}$ (fotólisis)
+    \item $\ce{O} + \ce{O2} + \ce{M} \to \ce{O3} + \ce{M}$ (formación de ozono)
+    \item Los COV (compuestos orgánicos volátiles) reaccionan con radicales libres para generar \ce{NO2} adicional, alimentando el ciclo continuamente.
+\end{enumerate}
+
+A partir de esta información se determinan las variables meteorológicas utilizadas en el resto del análisis.
+
+\begin{itemize}
+    \item \texttt{TOUT} (temperatura ambiente): a mayor temperatura, la formación de ozono se acelera.
+    \item \texttt{RAINF} (precipitación): la precipitación implica cielo nublado, lo cual disminuye la exposición a radiación solar.
+    \item \texttt{PRS} (presión atmosférica): las altas presiones provocan días despejados, cielos sin nubes y vientos casi nulos, y funcionan además como una \textit{tapa}: el aire pesado desciende, comprime los contaminantes contra el suelo e impide que se dispersen.
+    \item \texttt{WSR} y \texttt{WDR} (velocidad y dirección del viento): determinan la capacidad del ambiente para dispersar los contaminantes.
+\end{itemize}
+
+De los contaminantes atmosféricos:
+
+\begin{itemize}
+    \item \ce{CO} (monóxido de carbono) actúa como sustituto de los COV que reaccionan con radicales libres.
+    \item \ce{NO2} es el ingrediente principal en la reacción fotoquímica con la radiación solar.
+    \item NOX es el grupo $\ce{NO2} + \ce{NO}$, esencial para la formación de \ce{O3}.
+    \item \texttt{PM10} y \texttt{PM2.5} no son gases, sino fragmentos sólidos suspendidos en el aire; una concentración elevada actúa como pantalla contra la luz solar y atenúa las reacciones.
+\end{itemize}
+
+\subsection{Agregación diaria}
+\label{sec:agregacion-diaria}
+
+La unidad de análisis de los modelos es el día-estación, porque la norma se
+evalúa sobre el MDA8 y no sobre la hora. La tabla horaria limpia se colapsa
+a una fila por día y estación con 16 resúmenes continuos: los precursores
+\ce{NO}, \ce{NO2}, \ce{NOx} y \ce{CO} como media de la ventana 06--09 h;
+temperatura máxima, radiación acumulada, humedad media y mínima diurna,
+presión media, velocidad de viento media y mínima, componentes vectoriales
+medias del viento y medias diarias de \ce{PM10}, \ce{PM2.5} y \ce{SO2}. El
+MDA8 se declara válido solo si al menos 18 de las 24 ventanas móviles de
+8 horas del día están completas; de las 26,691 filas día-estación, 25,100
+cumplen esa regla. Cada resumen y la regla de completitud se justifican en la
+bitácora de agregación del repositorio. Al día-estación se añaden
+\texttt{zona}, \texttt{temporada} y \texttt{tipo\_dia}, que distingue
+laborable, sábado, domingo y los 71 días festivos del periodo, cuyo patrón de
+tráfico es anómalo.

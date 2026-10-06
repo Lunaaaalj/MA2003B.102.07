@@ -1,0 +1,94 @@
+\subsection{Modelo autorregresivo logístico}\label{sec:autorregresivo}
+
+Un modelo autorregresivo explica el valor presente de una serie a partir de
+sus propios valores pasados. En su forma clásica, AR($p$), la observación
+$y_t$ es una combinación lineal de los $p$ rezagos $y_{t-1},\dots,y_{t-p}$
+más ruido. Aquí la respuesta es binaria (día de excedencia o no), así que la
+dependencia temporal no puede entrar como media lineal; entra como término
+del predictor de una regresión logística:
+\begin{equation}
+  \operatorname{logit} P(y_t = 1 \mid y_{t-1}, x_t)
+    = x_t'\beta + \sum_{i=1}^{p} \alpha_i\, y_{t-i},
+  \label{eq:arlog}
+\end{equation}
+donde $x_t$ reúne los tres puntajes factoriales del mismo día
+(\cref{sec:analisis-factorial}) y los armónicos anual y semianual del
+calendario. La \cref{sec:serie-tiempo} mostró que la autocorrelación de
+rezago 1 sobrevive a la descomposición estacional; \cref{eq:arlog} es la
+forma de aprovecharla en lugar de declararla como limitación, como se hizo en
+\cref{sec:limitaciones-clasificacion}.
+
+\subsubsection{Proceso}
+
+El modelo se ajusta sobre la serie diaria de área metropolitana construida en
+\cref{sec:serie-tiempo}, con $y_t = 1$ cuando al menos la mitad de las
+estaciones que reportan excede el umbral de \texttt{excede\_anio\_5}. No se
+modela la fracción de estaciones como binomial: la correlación transversal
+produce una sobredispersión de 5.97, que subestimaría los errores estándar
+por un factor de 2.4. El ajuste usa 2021--2024 y la validación 2025, la misma
+partición que \cref{sec:clasificacion_tecs}. La especificación sale de cuatro
+diagnósticos, no de una elección a mano:
+
+\begin{enumerate}
+  \item \textbf{Orden $p$.} La PACF de $y_t$ corta después del primer rezago
+    (0.463 en el rezago 1, 0.100 en el 2) y el BIC, condicionado a las
+    covariables, se minimiza en $p=1$. El rezago sobrevive a los factores
+    contemporáneos ($LR = 71.4$, 1 g.l.): la persistencia no es un reflejo de
+    que la meteorología sea persistente.
+  \item \textbf{Estacionariedad.} Una serie binaria no puede tener raíz
+    unitaria; lo que se verifica es homogeneidad temporal. El coeficiente
+    autorregresivo no cambia entre 2021--2023 y 2024 ($p=0.64$), pero el
+    nivel sí: una indicadora de 2024 en adelante es significativa
+    ($p=0.0013$). Es un escalón que los factores no absorben y se declara
+    como limitación.
+  \item \textbf{Forma del predictor.} El \emph{linktest} rechaza sin
+    curvatura y deja de rechazar ($p=0.60$) al incluir los cuadrados de
+    ventilación y forzamiento fotoquímico, cuyos signos negativos indican
+    saturación del efecto. El \emph{link} logit es correcto.
+  \item \textbf{Dependencia residual.} Con el rezago, la autocorrelación de
+    los residuales de Pearson en el rezago 1 cae de 0.212 a 0.025. Queda un
+    residuo de 0.099 en el rezago 2 que no justifica un segundo rezago.
+\end{enumerate}
+
+\subsubsection{Resultados e interpretación}
+
+Los coeficientes se leen como razones de momios, igual que en la
+\cref{tab:momios-log}, y ningún intervalo del 95\,\% cruza el 1. Haber
+excedido el día anterior multiplica los momios de exceder hoy por 3.83: es
+el efecto que justifica el término autorregresivo. Entre los factores, el
+forzamiento fotoquímico es el de mayor efecto (3.69 por desviación
+estándar), seguido de la combustión primaria (2.37); la ventilación es el
+único factor protector (0.32). Los cuadráticos quedan por debajo de 1 (0.70
+y 0.69): el efecto marginal disminuye cuando el factor ya es alto.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{nowcast_roc.pdf}
+  \caption{Curvas ROC en validación (2025) del modelo autorregresivo y de
+    las dos líneas base. La persistencia produce tres vértices porque su
+    predictor es binario.}
+  \label{fig:nowcast-roc}
+\end{figure}
+
+Un AUC alto no basta; hay que compararlo contra lo que se obtendría sin
+modelo. Las dos líneas base son la climatología (solo el calendario, AUC
+0.668) y la persistencia (hoy será como ayer, AUC 0.717). El modelo alcanza
+0.898 en 2025 y supera a ambas con $p<10^{-5}$ en la prueba de DeLong
+(\cref{fig:nowcast-roc}). Con el umbral de Youden fijado sobre el ajuste
+(0.327), no sobre la validación, la sensibilidad es de 0.759 y la
+especificidad de 0.841: de 170 días de excedencia detecta 129, con 31 falsas
+alarmas en 195 días limpios.
+
+La validación cruzada dejando un año fuera separa el desempeño de la
+partición del esperado en un año cualquiera: el AUC va de 0.840 (2021) a
+0.915 (2024), con un agrupado de 0.878, IC 95\,\% $[0.859, 0.897]$. Esa
+segunda cifra es la estimación de generalización; el 0.898 de 2025 cae
+dentro del rango. El efecto de año no se explica por la prevalencia ni por la
+cobertura de estaciones y es la limitación principal del modelo.
+
+Dos precisiones acotan la lectura. El modelo subpredice en 2025 (media
+predicha 0.338 contra 0.466 observado) por el escalón de nivel de 2024, y no
+se recalibra porque sería ajustar un parámetro al periodo de prueba. Y es
+\emph{nowcasting}, no pronóstico: los factores son del mismo día que la
+respuesta, de modo que el modelo distingue días dentro de una temporada ---lo
+que la climatología no puede hacer--- pero no anticipa el ozono de mañana.
