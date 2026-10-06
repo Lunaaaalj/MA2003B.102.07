@@ -1,21 +1,5 @@
-% =============================================================================
-%  main.tex - preambulo, portada y \input de las secciones.
-%
-%  ESTE ARCHIVO ES DE TODO EL EQUIPO. Casi nunca debe cambiar: solo se toca
-%  para agregar una seccion nueva al final (un \input mas).
-%  Tu texto va en secciones/<tu-seccion>.tex.
-%
-%  Compilar desde esta carpeta:   latexmk        (el .latexmkrc ya hace el resto)
-% =============================================================================
-
-% nonatbib: elsarticle carga natbib por default y natbib es INCOMPATIBLE con
-% biblatex. Esta opcion le dice a la clase que no lo cargue.
-% 5p = formato Elsevier a dos columnas. Si lo quieren a una columna, cambien
-% 5p por 3p y no hay que tocar nada mas.
 \documentclass[5p,nonatbib]{elsarticle}
 
-% --- Quitar el pie de pagina "Preprint submitted to Elsevier" -----------------
-% No estamos mandando esto a una revista, es un reporte de clase.
 \makeatletter
 \def\ps@pprintTitle{%
   \let\@oddhead\@empty
@@ -24,86 +8,40 @@
   \let\@evenfoot\@empty}
 \makeatother
 
-% --- Codificacion y tipografia -----------------------------------------------
-\usepackage[T1]{fontenc}      % acentos y "ñ" como un solo glifo (permite copiar
-                              % texto del PDF y que la division silabica sirva)
-\usepackage[utf8]{inputenc}   % el .tex se escribe en UTF-8
-                              % Sin paquete de tipografia: se usa la default de
-                              % LaTeX (Computer Modern). Ojo: NO usar la opcion
-                              % [times] de la clase, que la cambiaria.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
 
-\usepackage{microtype}        % micro-ajustes de espaciado; menos renglones feos
+\usepackage{microtype}
 
-% A dos columnas las columnas son angostas y una palabra larga sin guiones
-% (una ruta como references.bib, o un \verb) se sale del margen. Esto deja que
-% LaTeX estire un poco los espacios antes de rendirse y desbordar.
 \emergencystretch=2em
 
-% --- Idioma ------------------------------------------------------------------
-% Los ajustes de babel-spanish NO se pueden poner como opciones de \usepackage:
-% babel leeria "es-tabla" como si fuera un idioma y truena. Van aqui, en
-% \spanishoptions, ANTES de cargar babel.
-%   es-tabla        -> "Tabla 1" en vez de "Cuadro 1"
-%   es-nodecimaldot -> deja el punto decimal en matematicas (12.46 y no 12,46),
-%                      porque asi salen los numeros de pandas/R
-%   es-noquoting    -> evita que babel se pelee con otros paquetes por comillas
 \def\spanishoptions{es-tabla,es-nodecimaldot,es-noquoting}
 \usepackage[spanish]{babel}
-\usepackage{csquotes}         % \enquote{...} -> «...» segun el idioma activo
+\usepackage{csquotes}
 
-% --- Matematicas -------------------------------------------------------------
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
 
-% --- Tablas y figuras --------------------------------------------------------
-\usepackage{booktabs}         % \toprule \midrule \bottomrule (tablas sin lineas
-                              % verticales, que es el estilo correcto)
+\usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{graphicx}
 \usepackage{multicol}
-\graphicspath{{./}}     % con esto basta \includegraphics{archivo.pdf}
+\graphicspath{{./}}
 
-% A dos columnas, un table* [t] cerca del final del documento puede empujar
-% el resto del texto a una pagina nueva; si lo que queda despues no llena
-% esa pagina, una columna se queda vacia. flushend balancea las dos columnas
-% de la ULTIMA pagina para que ese sobrante no se vea como espacio en blanco.
 \usepackage{flushend}
 
-
-% El reporte tiene muchas tablas grandes (sobre todo en el diccionario de
-% datos); el espaciado por defecto de LaTeX alrededor de flotantes y listas
-% deja demasiado blanco. Se aprieta aqui para que el documento se vea mas
-% denso sin tocar el tamano de fuente ni los margenes de la clase.
 \setlength{\intextsep}{6pt plus 2pt minus 2pt}
 \setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
 \setlength{\floatsep}{6pt plus 2pt minus 2pt}
 \setlength{\abovecaptionskip}{4pt}
 \setlength{\belowcaptionskip}{2pt}
 
-% Parametros de colocacion de flotantes. Los defaults de LaTeX son
-% conservadores y en este reporte se quedan cortos: la etapa 2 aporta 24
-% flotantes contra unas 5 paginas de prosa, y como cada uno solo puede
-% aparecer en o despues del punto donde se cita, la cola se desbordaba al
-% final del documento (seis figuras quedaban DESPUES de la bibliografia).
-%
-% Lo que estorbaba, en concreto:
-%   \textfraction 0.2 -> exigia que al menos 20%% de cada pagina fuera texto
-%   \topnumber    2   -> maximo dos flotantes en la zona superior
-%   \floatpagefraction 0.5 -> una pagina solo de flotantes tenia que ir medio
-%                             llena, si no LaTeX prefiere seguir difiriendolos
-%
-% Esto NO recorta contenido ni cambia el tamano de letra: solo autoriza a
-% LaTeX a empaquetar los flotantes mas densamente. Bajo el documento de 13 a
-% 12 paginas y dejo la bibliografia al final, que es donde debe estar.
-% Si en algun momento el reporte se ve demasiado saturado de figuras por
-% pagina, estos son los diales que hay que aflojar (subir \textfraction,
-% bajar \topnumber).
 \renewcommand{\topfraction}{0.92}
 \renewcommand{\bottomfraction}{0.6}
 \renewcommand{\textfraction}{0.06}
 \renewcommand{\floatpagefraction}{0.55}
-\renewcommand{\dbltopfraction}{0.92}      %% idem para flotantes de ancho completo
+\renewcommand{\dbltopfraction}{0.92}
 \renewcommand{\dblfloatpagefraction}{0.55}
 \setcounter{topnumber}{4}
 \setcounter{bottomnumber}{3}
@@ -113,27 +51,17 @@
 \usepackage{enumitem}
 \setlist{noitemsep, topsep=3pt, partopsep=0pt}
 
-% --- Bibliografia (biblatex + biber) -----------------------------------------
-% style=authoryear -> (Jolliffe, 2002) en el texto.
-% Para citas numericas [1], cambien authoryear por numeric-comp.
 \usepackage[backend=biber,style=apa,sorting=nyt,maxbibnames=99]{biblatex}
 \addbibresource{references.bib}
-% La bibliografia se compone un punto mas chica que el cuerpo, convencion
-% habitual en revistas: son datos de consulta, no prosa que se lea seguida.
-% Con las URLs largas de las fuentes normativas esto ahorra ~10 renglones,
-% que es lo que hacia que se derramara a una pagina extra.
 \renewcommand*{\bibfont}{\small}
-\setlength{\bibitemsep}{0pt}      %% sin aire extra entre entradas
+\setlength{\bibitemsep}{0pt}
 \setlength{\bibhang}{1em}
 
-% --- Referencias cruzadas (SIEMPRE hasta el final) ---------------------------
 \usepackage[colorlinks=true, linkcolor=blue,citecolor=blue]{hyperref}
-\usepackage[spanish]{cleveref} % \cref{fig:x} escribe solo "Figura 1"
+\usepackage[spanish]{cleveref}
 
-\usepackage{mhchem} % formulas de quimica
+\usepackage{mhchem}
 
-% cleveref en español dice "apartado 2"; en un reporte queremos "Sección 2".
-% \cref -> minuscula (a media oracion), \Cref -> mayuscula (al inicio).
 \crefname{section}{sección}{secciones}
 \Crefname{section}{Sección}{Secciones}
 \crefname{table}{tabla}{tablas}
@@ -141,51 +69,10 @@
 \crefname{equation}{ecuación}{ecuaciones}
 \Crefname{equation}{Ecuación}{Ecuaciones}
 
-% --- Textos de la portada en español ----------------------------------------
-% elsarticle trae "Abstract" y "Keywords" escritos a fuerza en ingles;
-% la clase deja estos dos ganchos para cambiarlos.
 \abstracttitle{Resumen}
 \keywordtitle{Palabras clave}
 
 \begin{document}
-
-% --- Carátula ----------------------------------------------------------------
-% La rúbrica pide número de equipo, nombre y matrícula de cada integrante y el
-% nombre del proyecto vinculado con el objetivo. elsarticle no trae carátula,
-% así que se compone a mano antes del frontmatter (que pone el resumen).
-\begin{titlepage}
-  \centering
-  \vspace*{2cm}
-  {\large Instituto Tecnológico y de Estudios Superiores de Monterrey\par}
-  \vspace{0.4cm}
-  {\large MA2003B --- Aplicación de Métodos Multivariados en Ciencia de Datos\par}
-  {\large Grupo 102\par}
-  \vspace{2.5cm}
-  {\LARGE\bfseries Discriminación de excedencias diarias de ozono en el Área
-    Metropolitana de Monterrey\par}
-  \vspace{0.6cm}
-  {\large Clasificación día-estación bajo el umbral de 51 ppb de la
-    NOM-020-SSA1-2021 con análisis factorial, regresión logística,
-    discriminante lineal y modelo autorregresivo, sobre 15 estaciones del
-    SIMA, 2021--2025\par}
-  \vspace{2.5cm}
-  {\large\bfseries Equipo 7\par}
-  \vspace{0.5cm}
-  \begin{tabular}{ll}
-    \toprule
-    Integrante & Matrícula \\
-    \midrule
-    Eduardo Luna    & \texttt{A00842657} \\
-    Jenaro Alcaraz  & \texttt{A01646850} \\
-    Emilia Rico     & \texttt{A01384587} \\
-    Mar Fernández   & \texttt{A00227571} \\
-    Sofía Fernández & \texttt{A01722980} \\
-    \bottomrule
-  \end{tabular}
-  \vfill
-  {\large Monterrey, Nuevo León\par}
-  {\large Septiembre de 2026\par}
-\end{titlepage}
 
 \begin{frontmatter}
 
@@ -199,10 +86,8 @@ NOM-020-SSA1-2021 en 15 estaciones del SIMA, 2021--2025}
 \author[tec]{Emilia Rico}
 \author[tec]{Mar Fernández}
 \author[tec]{Sofía Fernández}
-\address[tec]{Instituto Tecnológico y de Estudios Superiores de Monterrey, MA2003B --- Grupo 102, equipo 7}
+\address[tec]{Instituto Tecnológico y de Estudios Superiores de Monterrey, Monterrey, Nuevo León, México}
 
-% Resumen de una página a espacio sencillo, como pide la rúbrica: problema,
-% datos, método, resultado. Sin citas, fórmulas ni referencias a secciones.
 \begin{abstract}
 El ozono troposférico del Área Metropolitana de Monterrey excede con
 regularidad el límite que la NOM-020-SSA1-2021 fija para el máximo diario de
@@ -273,54 +158,34 @@ modelo autorregresivo \sep Área Metropolitana de Monterrey
 
 \end{frontmatter}
 
-% --- Secciones ---------------------------------------------------------------
-% Una seccion = un archivo = una issue = una branch.
-% El orden sigue la rubrica del curso: introduccion y justificacion,
-% problematica y objetivo, preparacion de la base de datos, modelacion y
-% validacion, resultados, discusion y conclusiones. Cada archivo de
-% secciones/ abre con el nivel de encabezado que le toca aqui; al mover un
-% archivo de lugar hay que revisar ese nivel.
+\input{introduccion}
+\input{revi_medio_ambiente}
+\input{res_sima}
+\input{contexto_estaciones}
 
-% 1. Introducción y justificación
-\input{introduccion}          % \section + el ozono
-\input{revi_medio_ambiente}   % \subsection
-\input{res_sima}              % \subsection
-\input{contexto_estaciones}   % \subsection
-
-% 2. Problemática y objetivo
 \input{objetivo_tecnicas}
 
-% 3. Preparación de la base de datos
 \input{seleccion_datos}
-\input{transformaciones}      % \subsection
+\input{transformaciones}
 
-% 4. Análisis exploratorio
 \input{descript_quant}
-\input{eda_cualitativas}      % \subsection
+\input{eda_cualitativas}
 
-% 5. Modelación y validación
-\input{modelacion}            % \section + partición común
-\input{pca}                   % \subsection
-\input{analisis_factorial}    % \subsection
-\input{series_tiempo_factores}% \subsection
-\input{regresion_logistica}   % \subsection
-\input{autorregresivo_logistico} % \subsection
+\input{modelacion}
+\input{pca}
+\input{analisis_factorial}
+\input{series_tiempo_factores}%
+\input{regresion_logistica}
+\input{autorregresivo_logistico}
 
-% 6. Resultados
 \input{resultados}
 
-% 7. Discusión y conclusiones
 \input{discusion_conclusiones}
 
 \input{declaratoria_ia}
 
 \printbibliography
 
-% --- Anexos ---
-% Solo informacion complementaria citada desde el cuerpo: las tecnicas que se
-% probaron y descartaron (\cref{sec:tecnicas-descartadas}) y los diccionarios
-% de datos (\cref{sec:diccionario,sec:diccionario-transformado}). No cuentan
-% contra el limite de paginas del cuerpo.
 \appendix
 \input{tecnicas_no_funcionaron}
 \input{diccionario_datos}

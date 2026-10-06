@@ -1,19 +1,3 @@
-% =============================================================================
-%  Seccion: Diccionario de datos
-%
-%  Version en LaTeX de docs/Diccionario_Sima.md. Si cambia el consolidado,
-%  hay que actualizar AMBOS archivos (el .md es el que se consulta al programar).
-%
-%  Este archivo NO lleva preambulo: main.tex lo mete con \input. Solo usa
-%  paquetes que main.tex ya carga (booktabs, amsmath, cleveref). Si hace falta
-%  uno nuevo, se pide en una issue de main.tex; no se agrega aqui.
-%
-%  Las tablas anchas usan el entorno table* (flotante a dos columnas): en un
-%  documento 5p una tabla de 6 o 7 columnas no cabe en una sola columna. Los
-%  flotantes a dos columnas SOLO pueden ir arriba de la pagina, por eso llevan
-%  [t] y no [h].
-% =============================================================================
-
 \section{Diccionario de datos}\label{sec:diccionario}
 
 Esta seccion documenta el consolidado que produce
@@ -149,10 +133,6 @@ trata de huecos de hora, no de filas vacias: la fila simplemente no existe. Por
 eso cualquier interpolacion temporal exige reindexar antes contra una rejilla
 horaria completa; de lo contrario el metodo asumira que dos observaciones
 contiguas estan separadas por una hora cuando no lo estan.
-
-% -----------------------------------------------------------------------------
-%  Tablas
-% -----------------------------------------------------------------------------
 
 \begin{table*}[t]
   \centering
@@ -374,5 +354,4 @@ contiguas estan separadas por una hora cuando no lo estan.
     \bottomrule
   \end{tabular}
 \end{table}
-
 
