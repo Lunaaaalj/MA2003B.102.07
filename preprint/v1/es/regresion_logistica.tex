@@ -25,7 +25,7 @@ ozono dependen de la temperatura y la radiación, por lo que la condición
 fotoquímica pesa más que la disponibilidad de ingredientes. La ventilación
 es el único factor protector (0.90): el viento dispersa.
 
-\begin{table}[t]
+\begin{table}[pos=t]
   \centering
   \caption{Razones de momios del modelo logístico (\texttt{exp} del
     coeficiente) con intervalo del 95\,\% bajo independencia. Los factores se
@@ -84,7 +84,7 @@ significancia al 5\,\% es el sábado. Agrupar además por estación no es
 confiable con 15 conglomerados, pero deja claro que los seis contrastes de
 zona descansan en 15 unidades, no en 16,058 filas.
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
   \centering
   \includegraphics[width=\linewidth]{momios_ic_corregido.pdf}
   \caption{Razones de momios de los factores con intervalos del 95\,\% bajo
@@ -154,7 +154,7 @@ el reparto de errores al umbral de Youden: el discriminante detecta más
 excedencias (sensibilidad 0.758 contra 0.698) a cambio de más falsas alarmas
 (especificidad 0.788 contra 0.853).
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
   \centering
   \includegraphics[width=\linewidth]{roc_modelos.pdf}
   \caption{Curvas ROC de ambos modelos en la partición de validación (2025).
@@ -162,7 +162,7 @@ excedencias (sensibilidad 0.758 contra 0.698) a cambio de más falsas alarmas
   \label{fig:roc-modelos}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
   \centering
   \includegraphics[width=\linewidth]{matriz_confusion.pdf}
   \caption{Matrices de confusión en validación, cada modelo a su propio umbral

@@ -17,7 +17,7 @@ superior de \texttt{O3\_8h} (66.22 ppb) queda por encima del umbral de
 51 ppb, de modo que la excedencia no es un outlier sino parte del rango
 habitual de la variable.
 
-\begin{table}[t]
+\begin{table}[pos=t]
   \centering
   \caption{Cuartiles y límites de outlier (criterio $1.5\times$IQR) de las
     variables cuantitativas horarias, en sus unidades originales.}
@@ -49,7 +49,7 @@ cola derecha larga, con outliers que multiplican varias veces el tercer
 cuartil; es la asimetría que motivó Box-Cox en \cref{sec:transformaciones}.
 Las meteorológicas son más simétricas, salvo la velocidad del viento.
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
     \centering
     \includegraphics[width = \linewidth]{boxplots_medidas.pdf}
     \caption{Diagramas de caja de cada variable cuantitativa horaria, en
@@ -76,7 +76,7 @@ completas ($n=15{,}856$ de 26,691 días-estación, 59.4\,\%), la misma regla
 de descarte por lista que usa el modelado y que garantiza una matriz
 semidefinida positiva (\cref{fig:mapa-calor-diario}).
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
     \centering
     \includegraphics[width = \linewidth]{mapa_calor_correlacion_diario.pdf}
     \caption{Mapa de calor de correlación de Pearson entre las 16 variables
@@ -107,7 +107,7 @@ total libra el umbral convencional de 0.6; a nivel variable,
 (0.596) quedan justo debajo sin arrastrar el total. Los cuatro diagnósticos
 justifican aplicar ACP sobre los predictores diarios.
 
-\begin{table}[t]
+\begin{table}[pos=t]
   \centering
   \caption{Diagnósticos previos al ACP sobre la matriz de correlación
     diaria ($n=15{,}856$, 16 variables).}

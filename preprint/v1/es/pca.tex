@@ -24,14 +24,14 @@ valdría 1 y tres acumularían 20\,\%. Los retenidos valen 3.92, 2.97 y 1.50,
 el análisis queda absorbida en \texttt{PC1}, y las tres coordenadas que
 heredan los modelos posteriores son ortogonales por construcción. Las medias de las puntuaciones de 2025 no son cero (\texttt{PC1} $-0.39$, \texttt{PC3} $+0.35$): 2025 tiene menos carga primaria y más estancamiento que el promedio de 2021--2024, el efecto de año de \cref{sec:modelacion}, no un error de ajuste.
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
   \centering
   \includegraphics[width = \linewidth]{pca_scree.pdf}
   \caption{Varianza explicada por cada componente. El decremento mayor ocurre en el tercer componente; a partir de ahí es marginal.}
   \label{fig:scree_pca}
 \end{figure}
 
-\begin{table}[ht]
+\begin{table}[pos=ht]
   \centering
   \caption{Cargas dominantes de los componentes retenidos, con la varianza que
     explica cada uno.}
@@ -64,7 +64,7 @@ heredan los modelos posteriores son ortogonales por construcción. Las medias de
   \end{tabular}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
   \centering
   \includegraphics[width = \linewidth]{pca_biplot.pdf}
   \caption{Biplot de los ejes retenidos. Puntos: submuestra de 3,000 observaciones de entrenamiento por temporada. Flechas: cargas escaladas al marco. Nombres abreviados: \texttt{TOUT} y \texttt{SR} son máximo y acumulado diarios; \texttt{NO}, \texttt{NO2}, \texttt{NOX} y \texttt{CO} son la ventana 06--09 h; el resto son medias diarias, salvo \texttt{WSR} mín y \texttt{RH} mín.}

@@ -21,7 +21,7 @@ measurement. \texttt{tipo\_dia} replaces the weekend dummy because it
 separates Saturday from Sunday, whose traffic patterns differ, and isolates
 the 81 public holidays of the period.
 
-\begin{table}[t]
+\begin{table}[pos=t]
   \centering
   \caption{Absolute and relative frequency of the qualitative variables at
     station-hour resolution ($n = 640{,}583$). Percentages are over records
@@ -63,7 +63,7 @@ share the same 1,591 missing records (5.96\,\%), the station-days whose MDA8
 did not reach the completeness of 18 of 24 windows; \texttt{excede\_1h} does
 not share them because it is computed on the hourly maximum.
 
-\begin{table}[t]
+\begin{table}[pos=t]
   \centering
   \caption{Absolute and relative frequency of the exceedance indicators at
     station-day resolution ($n = 26{,}691$; valid $= 25{,}100$ for the MDA8
@@ -117,7 +117,7 @@ discarded as a metric in favor of sensitivity, specificity and area under
 the ROC curve. The 51 ppb threshold, with 31.96\,\%, offers a substantially
 better balance and is the main modeling scenario.
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
   \centering
   \includegraphics[width=\linewidth]{eda_cual_excedencias.pdf}
   \caption{Class balance of the MDA8 exceedance indicators for the three

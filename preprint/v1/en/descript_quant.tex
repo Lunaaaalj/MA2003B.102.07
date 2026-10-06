@@ -16,7 +16,7 @@ negative, that is, the prevailing wind enters from the east
 (66.22 ppb) lies above the 51 ppb threshold, so exceedance is not an outlier
 but part of the usual range of the variable.
 
-\begin{table}[t]
+\begin{table}[pos=t]
   \centering
   \caption{Quartiles and outlier bounds ($1.5\times$IQR criterion) of the
     hourly quantitative variables, in their original units.}
@@ -48,7 +48,7 @@ outliers several times the third quartile; this is the asymmetry that
 motivated Box-Cox in \cref{sec:transformaciones}. The meteorological
 variables are more symmetric, except wind speed.
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
     \centering
     \includegraphics[width = \linewidth]{boxplots_medidas.pdf}
     \caption{Box plots of each hourly quantitative variable, in original
@@ -75,7 +75,7 @@ transformed daily dataset, on the subset with all 16 simultaneously complete
 rule used in modeling, which guarantees a positive semidefinite matrix
 (\cref{fig:mapa-calor-diario}).
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
     \centering
     \includegraphics[width = \linewidth]{mapa_calor_correlacion_diario.pdf}
     \caption{Pearson correlation heat map of the 16 continuous variables of
@@ -104,7 +104,7 @@ the conventional threshold of 0.6; at the variable level, \texttt{RH\_media}
 below it without pulling down the total. The four diagnostics justify
 applying PCA to the daily predictors.
 
-\begin{table}[t]
+\begin{table}[pos=t]
   \centering
   \caption{Diagnostics prior to PCA on the daily correlation matrix
     ($n=15{,}856$, 16 variables).}

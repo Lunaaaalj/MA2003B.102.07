@@ -1,5 +1,6 @@
 # Auxiliares de LaTeX: se regeneran en cada compilacion.
 *.aux
+*.abs
 *.bcf
 *.blg
 *.fdb_latexmk

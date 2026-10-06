@@ -7,7 +7,7 @@ model, and \cref{tab:resultados-ejes} summarizes what each interdependence
 technique delivered. The three classifiers exceed the 0.75 performance
 threshold set in \cref{sec:obj:objetivo}.
 
-\begin{table}[t]
+\begin{table}[pos=t]
   \centering
   \caption{Performance on the 2025 validation. The station-day models
     (logistic and discriminant) and the metropolitan-area model
@@ -34,7 +34,7 @@ threshold set in \cref{sec:obj:objetivo}.
   \end{tabular}
 \end{table}
 
-\begin{table}[t]
+\begin{table}[pos=t]
   \centering
   \caption{Axes retained by the interdependence techniques on the 2021--2024
     fitting data. Variance: total for PCA, common for FA.}
@@ -44,12 +44,12 @@ threshold set in \cref{sec:obj:objetivo}.
     \toprule
     Technique & Axis & Var. (\%) \\
     \midrule
-    \multirow{3}{*}{PCA (15 variables)}
+    \multirow{3}{*}{\makecell[l]{PCA\\(15 variables)}}
       & Primary combustion load      & 26.1 \\
       & Photochemical forcing        & 19.8 \\
       & Atmospheric stagnation       & 10.0 \\
     \midrule
-    \multirow{3}{*}{FA (13 variables)}
+    \multirow{3}{*}{\makecell[l]{FA\\(13 variables)}}
       & Primary combustion           & 15.7 \\
       & Ventilation                  & 14.5 \\
       & Photochemical forcing        & 10.1 \\

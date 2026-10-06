@@ -1,12 +1,4 @@
-\documentclass[5p,nonatbib]{elsarticle}
-
-\makeatletter
-\def\ps@pprintTitle{%
-  \let\@oddhead\@empty
-  \let\@evenhead\@empty
-  \let\@oddfoot\@empty
-  \let\@evenfoot\@empty}
-\makeatother
+\documentclass[a4paper]{cas-dc}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -56,26 +48,58 @@
 \setlength{\bibitemsep}{0pt}
 \setlength{\bibhang}{1em}
 
-\usepackage[colorlinks=true, linkcolor=blue,citecolor=blue]{hyperref}
+\usepackage{lastpage}
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
 \usepackage[capitalise]{cleveref}
 
 \usepackage[version=4]{mhchem}
 
+\newcommand{\fechapreprint}{6 October 2026}
+
+\ExplSyntaxOn
+\cs_set:Npn \__first_footerline:
+  { \group_begin: \small \sffamily \__short_authors: :~
+     { \rmfamily \itshape Preprint,~\fechapreprint } \group_end: }
+\cs_set:Npn \__cas_foot:
+  { \parbox[t]{\textwidth}
+     { \rule{\textwidth}{.2pt}\\ \sffamily\small \__first_footerline:
+        \hfill Page~\thepage{}~of~\pageref*{LastPage} } }
+\cs_set_eq:NN \__first_foot: \__cas_foot:
+\RenewDocumentEnvironment { keywords } { O{ Keywords } }
+  { \tex_global:D \tex_setbox:D \g_stm_key_box = \vtop \bgroup
+     \hsize=.25 \textwidth
+     \cs_set_eq:NN \sep \par
+     \parindent \c_zero_dim
+     A\,R\,T\,I\,C\,L\,E\ \ I\,N\,F\,O \par \skip_vertical:n { -3pt }
+     \rule{.25 \textwidth}{.2pt}\par\footnotesize
+     \noindent \textit { #1 }:  \par }
+  { \egroup }
+\RenewDocumentCommand \printorcid { }
+  { \seq_if_empty:NF \g_stm_orcid_seq
+      { \group_begin: \tex_let:D \thefootnote \relax \footnotetext
+          { \raggedright \textsc{orcid}(s):\c_space_token
+            \seq_use:Nn \g_stm_orcid_seq { ;~ } }
+        \group_end: } }
+\ExplSyntaxOff
+\addto\captionsenglish{\renewcommand\abstractname{A\,B\,S\,T\,R\,A\,C\,T}}
+\pagestyle{cas}
+
+\shorttitle{Daily ozone exceedances in the Monterrey Metropolitan Area}
+\shortauthors{A. Eduardo-Luna et al.}
+
 \begin{document}
 
-\begin{frontmatter}
+\title[mode=title]{Discriminating daily ozone exceedances in the Monterrey Metropolitan Area}
+\title[mode=sub]{Station-day classification under the 51 ppb threshold of NOM-020-SSA1-2021 at 15 SIMA stations, 2021--2025}
 
-\title{Discriminating daily ozone exceedances in the Monterrey Metropolitan
-Area\\
-\large Station-day classification under the 51 ppb threshold of
-NOM-020-SSA1-2021 at 15 SIMA stations, 2021--2025}
+\author[1]{Angel Eduardo-Luna}
+\author[1]{Jenaro Alcaraz}
+\author[1]{Emilia Rico}
+\author[1]{Mar Fernández}
+\author[1]{Sofía Fernández}
 
-\author[tec]{Eduardo Luna}
-\author[tec]{Jenaro Alcaraz}
-\author[tec]{Emilia Rico}
-\author[tec]{Mar Fernández}
-\author[tec]{Sofía Fernández}
-\address[tec]{Instituto Tecnológico y de Estudios Superiores de Monterrey, Monterrey, Nuevo León, Mexico}
+\affiliation[1]{organization={Instituto Tecnológico y de Estudios Superiores de Monterrey},
+  city={Monterrey}, state={Nuevo León}, country={Mexico}}
 
 \begin{abstract}
 This work discriminates ozone exceedance days in the Monterrey Metropolitan
@@ -96,13 +120,13 @@ phenomenon modulated by wind; a year effect that no predictor explains and
 the lack of volatile organic compound measurements are the main limitations.
 \end{abstract}
 
-\begin{keyword}
+\begin{keywords}
 tropospheric ozone \sep factor analysis \sep principal component analysis
 \sep logistic regression \sep linear discriminant analysis \sep
 autoregressive model \sep Monterrey Metropolitan Area
-\end{keyword}
+\end{keywords}
 
-\end{frontmatter}
+\maketitle
 
 \input{introduccion}
 \input{revi_medio_ambiente}

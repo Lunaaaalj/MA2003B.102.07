@@ -1,12 +1,4 @@
-\documentclass[5p,nonatbib]{elsarticle}
-
-\makeatletter
-\def\ps@pprintTitle{%
-  \let\@oddhead\@empty
-  \let\@evenhead\@empty
-  \let\@oddfoot\@empty
-  \let\@evenfoot\@empty}
-\makeatother
+\documentclass[a4paper]{cas-dc}
 
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -57,7 +49,8 @@
 \setlength{\bibitemsep}{0pt}
 \setlength{\bibhang}{1em}
 
-\usepackage[colorlinks=true, linkcolor=blue,citecolor=blue]{hyperref}
+\usepackage{lastpage}
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
 \usepackage[spanish]{cleveref}
 
 \usepackage[version=4]{mhchem}
@@ -69,24 +62,66 @@
 \crefname{equation}{ecuación}{ecuaciones}
 \Crefname{equation}{Ecuación}{Ecuaciones}
 
-\abstracttitle{Resumen}
-\keywordtitle{Palabras clave}
+\newcommand{\fechapreprint}{6 de octubre de 2026}
+
+\ExplSyntaxOn
+\cs_set:Npn \__first_footerline:
+  { \group_begin: \small \sffamily \__short_authors: :~
+     { \rmfamily \itshape Preprint,~\fechapreprint } \group_end: }
+\cs_set:Npn \__cas_foot:
+  { \parbox[t]{\textwidth}
+     { \rule{\textwidth}{.2pt}\\ \sffamily\small \__first_footerline:
+        \hfill Página~\thepage{}~de~\pageref*{LastPage} } }
+\cs_set_eq:NN \__first_foot: \__cas_foot:
+\RenewDocumentEnvironment { keywords } { O{ Palabras~clave } }
+  { \tex_global:D \tex_setbox:D \g_stm_key_box = \vtop \bgroup
+     \hsize=.25 \textwidth
+     \cs_set_eq:NN \sep \par
+     \parindent \c_zero_dim
+     I\,N\,F\,O\,R\,M\,A\,C\,I\,Ó\,N \par \skip_vertical:n { -3pt }
+     \rule{.25 \textwidth}{.2pt}\par\footnotesize
+     \noindent \textit { #1 }:  \par }
+  { \egroup }
+\RenewDocumentCommand \printorcid { }
+  { \seq_if_empty:NF \g_stm_orcid_seq
+      { \group_begin: \tex_let:D \thefootnote \relax \footnotetext
+          { \raggedright \textsc{orcid}(s):\c_space_token
+            \seq_use:Nn \g_stm_orcid_seq { ;~ } }
+        \group_end: } }
+\RenewDocumentCommand \stmauthors { }
+  { \group_begin:
+    \stmAuthorSetup { type = authors }
+    \l_stm_au_setup_tl
+    \par \vskip\l_stm_augroup_before_dim
+    \l_stm_augroup_align_tl \l_stm_augroup_size_tl
+    \l_stm_augroup_shape_tl \l_stm_augroup_weight_tl
+    \color{ \l_stm_augroup_color_tl }
+    \bool_if:NTF \g_stm_augr_bool
+      { \seq_use:Nn \g_stm_augr_seq { \par } }
+      { \seq_use:cnnn { g_stm_au\int_use:N\g_stm_augr_int _seq }
+          { ,~ } { ,~ } { ~y~ } }
+    \par\vskip\l_stm_augroup_after_dim
+    \group_end: }
+\ExplSyntaxOff
+\addto\captionsspanish{\renewcommand\abstractname{R\,E\,S\,U\,M\,E\,N}}
+\pagestyle{cas}
+
+\shorttitle{Excedencias diarias de ozono en el Área Metropolitana de Monterrey}
+\shortauthors{A. Eduardo-Luna et al.}
 
 \begin{document}
 
-\begin{frontmatter}
+\title[mode=title]{Discriminación de excedencias diarias de ozono en el Área Metropolitana de Monterrey}
+\title[mode=sub]{Clasificación día-estación bajo el umbral de 51 ppb de la NOM-020-SSA1-2021 en 15 estaciones del SIMA, 2021--2025}
 
-\title{Discriminación de excedencias diarias de ozono en el Área Metropolitana
-de Monterrey\\
-\large Clasificación día-estación bajo el umbral de 51 ppb de la
-NOM-020-SSA1-2021 en 15 estaciones del SIMA, 2021--2025}
+\author[1]{Angel Eduardo-Luna}
+\author[1]{Jenaro Alcaraz}
+\author[1]{Emilia Rico}
+\author[1]{Mar Fernández}
+\author[1]{Sofía Fernández}
 
-\author[tec]{Eduardo Luna}
-\author[tec]{Jenaro Alcaraz}
-\author[tec]{Emilia Rico}
-\author[tec]{Mar Fernández}
-\author[tec]{Sofía Fernández}
-\address[tec]{Instituto Tecnológico y de Estudios Superiores de Monterrey, Monterrey, Nuevo León, México}
+\affiliation[1]{organization={Instituto Tecnológico y de Estudios Superiores de Monterrey},
+  city={Monterrey}, state={Nuevo León}, country={México}}
 
 \begin{abstract}
 Este trabajo discrimina los días de excedencia de ozono en el Área
@@ -108,13 +143,13 @@ viento; un efecto de año que ningún predictor explica y la ausencia de
 mediciones de compuestos orgánicos volátiles son las limitaciones principales.
 \end{abstract}
 
-\begin{keyword}
+\begin{keywords}
 ozono troposférico \sep análisis factorial \sep análisis de componentes
 principales \sep regresión logística \sep análisis discriminante lineal \sep
 modelo autorregresivo \sep Área Metropolitana de Monterrey
-\end{keyword}
+\end{keywords}
 
-\end{frontmatter}
+\maketitle
 
 \input{introduccion}
 \input{revi_medio_ambiente}
